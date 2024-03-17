@@ -1,0 +1,9 @@
+send G28 X Y,1
+send G1 X100 Y190,1
+send G28 Z,1
+send G1 Z200,1
+send M302,1
+send M83,1
+
+
+

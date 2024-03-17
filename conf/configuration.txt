@@ -1,0 +1,45 @@
+#total syringes
+6
+#syringe 0 to max sign distance (mm);syringe total volume (ml)
+92.5;60
+59;10
+92.5;60
+59;10
+92.5;60
+59;10
+#inlet tube volume (ml)
+10
+#outlet tube volume (ml)
+10
+#schematic image of the current configuration
+test.png
+#USB port for the syringebot
+/dev/ttyUSB0
+#baud rate for syringebot
+250000
+#USB interface
+#name
+electrodes
+#type
+sensor
+#USB port
+/dev/ttyACM1
+#baud rate
+9600
+#Variables to read
+2
+#var names
+V1 V2
+#USB interface
+#name
+photo
+#type
+sensor
+#USB port
+/dev/ttyACM0
+#baud rate
+9600
+#Variables to read
+1
+#var names
+P1

@@ -1,0 +1,6 @@
+ask $temp$,Set Temperature,New setpoint: (insert 0 to remove setpoint),40,0,150
+send M140 S$temp$,0
+
+
+
+

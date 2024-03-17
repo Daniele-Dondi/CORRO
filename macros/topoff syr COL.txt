@@ -1,0 +1,20 @@
+;function
+; this function gets the red value of the color associated
+; and then divide the value by 10 obtaining the number of the syringe
+buffer
+eval $syr$,int($1$/10)
+eval $ML$,10.0
+macro "syrY_X_ml"$ML$,$syr$
+;writegcode topoff.gcode
+log syringe $syr$ top off
+print
+
+
+
+
+
+
+
+
+
+

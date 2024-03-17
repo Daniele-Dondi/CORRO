@@ -1,0 +1,14 @@
+buffer
+macro "syr1_X_ml"30
+macro "syr1_X_ml"60
+macro "syr1_X_ml"60
+macro "purge syringe 1"
+print
+
+
+
+
+
+
+
+

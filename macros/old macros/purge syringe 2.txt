@@ -1,0 +1,14 @@
+macro "valve_X_exit_1"2
+macro "valve_X_exit_1"3
+send G1 Y0,0
+send M400,0
+macro "valve_X_exit_2"3
+send G1 Y118,0
+send M400,0
+macro "valve_X_close"2
+macro "valve_X_close"3
+
+
+
+
+

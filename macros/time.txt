@@ -1,0 +1,9 @@
+hook time 20m "getglobal"
+
+
+
+
+
+
+
+

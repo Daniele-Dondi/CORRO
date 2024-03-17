@@ -1,0 +1,25 @@
+;$1$: ml  $2$: syr num
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+eval $ml$,$syringemax$-$1$*($syringemax$/$syringevol$)
+macro "valve_X_exit_2"$valve1$
+send G1 $axisname$$ml$,0;suck
+send M400,0
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+send G1 $axisname$$syringemax$,0;eject
+send M400,0
+eval $syr$,$2$+1
+log loaded $1$ ml from syringe $2$
+macro "purge syringe X"$2$
+
+
+
+
+
+
+
+
+
+

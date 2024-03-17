@@ -1,0 +1,56 @@
+;function
+;$1$: ml  $2$: syr num
+;please note that this procedure does not execute the purge
+;purge should be called externally to ensure that the volume is transferred completely
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+label cycle
+eval $cond$,$1$>$syringevol$
+if $cond$ loop
+eval $vol$,$1$; if $1$<=syringe vol
+jump loop2
+label loop
+eval $vol$,$syringevol$; if $1$> syringevol make more additions
+label loop2
+eval $mm$,round($syringemax$-$vol$*($syringemax$/$syringevol$),3)
+eval $1$,$1$-$vol$
+macro "valve_X_exit_2"$valve1$
+send G1 $axisname$$mm$,0;suck
+send M400,0
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+send G1 $axisname$$syringemax$,0;eject
+send M400,0
+eval $cond2$,$1$>0
+if $cond2$ cycle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+buffer
+macro "home syringe X"1
+print

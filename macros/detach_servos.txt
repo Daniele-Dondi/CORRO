@@ -1,0 +1,10 @@
+buffer
+for $i$ 12
+eval $servo$,$i$-1
+send M282 P$servo$,0
+next
+print
+
+
+
+

@@ -1,0 +1,9 @@
+macro "valve_X_exit_1"4
+macro "valve_X_exit_1"5
+send G1 X150,0
+send G4,0
+macro "valve_X_exit_2"4
+send G1 X185,0
+send G4,0
+macro "valve_X_close"4
+macro "valve_X_close"5

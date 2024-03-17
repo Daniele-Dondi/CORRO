@@ -1,0 +1,15 @@
+;this procedure takes the volume and fill the outlet tube
+buffer
+ask $num$,Choose syringe,select syringe,1,2,6
+eval $num$,int($num$)
+getsyringeparms $num$;get parms for syringe $num$
+eval $maxvol$,$syringevol$*5; set the max vol as 5 times the syringe volume
+ask $ML$,Syringe $num$,Enter how many ml to put,1,0,$maxvol$
+macro "syrY_X_ml"$ML$,$num$
+;macro "purge syringe X"$num$
+print
+
+
+
+
+

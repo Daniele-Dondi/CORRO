@@ -1,0 +1,11 @@
+hook temp >109.71 "setglobal"
+
+
+
+
+
+
+
+
+
+

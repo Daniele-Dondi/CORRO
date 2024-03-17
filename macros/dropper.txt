@@ -1,0 +1,96 @@
+buffer
+eval $numberofusedsyr$,2
+createarray syringesnum,$numberofusedsyr$
+createarray syrmaxvol,$numberofusedsyr$
+createarray syrcurvol,$numberofusedsyr$
+createarray volincrement,$numberofusedsyr$
+;note: gas syringe always in position 1 of array
+setelement syringesnum,1,4;physical number of the 1st syringe
+setelement syringesnum,2,2
+setelement syringesnum,3,4
+setelement volincrement,1,0.05;gas volume for each step
+setelement volincrement,2,0.1;volume of 1st reactant for each step
+setelement volincrement,3,1;volume of 2nd reactant for each step
+eval $numberofdrops$,40
+eval $pause$,0.1; pause in seconds between additions 
+eval $pause$,$pause$*1000; transforms the value in milliseconds
+eval $numreags$,$numberofusedsyr$-1
+;program starts
+eval $count$,1
+for $i$ $numberofusedsyr$;fill all the syringes
+ getelement syringesnum,$2$,$count$;get the syringe number 
+ macro "fill syringe X"$2$
+ setelement syrmaxvol,$count$,$return$
+ setelement syrcurvol,$count$,$return$
+ eval $count$,$count$+1
+next;$i$
+for $d$ $numberofdrops$
+ ;check if we have to refill syringes
+ for $i$ $numberofusedsyr$
+  getelement syringesnum,$2$,$i$
+  getelement volincrement,$increment$,$i$
+  getelement syrcurvol,$curvol$,$i$
+  getelement syrmaxvol,$maxvol$,$i$
+  eval $test$,($curvol$-$increment$)>=0
+  if $test$ nofill
+  macro "fill syringe X"$2$
+  setelement syrcurvol,$i$,$maxvol$
+  label nofill
+ next;$i$
+ eval $count$,2
+ eval $tmp$,""
+ for $j$ $numreags$;calculate syringes movements
+  getelement syringesnum,$2$,$count$
+  getelement volincrement,$increment$,$count$
+  getelement syrcurvol,$curvol$,$count$
+  getsyringeparms $2$
+  eval $valve1$,($2$-1)*2
+  eval $valve2$,$valve1$+1
+  eval $vol$,$curvol$-$increment$
+  eval $mm$,$syringemax$-$vol$*($syringemax$/$syringevol$)
+  macro "valve_X_exit_1"$valve1$
+  macro "valve_X_exit_2"$valve2$
+  eval $tmp$,"$tmp$"+" $axisname$$mm$"
+  setelement syrcurvol,$count$,$vol$
+  eval $count$,$count$+1
+ next;$j$
+ send G1 $tmp$,0;send the reactants volume all together
+ ;gas syringe
+ getelement syringesnum,$2$,1
+ getelement volincrement,$increment$,1
+ getelement syrcurvol,$curvol$,1
+ getsyringeparms $2$
+ eval $valve1$,($2$-1)*2
+ eval $valve2$,$valve1$+1
+ eval $vol$,$curvol$-$increment$
+ eval $mm$,$syringemax$-$vol$*($syringemax$/$syringevol$)
+ macro "valve_X_exit_1"$valve1$
+ macro "valve_X_exit_2"$valve2$
+ send G1 $axisname$$mm$,0;push
+ send M400,0
+ macro "valve_X_close"$valve2$
+ setelement syrcurvol,1,$vol$
+ ;end of gas
+ send G4 P$pause$,0; wait (number in milliseconds)
+ send M300 S440 P200,0;beep
+next;$d$
+print
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

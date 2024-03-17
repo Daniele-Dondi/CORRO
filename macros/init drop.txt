@@ -1,0 +1,104 @@
+buffer
+createarray syringesnum,3
+setelement syringesnum,1,1
+setelement syringesnum,2,2
+setelement syringesnum,3,4
+macro "fill syringe X"1
+eval $syr1maxvol$,$return$
+eval $syr1curvol$,$syr1maxvol$
+macro "fill syringe X"2
+eval $syr2maxvol$,$return$
+eval $syr2curvol$,$syr2maxvol$
+macro "fill syringe X"4
+eval $syr4maxvol$,$return$
+eval $syr4curvol$,$syr4maxvol$
+macro "fill syringe X"6
+eval $syr6maxvol$,$return$
+eval $syr6curvol$,$syr6maxvol$
+eval $inc1$,50;volume of gas for each step
+eval $inc2$,1;volume of 2 for each step
+eval $inc4$,1;volume of 4 for each step
+eval $inc6$,1;volume of 6 for each step
+eval $pause$,1; pause in seconds between additions 
+eval $pause$,$pause$*1000; transforms the value in milliseconds
+for $x$ 3
+eval $c$,4-$x$;count from 1 to max cycles
+;first reactant
+;parameters
+eval $2$,2;syringe 2
+eval $increment$,$inc2$;increment for syringe 2
+;end parameters
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+eval $vol$,$syringevol$-$increment$*$c$
+eval $ml$,$syringemax$-$vol$*($syringemax$/$syringevol$)
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+eval $axis1$,str($axisname$).upper()+str($ml$);add the correct variables
+eval $syr2curvol$,$syr2curvol$-$increment$;update the residual volume in the syringe
+;second reactant
+;parameters
+eval $2$,4;syringe 4
+eval $increment$,$inc4$;increment for syringe 4
+;end parameters
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+eval $vol$,$syringevol$-$increment$*$c$
+eval $ml$,$syringemax$-$vol$*($syringemax$/$syringevol$)
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+eval $axis2$,$axisname$;add the correct variables
+eval $syr4curvol$,$syr4curvol$-$increment$;update the residual volume in the syringe
+send G1 $axis1$ $axisname$$ml$,0;push reactants
+send M400,0
+;gas
+;parameters
+eval $2$,1;syringe 1
+eval $increment$,$inc1$;increment for syringe 1
+;end parameters
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+eval $vol$,$syringevol$-$increment$*$c$
+eval $ml$,$syringemax$-$vol$*($syringemax$/$syringevol$)
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+send G1 $axisname$$ml$,0;push
+eval $syr1curvol$,$syr1curvol$-$increment$;update the residual volume in the syringe
+send G4 P$pause$,0; wait (number in milliseconds)
+send M300 S440 P200,0;beep
+;check if we have to refill syringes
+;syringe1
+eval $test$,$syr1curvol$>0
+if $test$ loop
+send refill1,0
+macro "fill syringe X"1
+eval $syr1curvol$,$syr1maxvol$
+send end_refill1,0
+label loop
+;syringe2
+eval $test$,$syr2curvol$>0
+if $test$ loop2
+send refill2,0
+macro "fill syringe X"2
+eval $syr2curvol$,$syr2maxvol$
+send end_refill2,0
+label loop2
+;syringe4
+eval $test$,$syr4curvol$>0
+if $test$ loop4
+send refill4,0
+macro "fill syringe X"4
+eval $syr4curvol$,$syr4maxvol$
+send end_refill4,0
+label loop4
+next
+print
+
+
+
+
+
+

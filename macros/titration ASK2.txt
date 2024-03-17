@@ -1,0 +1,22 @@
+getglobal $syrnum$ $totmL$ $step$ $pause$ $valve1$ $valve2$ $cyc$ $axisname$ $syringemax$ $syringevol$
+buffer
+eval $cyc$,$cyc$-1
+eval $end$,$cyc$<0
+if $end$ titration_finished
+log titrating...
+eval $vol$,($cyc$)*($totmL$/$step$); calculate the volume in the syringe for each addition
+eval $mm$,round($syringemax$-$vol$*($syringemax$/$syringevol$),3)
+send G1 $axisname$$mm$,0; drop
+send M400,0
+setglobal $cyc$
+hook time $pause$s "titration ASK2"; call itself
+jump end
+label titration_finished
+log titration finished
+macro "valve_X_close"$valve1$
+macro "valve_X_close"$valve2$
+label end
+print
+
+
+

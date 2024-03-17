@@ -1,0 +1,10 @@
+buffer
+ask $i$,Move servo,Enter the servo number,10,0,20
+macro "valve_X_exit_2"$i$
+macro "valve_X_exit_1"$i$
+print
+
+
+
+
+

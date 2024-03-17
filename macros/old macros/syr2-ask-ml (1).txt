@@ -1,0 +1,7 @@
+buffer
+ask $ML$,Syringe 2,Enter how many ml to put,1,1,10
+macro "syr2_X_ml"$ML$
+macro "purge syringe 2"
+print
+
+

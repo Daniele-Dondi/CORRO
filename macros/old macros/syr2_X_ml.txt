@@ -1,0 +1,11 @@
+eval $ml$,118-$1$*11.8
+macro "valve_X_exit_2"2
+send G1 Y$ml$,0;suck
+send M400,0
+macro "valve_X_exit_1"2
+macro "valve_X_exit_2"3
+send G1 Y118,0;eject
+send M400,0
+log loaded $ml$ from syringe 1
+
+

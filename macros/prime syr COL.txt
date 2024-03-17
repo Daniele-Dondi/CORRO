@@ -1,0 +1,11 @@
+;function
+; this function gets the red value of the color associated
+; and then divide the value by 10 obtaining the number of the syringe
+buffer
+eval $syr$,int($1$/10)
+macro "prime syringe X"$syr$
+;message prime syringe $syr$
+print
+
+
+

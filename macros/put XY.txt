@@ -1,0 +1,24 @@
+ask $X$,Vial X position,Enter vial X position,1,1,8
+ask $Y$,Vial Y position,Enter vial Y position,1,1,6
+eval $X$,58-($X$-1)*15.71328
+eval $Y$,121+($Y$-1)*14.8
+echo X=$X$    Y=$Y$
+macro "goto XY"$X$,$Y$
+send G1 Z14,1
+send M83,1
+send G1 E20,1
+send G1 Z200,1
+send G1 X100 Y190,1
+
+
+
+
+
+
+
+
+
+
+
+
+

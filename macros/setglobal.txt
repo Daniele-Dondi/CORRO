@@ -1,0 +1,10 @@
+eval $a$,1
+eval $b$,2
+message $a$ $b$
+setglobal $a$ $b$
+eval $a$,5
+eval $b$,6
+message $a$ $b$
+getglobal $a$ $b$
+message $a$ $b$
+

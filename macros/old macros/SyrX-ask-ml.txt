@@ -1,0 +1,8 @@
+;in $1$ the number of the syringe
+buffer
+eval $num$,$1$;get parms for syringe $1$
+getsyringeparms $num$
+ask $ML$,Syringe $num$,Enter how many ml to put,1,0,$syringevol$
+macro "syrY_X_ml"$ML$,$num$
+print
+

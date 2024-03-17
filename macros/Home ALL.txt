@@ -1,0 +1,15 @@
+;before calling this procedure call buffer
+;and after this procedure call print
+getsyringeparms 1
+for $i$ $numsyringes$
+eval $num$,$numsyringes$-$i$+1
+macro "home syringe X"$num$
+next
+
+
+
+
+
+
+
+

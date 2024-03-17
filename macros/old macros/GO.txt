@@ -1,0 +1,8 @@
+ask $X$,X position,Enter cartesian X coordinate,0,-214,214
+ask $Y$,Y position,Enter cartesian Y coordinate,214,-214,214
+macro "goto XY"$X$,$Y$
+
+
+
+
+

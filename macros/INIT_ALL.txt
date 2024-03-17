@@ -1,0 +1,43 @@
+;macro "Init_Robot"
+buffer
+macro "Home ALL"
+send M300 S440 P200,0;play tone
+send G4 P250,0
+send M300 S440 P200,0;play tone
+send M300 S440 P200,0;play tone
+;writegcode init.gcode
+log Initializing SyringeBOT
+print
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

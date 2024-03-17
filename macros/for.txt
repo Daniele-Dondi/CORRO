@@ -1,0 +1,6 @@
+ask $step$,Max additions,Enter number of additions to make,1,1,10
+eval $step$,int($step$)
+for $cyc$ $step$
+message $cyc$/$step$
+next
+

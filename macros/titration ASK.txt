@@ -1,0 +1,39 @@
+;
+; below parameters to be setted
+;
+getsyringeparms 1
+ask $syrnum$,Choose1 Syringe,Enter the number of the syringe to use for titration,1,1,$numsyringes$
+eval $syrnum$,int($syrnum$)
+getsyringeparms $syrnum$
+ask $totmL$,Max ml,Enter the total volume to use for titration,10,0.1,$syringevol$
+eval $maxs$,$syringevol$*10
+eval $add$,$totmL$*2
+ask $step$,Max additions,Enter number of additions to make,$add$,1,$maxs$
+eval $step$,int($step$)
+ask $pause$,Pause,Enter pause in seconds between additions,5,1,200
+eval $pause$,int($pause$)
+ask $dummy$,Ready to start,Press OK to start. Before be sure that outlet tube of syringe $syrnum$ is filled completely and correctly inserted into titration beaker,1,0,1
+; procedure starts here
+buffer
+getsyringeparms $syrnum$
+eval $valve1$,($syrnum$-1)*2
+eval $valve2$,$valve1$+1
+eval $mm$,round($syringemax$-$totmL$*($syringemax$/$syringevol$),3)
+macro "valve_X_exit_2"$valve1$
+send G1 $axisname$$mm$,0; take $mm$ milliliters
+send M400,0; wait for task completion
+macro "valve_X_exit_1"$valve1$
+macro "valve_X_exit_2"$valve2$
+eval $cyc$,$step$
+setglobal $syrnum$ $axisname$ $totmL$ $step$ $pause$ $valve1$ $valve2$ $cyc$ $syringemax$ $syringevol$
+log executing titration with syringe $syrnum$, using $totmL$ mL in total and making $step$ additions with a pause of $pause$ s
+hook time $pause$s "titration ASK2"
+print
+
+
+
+
+
+
+
+

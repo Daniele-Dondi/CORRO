@@ -1,0 +1,14 @@
+macro "valve_X_exit_2"2
+send G1 X175,0;suck
+send G4,0
+macro "valve_X_exit_1"2
+macro "valve_X_exit_2"3
+send G1 X185,0;eject
+send G4,0
+
+
+
+
+
+
+

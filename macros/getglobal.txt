@@ -1,0 +1,3 @@
+getglobal $syrnum$ $totmL$ $step$ $pause$ $valve1$ $valve2$
+message $syrnum$ $totmL$ $step$ $pause$ $valve1$ $valve2$
+
