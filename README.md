@@ -1,3 +1,4 @@
+![plot](screenshot.png)
 Updated CORRO software related to<br>
 Mostly 3D printed chemical synthesis robot<br>
 HardwareX<br>
