@@ -1,0 +1,28 @@
+;function
+;in $1$ the numner of washing cycles
+;in $2$ the number of syringe
+;record
+;eval $2$,5;syringe n.5
+eval $step$,$1$
+getsyringeparms $2$
+eval $valve1$,($2$-1)*2
+eval $valve2$,$valve1$+1
+macro "valve_X_exit_1"$valve1$
+for $cyc$ $step$
+macro "valve_X_exit_2"$valve2$
+send G1 $axisname$0,0;suck
+send M400,0
+macro "valve_X_exit_1"$valve2$
+send G1 $axisname$$syringemax$,0;move to waste
+send M400,0
+next
+macro "valve_X_close"$valve1$
+macro "valve_X_close"$valve2$
+;play
+
+
+
+
+
+
+

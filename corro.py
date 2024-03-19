@@ -1074,7 +1074,8 @@ def Connect(): #connect/disconnect robot, syringebot and sensors. Start cycling 
             USB_handles[sensor].close()
       USB_handles=[] #remove all handles     
       for btn in Plot_B:
-        btn.destroy()      
+        btn.destroy()
+      Plot_B=[]  
       logfile.write("---------------------------------\n")
       logfile.write("-         PROCESS ENDED         -\n")
       logfile.write("---------------------------------\n")

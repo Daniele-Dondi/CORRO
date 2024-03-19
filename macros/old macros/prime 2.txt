@@ -1,3 +1,0 @@
-buffer
-macro "prime syringe X"2
-print

@@ -1,5 +1,7 @@
 getglobal $syrnum$ $totmL$ $step$ $pause$ $valve1$ $valve2$ $cyc$ $axisname$ $syringemax$ $syringevol$
 buffer
+getvalue $photo$,P1
+log OD value= $photo$ cycle $cyc$
 eval $cyc$,$cyc$-1
 eval $end$,$cyc$<0
 if $end$ titration_finished
@@ -17,6 +19,8 @@ macro "valve_X_close"$valve1$
 macro "valve_X_close"$valve2$
 label end
 print
+
+
 
 
 

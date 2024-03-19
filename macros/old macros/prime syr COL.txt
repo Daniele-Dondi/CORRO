@@ -1,9 +1,0 @@
-; this function gets the red value of the color associated
-; and then divide the value by 10 obtaining the number of the syringe
-buffer
-eval $syr$,$1$/10
-;macro "prime syringe X"1
-message $syr$
-print
-
-

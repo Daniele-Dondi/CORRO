@@ -1,7 +1,0 @@
-buffer
-macro "syr2-10ml"
-macro "syr2-10ml"
-macro "syr2-10ml"
-macro "syr2-10ml"
-macro "syr2-10ml"
-print

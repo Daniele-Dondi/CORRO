@@ -1,4 +1,0 @@
-for $a$ 10
-message cycle number $a$
-next
-
