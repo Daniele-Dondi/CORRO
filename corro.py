@@ -133,6 +133,10 @@ def ResetChart():
 def GraphZoom_Unzoom():
   global graph_all
   graph_all=not(graph_all)
+  if graph_all:
+    Zoom_B.config(text="View All")
+  else:
+    Zoom_B.config(text="View Last")       
 
 def readConfigurationFiles():
     global NumSyringes,SyringeMax,SyringeVol,VolInlet,VolOutlet,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
@@ -304,7 +308,8 @@ GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
 Label(GRP, text="GRAPH CTRL",font="Verdana 10 bold",bg='pink').pack(pady=10)
 Button(GRP, text="reset chart", command=ResetChart).pack();
-Button(GRP, text="Last/All", command=GraphZoom_Unzoom).pack();
+Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
+Zoom_B.pack()
 K = Frame(F)
 K.pack(side="bottom")
 J = Frame(F)
@@ -1031,12 +1036,12 @@ def Connect(): #connect/disconnect robot, syringebot and sensors. Start cycling 
            tkinter.messagebox.showerror("ERROR", USB_names[sensor]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
-        btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white")
+        btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
         Plot_B.append(btn)
         btn.pack()
         cntr=1        
         for var_name in Sensors_var_names:
-         btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[cntr% len(graph_colors)],fg="white")
+         btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[cntr% len(graph_colors)],fg="white",bd=4)
          Plot_B.append(btn)
          btn.pack()
          cntr+=1
@@ -1091,7 +1096,7 @@ def HookEventsCycle():
            if ((Temperature_Hook_Value[0]=="<") and (float(T_Actual)<float(Temperature_Hook_Value[1:]))) or ((Temperature_Hook_Value[0]==">") and (float(T_Actual)>float(Temperature_Hook_Value[1:]))):
                Temperature_Hook=False
                b_temp.pack_forget()               
-               print("Executing macro "+Temperature_Hook_Macro)
+               print("Temp Hook: executing macro "+Temperature_Hook_Macro)
                Macro(macrolist.index(Temperature_Hook_Macro))
         if Time_Hook:
            datet=datetime.datetime.now()
@@ -1100,7 +1105,7 @@ def HookEventsCycle():
            if (now>=alarm):
                Time_Hook=False
                b_clock.pack_forget()                              
-               print("Executing macro "+Time_Hook_Macro)
+               print("Time Hook: executing macro "+Time_Hook_Macro)
                Macro(macrolist.index(Time_Hook_Macro))
   if (connected): threading.Timer(1, HookEventsCycle).start() #call itself       
 
