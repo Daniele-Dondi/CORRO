@@ -862,7 +862,12 @@ def LoadGcode():
  if str(filename)=="": return
  if Parse("readgcode "+filename,var)=="Error":
    tkinter.messagebox.showerror("ERROR","Cannot run Gcode "+filename)
-    
+
+def CancelPrint():
+ global syringe
+ MsgBox = tkinter.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
+ if MsgBox == 'yes':  
+  syringe.cancelprint()
 
 #Robot direct interface for buttons
 def MoveRobot(cmd):
@@ -1127,7 +1132,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
         if SyringeBOT_WAS_BUSY==False:
            w2.create_rectangle(5,200,795,400,fill='white')
            w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=('Helvetica 15 bold'))
-        w2.create_rectangle(10,300,progress*790,350,fill='red')
+        w2.create_rectangle(10,300,progress*780+10,350,fill='red')
         SyringeBOT_IS_BUSY=True
         SyringeBOT_WAS_BUSY=True
    else:
@@ -1247,6 +1252,7 @@ if (HasRobot):
  eCommand_1.insert(0, 'G28 X Y')
  eCommand_1.pack()
 Button(F, text="load gcode", command=LoadGcode).pack();
+Button(F, text="cancel print", command=CancelPrint).pack();
 bClose = Button(F, text="EXIT", command=Close)
 bClose.pack(pady=10)
 temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")

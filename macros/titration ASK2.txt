@@ -1,12 +1,13 @@
 getglobal $syrnum$ $totmL$ $step$ $pause$ $valve1$ $valve2$ $cyc$ $axisname$ $syringemax$ $syringevol$
 buffer
 getvalue $photo$,P1
-log OD value= $photo$ cycle $cyc$
+eval $mLadded$,round(($step$-$cyc$)*$totmL$/$step$,2)
+log OD value= $photo$ cycle $cyc$ mL added $mLadded$
 eval $cyc$,$cyc$-1
 eval $end$,$cyc$<0
 if $end$ titration_finished
 log titrating...
-eval $vol$,($cyc$)*($totmL$/$step$); calculate the volume in the syringe for each addition
+eval $vol$,($cyc$)*($totmL$/$step$); calculate the residual volume in the syringe after each addition
 eval $mm$,round($syringemax$-$vol$*($syringemax$/$syringevol$),3)
 send G1 $axisname$$mm$,0; drop
 send M400,0
@@ -17,6 +18,7 @@ label titration_finished
 log titration finished
 macro "valve_X_close"$valve1$
 macro "valve_X_close"$valve2$
+macro "wash"
 label end
 print
 

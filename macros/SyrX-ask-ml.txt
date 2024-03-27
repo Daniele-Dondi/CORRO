@@ -3,11 +3,12 @@
 ;this function takes the volume and purge the outlet tube
 eval $num$,$1$;get parms for syringe $1$
 getsyringeparms $num$
-eval $maxvol$,$syringevol$*5; set the max vol as 5 times the syringe volume
+eval $maxvol$,$syringevol$*10; set the max vol as 10 times the syringe volume
 ask $ML$,Syringe $num$,Enter how many ml to put,1,0,$maxvol$
 log Syringe $num$ is going to take $ML$ mL
 macro "syrY_X_ml"$ML$,$num$
 macro "purge syringe X"$num$
+
 
 
 
