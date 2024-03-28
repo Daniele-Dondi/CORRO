@@ -24,9 +24,11 @@ def keypress(event):  #keyboard input
 def Listen():
  global cycling   
  if (ser.inWaiting() > 0):
-        data_str = ser.read(ser.inWaiting()).decode('ascii') 
+        data_str = ser.read(ser.inWaiting()).decode('ascii')
         print(data_str, end='')
- if cycling: threading.Timer(0.5, Listen).start() #call itself    
+        for s in data_str.split('\n'):
+         if s.strip()=="ok": print("OK MESSAGE DETECTED")
+ if cycling: threading.Timer(0.5, Listen).start() #call itself
 
 threading.Timer(0.1, Listen).start()  #call Listen and start cycling
 
