@@ -65,6 +65,7 @@ SyringeQueueIndex=0
 SyringeQueue=0
 SyringeReady=True
 SyringeWorking=False
+SyringeSendNow=""
 #CORRO DEBUG SECTION
 debug=True #if true print additional information to console
 noprint_debug=False #if true save gcode commands to file instead sending them to SyringeBOT
@@ -865,10 +866,10 @@ def LoadGcode():
    tkinter.messagebox.showerror("ERROR","Cannot run Gcode "+filename)
 
 def CancelPrint():
- global syringe
+ global SyringeWorking
  MsgBox = tkinter.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
  if MsgBox == 'yes':  
-  syringe.cancelprint()
+  SyringeWorking=False
 
 #Robot direct interface for buttons
 def MoveRobot(cmd):
@@ -925,10 +926,9 @@ def sendcommand(cmd,where): #send a gcode command
 
 
 def StartPrint0(): #send gcode array to SyringeBOT
-     global Gcode,SyringeWorking,SyringeQueueIndex,SyringeQueue,SyringeReady
+     global Gcode,SyringeWorking,SyringeQueueIndex,SyringeReady
      if len(Gcode)>0:
       SyringeQueueIndex=0
-      SyringeQueue=len(Gcode)
       SyringeReady=True
       SyringeWorking=True
   
@@ -1000,6 +1000,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
          print("ERROR Connect(): ",e)
          return
+        connected = 1
+        threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
         for sensor in range(len(USB_names)): #connect all the sensors
           try:
            USB_handles.append(serial.Serial(USB_ports[sensor],USB_baudrates[sensor]))
@@ -1022,8 +1024,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          btn.pack()
          cntr+=1
         Charts_enabled=[True]*(len(Sensors_var_names)+1)
-        connected = 1
-        threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
@@ -1064,31 +1064,29 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       logfile.close()
 
 def SyringeCycle(): #listen and send messages to SyringeBOT
- global syringe,connected,SyringeReady,Gcode,SyringeWorking,SyringeQueueIndex,T_Actual,T_SetPoint   
- if (syringe.inWaiting() > 0):
-    data_str = syringe.read(syringe.inWaiting()).decode('ascii')
-    #print(data_str, end='')
-    for s in data_str.split('\n'):
-     if s.strip()=="ok":
-       #print("Printer ready")
+ global syringe,connected,SyringeReady,Gcode,SyringeWorking,SyringeQueue,SyringeQueueIndex,SyringeSendNow,T_Actual,T_SetPoint
+ while (syringe.inWaiting() > 0):
+  data_str = syringe.read(syringe.inWaiting()).decode('ascii')
+  for s in data_str.split('\n'):
+    if s.strip()=="ok":
        SyringeReady=True
     try:   
      if (data_str.find(' B:')>0 and data_str.find('root')<0):
         temp=data_str[data_str.find('B')+2:data_str.find('@')]; #filter all messages but temperature
-        #print(temp)
         [T1, T2]=temp.split('/',2)
         T_Actual=float(T1)
         T_SetPoint=float(T2)
     except:
-     print("whops")       
-     #pass       
- if (SyringeWorking) and (SyringeReady):
+     print(datetime.datetime.now(),"whops")
+ if not(SyringeSendNow==""):
+       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
+       SyringeSendNow=""
+ elif (SyringeWorking) and (SyringeReady):
        syringe.write((Gcode[SyringeQueueIndex]+'\n').encode())
-       #print('sent',Gcode[SyringeQueueIndex])
        SyringeReady=False
        SyringeQueueIndex+=1
-       if SyringeQueueIndex==len(Gcode):
-         #print('Printing queue finished')
+       SyringeQueue=len(Gcode)
+       if SyringeQueueIndex==SyringeQueue:
          SyringeWorking=False          
  if connected: threading.Timer(0.05, SyringeCycle).start() #call itself
 
@@ -1117,7 +1115,7 @@ def HookEventsCycle():
 #MAIN CYCLE
 def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
   global syringe,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
-  global SyringeWorking,SyringeQueueIndex,SyringeQueue 
+  global SyringeWorking,SyringeQueueIndex,SyringeQueue,SyringeSendNow 
   global oldprogress,graph_color_index
   global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points,Sensors_var_names,Sensors_var_values
   if connected == 1:
@@ -1143,7 +1141,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
         SyringeBOT_IS_BUSY=False
         SyringeBOT_WAS_BUSY=False
 
-   syringe.write(('M105\n').encode()) #send immediate gcode to SyringeBOT
+   SyringeSendNow='M105' #send immediate gcode to SyringeBOT
    Temp_points.append(float(T_Actual))
    log_text="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
    w.delete("all") #clear canvas
