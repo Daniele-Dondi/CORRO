@@ -35,7 +35,6 @@ import serial
 from os import listdir
 from os.path import isfile, join
 import sys
-import logging
 
 #global vars
 connected = 0
@@ -906,7 +905,7 @@ def MoveRobot(cmd):
   
 
 def sendcommand(cmd,where): #send a gcode command
-    global connected,IsBuffered0,debug,cmdfile,Gcode
+    global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeSendNow
     destination=['Syringe','Robot']
     if connected==1:
       if where==0:  #0 = syringe
@@ -914,7 +913,8 @@ def sendcommand(cmd,where): #send a gcode command
            Gcode.append(cmd)
        else:
         if noprint_debug==False:
-          syringe.send(cmd)
+          SyringeSendNow=cmd      
+          time.sleep(0.1)
         else:
           cmdfile.write("                     "+str(datetime.datetime.now())+"\n")
           cmdfile.write(cmd+"\n") 
@@ -1070,6 +1070,7 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
   for s in data_str.split('\n'):
     if s.strip()=="ok":
        SyringeReady=True
+       #print("   Syringe Ready",data_str)
     try:   
      if (data_str.find(' B:')>0 and data_str.find('root')<0):
         temp=data_str[data_str.find('B')+2:data_str.find('@')]; #filter all messages but temperature
@@ -1077,17 +1078,28 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
         T_Actual=float(T1)
         T_SetPoint=float(T2)
     except:
-     print(datetime.datetime.now(),"whops")
- if not(SyringeSendNow==""):
-       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
+     #print(datetime.datetime.now(),"whops")
+     pass       
+ if (SyringeWorking):
+   if (SyringeReady):
+     if not(SyringeSendNow==""):
+       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code and we are processing give the priority to the immediate sending
+       #print('sent M105')
        SyringeSendNow=""
- elif (SyringeWorking) and (SyringeReady):
+     else:  
        syringe.write((Gcode[SyringeQueueIndex]+'\n').encode())
+       #print("   Sent ",Gcode[SyringeQueueIndex])
        SyringeReady=False
        SyringeQueueIndex+=1
        SyringeQueue=len(Gcode)
        if SyringeQueueIndex==SyringeQueue:
-         SyringeWorking=False          
+         SyringeWorking=False
+         Gcode=[]
+ elif not(SyringeSendNow==""):
+       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
+       #print('sent M105')
+       SyringeSendNow=""
+        
  if connected: threading.Timer(0.05, SyringeCycle).start() #call itself
 
 def HookEventsCycle():
