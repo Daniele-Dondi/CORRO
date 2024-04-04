@@ -1,9 +1,9 @@
+buffer
 for $i$ 12
 eval $servo$,12-$i$
-send M280 P$servo$ S-1,0
+send M280 P$Sservo$ S-1,0
 next
-
-
+print
 
 
 
