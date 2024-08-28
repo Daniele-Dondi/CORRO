@@ -69,6 +69,7 @@ SyringeSendNow=""
 debug=True #if true print additional information to console
 noprint_debug=False #if true save gcode commands to file instead sending them to SyringeBOT
 if noprint_debug: cmdfile=open("gcodecmds.txt","w")
+DoNotConnect=False #if true no module connections is done
 #END OF CORRO DEBUG SECTION
 WatchdogMax=2000 #max number of instructions before a message asking if there is an infinite loop
 T_Actual = 0
@@ -285,6 +286,7 @@ def Bind(text,color,window):
          
 #Main window
 base = Tk()
+base.iconbitmap("icons/main_icon.ico")
 #base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
 F = Frame(base)
@@ -986,10 +988,14 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
+    global DoNotConnect
 
     if connected == 0:  #if it is not connected, connect
         SyringeBOT_IS_INITIALIZED=False
         ResetChart()
+        if DoNotConnect:
+                connected=1
+                return
         try:
          syringe = serial.Serial(SyringeUSB,SyringeUSBrate)
          time.sleep(1)         
