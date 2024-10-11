@@ -1,0 +1,23 @@
+difference(){
+union(){
+translate([0,15,0])cube([20,130,5],center=true);
+translate([35,20,0])cube([50,32,5],center=true);
+translate([-7.5,70,20])cube([5,20,45],center=true);
+translate([-7.5,-40,20])cube([5,20,45],center=true);
+}
+translate([-15,20,10])rotate([0,90,0])cylinder(d=20,h=100,$fn=100);
+translate([-12,70,14])
+hull(){
+    rotate([0,90,0])cylinder(d=5.7,h=10,$fn=80);
+translate([0,0,22])rotate([0,90,0])cylinder(d=5.7,h=10,$fn=80);    
+}
+translate([-12,-40,14])
+hull(){
+    rotate([0,90,0])cylinder(d=5.7,h=10,$fn=80);
+translate([0,0,22])rotate([0,90,0])cylinder(d=5.7,h=10,$fn=80);    
+}
+translate([30,7.5,-10]){
+cylinder(d=3.5,h=20,$fn=50);
+translate([0,25,0])cylinder(d=3.5,h=20,$fn=50);
+}
+}

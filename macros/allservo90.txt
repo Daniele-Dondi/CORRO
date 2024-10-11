@@ -1,0 +1,4 @@
+for $i$ 16
+eval $servo$,16-$i$
+send M280 P$servo$ S90,0
+next

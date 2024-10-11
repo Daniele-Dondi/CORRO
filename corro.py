@@ -125,6 +125,9 @@ def keypress(event):  #keyboard shortcuts
     if event.keysym == 'Escape': #quit program
         Close()
 
+def FormattedDateTime():
+        return str(datetime.datetime.now()).replace(":","-")
+
 def ResetChart():
   global Temp_points
   global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points
@@ -420,7 +423,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
       commands=line.split(' ',1)
       commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
       if(debug): print(commands[1])
-      logfile.write(str(datetime.datetime.now())+"\t"+commands[1]+"\n")
+      logfile.write(str(datetime.datetime.now())+"\t"+commands[1]+"\n")  
      except:
       tkinter.messagebox.showerror("ERROR in log method","use: log text")
       return "Error"
@@ -1033,7 +1036,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
-            logfile=open("log"+os.sep+"log"+str(datetime.datetime.now())+".txt","a")
+            logfile=open("log"+os.sep+"log"+FormattedDateTime()+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
             logfile.write("----------------------------------\n")
             logfile.write("-         PROCESS STARTS         -\n")
             logfile.write("----------------------------------\n")
@@ -1196,7 +1199,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
        
-   logfile.write(str(datetime.datetime.now())+log_text+"\n")
+   #logfile.write(str(datetime.datetime.now())+log_text+"\n")
    Sensors_var_values=" ".join(USB_last_values).split()
 
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself

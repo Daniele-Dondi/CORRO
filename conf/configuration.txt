@@ -14,7 +14,7 @@
 #schematic image of the current configuration
 test.png
 #USB port for the syringebot
-/dev/ttyUSB0
+COM12
 #baud rate for syringebot
 250000
 #USB interface
