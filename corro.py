@@ -1188,8 +1188,8 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
             values+=str(abs(float(value)))+" "
           values=values.strip()
           USB_last_values[sensor]=values
-       #elif debug:
-       # print("no data received from sensor ",sensor)       
+        #elif debug:
+        # print("no data received from sensor ",sensor)       
         USB_var_points[sensor].append(USB_last_values[sensor]+" ")
         log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
         for datum in range(int(USB_num_vars[sensor])):
@@ -1198,7 +1198,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
        
-   #logfile.write(str(datetime.datetime.now())+log_text+"\n")
+   logfile.write(str(datetime.datetime.now())+log_text+"\n")
    Sensors_var_values=" ".join(USB_last_values).split()
 
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
