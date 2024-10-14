@@ -125,8 +125,6 @@ def keypress(event):  #keyboard shortcuts
     if event.keysym == 'Escape': #quit program
         Close()
 
-def FormattedDateTime():
-        return str(datetime.datetime.now()).replace(":","-")
 
 def ResetChart():
   global Temp_points
@@ -1008,6 +1006,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         except Exception as e:
          tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
          print("ERROR Connect(): ",e)
+         connected=0
          return
         connected = 1
         threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
@@ -1036,7 +1035,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
-            logfile=open("log"+os.sep+"log"+FormattedDateTime()+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
+            logfile=open("log"+os.sep+"log"+str(datetime.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
             logfile.write("----------------------------------\n")
             logfile.write("-         PROCESS STARTS         -\n")
             logfile.write("----------------------------------\n")
