@@ -1190,9 +1190,9 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
           USB_last_values[sensor]=values
        #elif debug:
        # print("no data received from sensor ",sensor)       
-       USB_var_points[sensor].append(USB_last_values[sensor]+" ")
-       log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
-       for datum in range(int(USB_num_vars[sensor])):
+        USB_var_points[sensor].append(USB_last_values[sensor]+" ")
+        log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
+        for datum in range(int(USB_num_vars[sensor])):
           Draw_Chart([float(e.split(' ')[datum]) for e in USB_var_points[sensor]])
      except Exception as e:
        a,b,tb=sys.exc_info()
