@@ -83,7 +83,7 @@ IsDeletingMacro=0
 #chart parameters
 chart_w=800 #size of the temp and voltages chart
 chart_h=300
-graph_colors=['black','blue','green','red','dark violet','brown','orange']
+graph_colors=['black','blue','green','red','dark violet','brown','orange','purple']
 graph_color_index=0
 graph_all=True  #If true show all the data recorded. If false show only the last data
 macrout=0      #global var for macros. Filled when macro returns a value
@@ -124,7 +124,6 @@ def on_closing():
 def keypress(event):  #keyboard shortcuts
     if event.keysym == 'Escape': #quit program
         Close()
-
 
 def ResetChart():
   global Temp_points
@@ -284,72 +283,6 @@ def Bind(text,color,window):
       else:     tkinter.messagebox.askquestion ('error','color already assigned',icon = 'warning')
     else:     tkinter.messagebox.askquestion ('error','macro not found',icon = 'warning')  
   
-         
-#Main window
-base = Tk()
-base.iconbitmap("icons/main_icon.ico")
-#base.attributes("-fullscreen", True) #go FULLSCREEN
-base.bind('<Key>', keypress)
-F = Frame(base)
-F.pack(side="left",fill="y")
-Z = Frame(base,bd=2,relief=RIDGE) #macros frame
-Z.pack(side="left",fill="y")
-try:  #read macros and decide if we have to create a second palette
- for file in os.listdir("macros"):
-    if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
-        macrolist.append(file[:-4]) #remove .txt from name
-except:
-    tkinter.messagebox.showerror("ERROR", "MACRO directory unreachable")
-else:
-  macrolist.sort()     
-  if len(macrolist)>28:
-          ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
-          ZZ.pack(side="left",fill="y")
-          Label(ZZ, text="MACROS 2",font="Verdana 10 bold",bg='pink').pack(pady=10)
-Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
-Z2.pack(side="left",fill="y")
-GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
-GRP.pack(side="left",fill="y")
-Label(GRP, text="GRAPH CTRL",font="Verdana 10 bold",bg='pink').pack(pady=10)
-Button(GRP, text="reset chart", command=ResetChart).pack();
-Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
-Zoom_B.pack()
-K = Frame(F)
-K.pack(side="bottom")
-J = Frame(F)
-J.pack(side="bottom")
-I = Frame(F)
-I.pack(side="bottom")
-H = Frame(F)
-H.pack(side="bottom")
-G = Frame(F)
-G.pack(side="bottom")
-Graph=Frame(base)
-Graph.pack(side="bottom")
-w=Canvas(Graph,width=chart_w,height=chart_h)
-w.pack(expand=YES,fill=BOTH)
-
-IM=Frame(base)
-IM.pack(side="left")
-w2=Canvas(IM,width=800,height=600)
-w2.bind("<Button-1>", onclick) #bind click procedure to graphic control
-w2.bind("<Button-2>", onmiddleclick) #bind click procedure to graphic control
-w2.bind("<Button-3>", onrightclick) #bind click procedure to graphic control
-w2.pack()
-#Load configuration file
-readConfigurationFiles()
-Aimage=PhotoImage(file=SchematicImage) # load the scheme of the current configuration
-w2.create_image(0, 0, image = Aimage, anchor=NW) #show image on canvas w2
-if noprint_debug: w2.create_text(400,15,text="DEBUG MODE. NO DATA IS SENT TO SYRINGEBOT. Gcode commands are saved in gcodecmds.txt",fill="red") 
-im = PIL.Image.open(MaskImage) # load the mask here
-pix = im.load()
-w.config(width=chart_w,height=chart_h)
-IM.pack() #show graphical control
-
-
-
-#FUNCTIONS
-
 def SaveMacro(text,macronumber,window): #save a macro
     if macronumber==-1:
         while True:
@@ -791,7 +724,6 @@ def Macro(num,*args): #run, delete or edit a macro
      MacroEditor(num) #open the macro editor  
      EditMacro()
 
-
 def CreateMacro():
      global IsEditingMacro,IsDeletingMacro
      if IsDeletingMacro==1: DeleteMacro()
@@ -872,7 +804,7 @@ def CancelPrint():
  MsgBox = tkinter.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
  if MsgBox == 'yes':  
   SyringeWorking=False
-
+'''
 #Robot direct interface for buttons
 def MoveRobot(cmd):
  global connected,robot
@@ -905,7 +837,7 @@ def MoveRobot(cmd):
     robot.send("G1 Z-"+str(how_much))
     robot.send("G90") #absolute positioning    
  else:    tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
-  
+'''  
 
 def sendcommand(cmd,where): #send a gcode command
     global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeSendNow
@@ -1236,11 +1168,28 @@ def time_button_click():
  Button(t, text="OK",command=lambda: t.destroy()).pack()
  Button(t, text="DELETE EVENT",command=lambda: DeleteTimeEvent(t)).pack() 
  t.grab_set()
-   
 
+
+def UserClickedMacro(num):
+ if SyringeBOT_is_ready():
+  Macro(num)       
+
+############################################################################################################################
+#                                                                                                                          #
+#                M   A   I   N      P   R   O   G   R   A   M      S   T   A   R   T   S      H   E   R   E                #
+#                                                                                                                          #
+############################################################################################################################
+
+
+#Main window
+base = Tk()
+base.iconbitmap("icons/main_icon.ico")
+#base.attributes("-fullscreen", True) #go FULLSCREEN
+base.bind('<Key>', keypress)
+F = Frame(base)
+F.pack(side="left",fill="y")
 #Software name
 F.master.title("CO.R.RO 1.2")
-
 #Frame F
 lTitle = Label(F, text="CO.R.RO",  font=("Verdana 15 bold"))
 lTitle.pack(side="top")
@@ -1262,6 +1211,7 @@ lTemperature.pack()
 eTemperature = Entry(F)
 eTemperature.insert(0, 60)
 eTemperature.pack()
+'''
 if (HasRobot):
  bSend_1 = Button(F, text="Send to robot", command=lambda: sendcommand(eCommand_1.get(),1))
  bSend_1.pack(pady=10)
@@ -1270,6 +1220,7 @@ if (HasRobot):
  eCommand_1 = Entry(F)
  eCommand_1.insert(0, 'G28 X Y')
  eCommand_1.pack()
+''' 
 Button(F, text="load gcode", command=LoadGcode).pack();
 Button(F, text="cancel print", command=CancelPrint).pack();
 bClose = Button(F, text="EXIT", command=Close)
@@ -1278,12 +1229,62 @@ temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=Button(F, image=temp_icon,command=temp_button_click)
 clock_icon = PhotoImage(file = r"icons"+os.sep+"clock.png")
 b_clock=Button(F, image=clock_icon,command=time_button_click)
+Z = Frame(base,bd=2,relief=RIDGE) #macros frame
+Z.pack(side="left",fill="y")
+try:  #read macros and decide if we have to create a second palette
+ for file in os.listdir("macros"):
+    if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
+        macrolist.append(file[:-4]) #remove .txt from name
+except:
+    tkinter.messagebox.showerror("ERROR", "MACRO directory unreachable")
+else:
+  macrolist.sort()     
+  if len(macrolist)>28:
+          ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
+          ZZ.pack(side="left",fill="y")
+          Label(ZZ, text="MACROS 2",font="Verdana 10 bold",bg='pink').pack(pady=10)
+Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
+Z2.pack(side="left",fill="y")
+GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
+GRP.pack(side="left",fill="y")
+Label(GRP, text="GRAPH CTRL",font="Verdana 10 bold",bg='pink').pack(pady=10)
+Button(GRP, text="reset chart", command=ResetChart).pack();
+Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
+Zoom_B.pack()
+'''
+K = Frame(F)
+K.pack(side="bottom")
+J = Frame(F)
+J.pack(side="bottom")
+I = Frame(F)
+I.pack(side="bottom")
+H = Frame(F)
+H.pack(side="bottom")
+G = Frame(F)
+G.pack(side="bottom")
+'''
+Graph=Frame(base)  #frame for graph showing values
+Graph.pack(side="bottom")
+w=Canvas(Graph,width=chart_w,height=chart_h)
+w.pack(expand=YES,fill=BOTH)
+w.config(width=chart_w,height=chart_h)
+#IM.pack() #show graphical control
+IM=Frame(base)   #frame for main image with syringebot scheme
+IM.pack(side="left")
+w2=Canvas(IM,width=800,height=600)
+w2.bind("<Button-1>", onclick) #bind click procedure to syringebot scheme
+w2.bind("<Button-2>", onmiddleclick) #bind click procedure to syringebot scheme
+w2.bind("<Button-3>", onrightclick) #bind click procedure to syringebot scheme
+w2.pack()
+#Load configuration file
+readConfigurationFiles()
+Aimage=PhotoImage(file=SchematicImage) # load the scheme of the current configuration
+w2.create_image(0, 0, image = Aimage, anchor=NW) #show image on canvas w2
+if noprint_debug: w2.create_text(400,15,text="DEBUG MODE. NO DATA IS SENT TO SYRINGEBOT. Gcode commands are saved in gcodecmds.txt",fill="red") 
+im = PIL.Image.open(MaskImage) # load the mask here
+pix = im.load()
 
-def UserClickedMacro(num):
- if SyringeBOT_is_ready():
-  Macro(num)       
-
-
+'''
 #Frames G,H,I,J,K
 if (HasRobot):
  step=StringVar()
@@ -1309,7 +1310,7 @@ if (HasRobot):
  eStep.pack(side=LEFT)
  step.set(10)
  Label(K, text="mm/deg").pack(side=LEFT)
-
+'''
 
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
