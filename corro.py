@@ -954,16 +954,19 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            tkinter.messagebox.showerror("ERROR", USB_names[sensor]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
+        Charts_enabled=[False]*(len(Sensors_var_names)+1)
         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
         Plot_B.append(btn)
         btn.pack()
+        Charts_enabled[0]=True
         cntr=1        
         for var_name in Sensors_var_names:
-         btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[cntr% len(graph_colors)],fg="white",bd=4)
-         Plot_B.append(btn)
-         btn.pack()
-         cntr+=1
-        Charts_enabled=[True]*(len(Sensors_var_names)+1)
+         if USB_deviceready[cntr]:       
+          btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[cntr% len(graph_colors)],fg="white",bd=4)
+          Plot_B.append(btn)
+          btn.pack()
+          cntr+=1
+          Charts_enabled[cntr]=True
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
@@ -1107,10 +1110,10 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
    if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the value
      setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
      w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
-   
    for sensor in range(len(USB_names)):  #read values from all sensors connected to USB
      try:
-       if (USB_deviceready[sensor]) and USB_handles[sensor].in_waiting:
+      if (USB_deviceready[sensor]):
+       if USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
@@ -1183,7 +1186,7 @@ def UserClickedMacro(num):
 
 #Main window
 base = Tk()
-base.iconbitmap("icons/main_icon.ico")
+#base.iconbitmap("icons/main_icon.ico")
 #base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
 F = Frame(base)
