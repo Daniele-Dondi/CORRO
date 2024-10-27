@@ -36,8 +36,11 @@ from os import listdir
 from os.path import isfile, join
 import sys
 
+
 #global vars
 connected = 0
+AutoConnect=True #if True, corro connects directly to SyringeBOT
+AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 #USB sensors control vars
 USB_handles=[]  
 USB_names=[]
@@ -1135,7 +1138,6 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        
    logfile.write(str(datetime.datetime.now())+log_text+"\n")
    Sensors_var_values=" ".join(USB_last_values).split()
-
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
 def DeleteTemperatureEvent(t):
@@ -1341,9 +1343,11 @@ if len(macrolist)>0:
    macrob[i].pack()
    i=i+1
 
-
+if AutoConnect: Connect()
 
 #Start the main loop
 base.protocol("WM_DELETE_WINDOW", on_closing)
 base.mainloop()
+
+
 
