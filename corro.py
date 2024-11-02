@@ -39,7 +39,8 @@ import sys
 
 #global vars
 connected = 0
-AutoConnect=True #if True, corro connects directly to SyringeBOT
+GO_Fullscreen=False #if true, app starts in fullscreen mode
+AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 #USB sensors control vars
 USB_handles=[]  
@@ -84,8 +85,8 @@ macrob=[]      #macro button array
 IsEditingMacro=0
 IsDeletingMacro=0
 #chart parameters
-chart_w=800 #size of the temp and voltages chart
-chart_h=300
+chart_w=900 #size of the temp and voltages chart
+chart_h=200
 graph_colors=['black','blue','green','red','dark violet','brown','orange','purple']
 graph_color_index=0
 graph_all=True  #If true show all the data recorded. If false show only the last data
@@ -1177,7 +1178,16 @@ def time_button_click():
 
 def UserClickedMacro(num):
  if SyringeBOT_is_ready():
-  Macro(num)       
+  Macro(num)
+
+def Record():
+  return      
+
+def Configurator():
+  return      
+
+def Wizard():
+  return      
 
 ############################################################################################################################
 #                                                                                                                          #
@@ -1189,7 +1199,7 @@ def UserClickedMacro(num):
 #Main window
 base = Tk()
 #base.iconbitmap("icons/main_icon.ico")
-#base.attributes("-fullscreen", True) #go FULLSCREEN
+if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
 F = Frame(base)
 F.pack(side="left",fill="y")
@@ -1227,7 +1237,14 @@ if (HasRobot):
  eCommand_1.pack()
 ''' 
 Button(F, text="load gcode", command=LoadGcode).pack();
-Button(F, text="cancel print", command=CancelPrint).pack();
+rec_icon = PhotoImage(file = r"icons/rec.png")
+Button(F, text="REC", command=Record,image = rec_icon, compound = LEFT).pack();
+canc_icon = PhotoImage(file = r"icons/stop.png")
+Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
+conf_icon = PhotoImage(file = r"icons/configurator.png")
+Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
+wiz_icon = PhotoImage(file = r"icons/wizard.png")
+Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT).pack();
 bClose = Button(F, text="EXIT", command=Close)
 bClose.pack(pady=10)
 temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
@@ -1250,6 +1267,9 @@ else:
           Label(ZZ, text="MACROS 2",font="Verdana 10 bold",bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
 Z2.pack(side="left",fill="y")
+Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
+Zcore.pack(side="left",fill="y")
+Label(Zcore, text="HAL MACROS",font="Verdana 10 bold",bg='pink').pack(pady=10)
 GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
 Label(GRP, text="GRAPH CTRL",font="Verdana 10 bold",bg='pink').pack(pady=10)
@@ -1276,7 +1296,7 @@ w.config(width=chart_w,height=chart_h)
 #IM.pack() #show graphical control
 IM=Frame(base)   #frame for main image with syringebot scheme
 IM.pack(side="left")
-w2=Canvas(IM,width=800,height=600)
+w2=Canvas(IM,width=900,height=800)
 w2.bind("<Button-1>", onclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-2>", onmiddleclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-3>", onrightclick) #bind click procedure to syringebot scheme
@@ -1348,6 +1368,3 @@ if AutoConnect: Connect()
 #Start the main loop
 base.protocol("WM_DELETE_WINDOW", on_closing)
 base.mainloop()
-
-
-
