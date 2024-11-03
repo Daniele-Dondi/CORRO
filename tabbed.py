@@ -132,6 +132,7 @@ def Try2CalculateMolarity():
                 if UnitNum=="mg":
                     value=value/1000
                 MM=float(MW.get())
+                if MM<1: return 0
                 value=value/MM
             #now we should have moles
             if UnitDen=="L":
@@ -141,6 +142,15 @@ def Try2CalculateMolarity():
             if UnitDen=="100g":
                 den=float(den)                
                 return value*10*den
+        except:
+            return 0
+    if ReactantType=="Pure liquid":
+        try:
+         MM=float(MW.get())
+         if MM<1: return 0
+         pur=float(purity.get())
+         den=float(density.get())
+         return den*10/MM*pur
         except:
             return 0
     return 0
@@ -166,7 +176,9 @@ def CheckReactantParameters():
     except:  
         messagebox.showerror("ERROR", "Insert a valid density value and retry.")
         return False
-    print(Try2CalculateMolarity())
+    M=Try2CalculateMolarity()
+    if M>0:
+        print("Calculated molarity: ",M)
     print("Reactant parameters are correct")
     return True
 
