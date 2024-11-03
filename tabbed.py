@@ -122,7 +122,7 @@ def Try2CalculateMolarity():
         value=concentration.get()
         UnitNum=ConcNumType.get()
         UnitDen=ConcDenType.get()
-        den=density.get()
+        if UnitNum=="" or UnitDen=="": return 0
         try:
             value=float(value)
             if value==0: return 0
@@ -140,7 +140,7 @@ def Try2CalculateMolarity():
             if UnitDen=="mL":
                 return value*1000
             if UnitDen=="100g":
-                den=float(den)                
+                den=float(density.get())              
                 return value*10*den
         except:
             return 0
