@@ -1,9 +1,9 @@
 import tkinter as tk                     
-from tkinter import ttk, Menu
+from tkinter import ttk, Menu, messagebox
   
 root = tk.Tk() 
 root.title("CORRO CONFIGURATOR")
-root.geometry('500x500+500+200')
+root.geometry('500x600+500+200')
 menubar = Menu(root)
 file_menu = Menu(menubar,tearoff=0)
 file_menu.add_command(label='Open')
@@ -88,7 +88,8 @@ def CalcMW(formula):
         substring=substring*int(cx)        
         formula=formula[0:opened_parentheses]+substring+formula[i+1:]
         closed_parentheses=formula.find(")")
-       
+    if not formula.find("(")==-1: return 0
+    
     i=0
     MW=0
     while i<len(formula):
@@ -113,10 +114,78 @@ def Try2CalculateMWfromFormula(eventObject):
     if not formula=="":
      MM=CalcMW(formula)
      MW.delete(0,tk.END)  # Clear any existing text
-     MW.insert(0,str(MM))  # Insert new text    
-    
+     MW.insert(0,str(MM))  # Insert new text
+
+def Try2CalculateMolarity():
+    ReactantType=rtype.get()
+    if ReactantType=="Solution":
+        value=concentration.get()
+        UnitNum=ConcNumType.get()
+        UnitDen=ConcDenType.get()
+        den=density.get()
+        try:
+            value=float(value)
+            if value==0: return 0
+            if UnitNum=="mmol":
+                value=value/1000
+            if UnitNum=="g" or UnitNum=="mg":
+                if UnitNum=="mg":
+                    value=value/1000
+                MM=float(MW.get())
+                value=value/MM
+            #now we should have moles
+            if UnitDen=="L":
+                return value
+            if UnitDen=="mL":
+                return value*1000
+            if UnitDen=="100g":
+                den=float(den)                
+                return value*10*den
+        except:
+            return 0
+    return 0
+
+def CheckReactantParameters():
+    if rname.get()=="":
+        messagebox.showerror("ERROR", "Reactant name cannot be empty. Insert a valid name and retry.")
+        return False
+    if rtype.get()=="":
+        messagebox.showerror("ERROR", "Reactant type cannot be empty. Insert a valid type and retry.")
+        return False
+    try:
+     pur=float(purity.get())
+     if pur<=0 or pur>100:
+         raise Exception("purity should be in the range >0 .. <=100")
+    except:  
+        messagebox.showerror("ERROR", "Insert a valid purity value and retry.")
+        return False
+    try:
+     den=float(density.get())
+     if den<=0 or den>10:
+         raise Exception("density should be in the range >0 .. <=10")
+    except:  
+        messagebox.showerror("ERROR", "Insert a valid density value and retry.")
+        return False
+    print(Try2CalculateMolarity())
+    print("Reactant parameters are correct")
+    return True
+
+def SaveReactantParameters():
+    if CheckReactantParameters():
+      print("save reactant")
+
+def ClearParameters():
+    answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
+    if answer:
+      name.delete(0,tk.END)
+      rformula.delete(0,tk.END)
+      MW.delete(0,tk.END)
+      purity.delete(0,tk.END)
+      purity.insert(0,"100")
+      density.delete(0,tk.END)
+      density.insert(0,"1")
   
-ttk.Label(tab1,text ="Reactant Name").pack(); name=ttk.Entry(tab1); name.pack()
+ttk.Label(tab1,text ="Reactant Name").pack(); rname=ttk.Entry(tab1); rname.pack()
 ttk.Label(tab1,text ="Reactant Type").pack(); rtype=ttk.Combobox(tab1, values = ('Solution','Solvent','Pure liquid'), state = 'readonly'); rtype.pack(); rtype.bind("<<ComboboxSelected>>", rtypecallback)
 ttk.Label(tab1,text ="Chemical formula").pack(); rformula=ttk.Entry(tab1); rformula.pack()
 ttk.Label(tab1,text ="Molecular Mass").pack(); MW=ttk.Entry(tab1); MW.pack(); MW.bind("<Button-1>", Try2CalculateMWfromFormula)
@@ -125,12 +194,21 @@ conclabel=ttk.Label(tab1,text ="Concentration"); conclabel.pack(); concentration
 ttk.Label(tab1,text ="Concentration units (numerator)").pack(); ConcNumType=ttk.Combobox(tab1, values = ('g', 'mg', 'mol', 'mmol'), state = 'readonly'); ConcNumType.pack(); ConcNumType.bind("<<ComboboxSelected>>", ConcNumTypecallback)
 ttk.Label(tab1,text ="Concentration units (denominator)").pack(); ConcDenType=ttk.Combobox(tab1, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType.pack(); ConcDenType.bind("<<ComboboxSelected>>", ConcDenTypecallback)
 ttk.Label(tab1,text ="Density (g/mL)").pack(); density=ttk.Entry(tab1); density.insert(0, '1'); density.pack()
-ttk.Button(tab1, text="Save changes", command=lambda: print("ton clicked!")).pack()
-ttk.Button(tab1, text="Add Reactant", command=lambda: print("Button clicked!")).pack()
+ttk.Button(tab1, text="Check values", command=CheckReactantParameters).pack()
+ttk.Button(tab1, text="Save changes", command=SaveReactantParameters).pack()
+ttk.Button(tab1, text="Clear all values", command=ClearParameters).pack()
+ttk.Button(tab1, text="Add Reactant", command=lambda: print("add reactant")).pack()
+ttk.Button(tab1, text="Remove Reactant", command=lambda: print("remove reactant")).pack()
+
+
+def reactortypecallback(eventObject):
+  print("reactor type callback")
 
 ttk.Label(tab2,text ="REACTOR").pack()
 ttk.Label(tab2,text ="Name").pack(); reactor_name=ttk.Entry(tab2); reactor_name.pack()
-ttk.Label(tab2,text ="Heated?").pack(); heated=ttk.Entry(tab2); heated.pack()
+ttk.Label(tab2,text ="Type").pack(); reactor_type=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator'), state = 'readonly'); reactor_type.pack(); reactor_type.bind("<<ComboboxSelected>>", reactortypecallback)
+ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Entry(tab2); heated.pack()
+ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Entry(tab2); stirred.pack()
 ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.pack()
 ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
 ttk.Button(tab2, text="Add Reactor", command=lambda: print("on clicked!")).pack()
