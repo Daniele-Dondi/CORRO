@@ -7,7 +7,7 @@ CurrentReactant=1
 
 root = tk.Tk() 
 root.title("CORRO CONFIGURATOR")
-root.geometry('500x700+500+200')
+root.geometry('500x550+500+200')
 menubar = Menu(root)
 file_menu = Menu(menubar,tearoff=0)
 file_menu.add_command(label='Open')
@@ -20,13 +20,20 @@ menubar.add_cascade(label="File",menu=file_menu)
 tabControl = ttk.Notebook(root) 
 tab1 = ttk.Frame(tabControl) 
 tab2 = ttk.Frame(tabControl)
-tab3 = ttk.Frame(tabControl) 
+tab3 = ttk.Frame(tabControl)
+F1 = ttk.Frame(tab1)
+F1.pack()
+F2 = ttk.Frame(tab1)
+F2.pack(side="bottom",fill="y")
+F3 = ttk.Frame(tab1)
+F3.pack(side="bottom",fill="y")
   
 tabControl.add(tab1, text ='Reactants') 
 tabControl.add(tab2, text ='Reactors')
 tabControl.add(tab3, text ='Syringes') 
 tabControl.pack(expand = 1, fill ="both")
 
+##################   T A B 1   #############################################################
 def EnableDisableTab1():
     ReactantType=rtype.get()
     if ReactantType=="Pure liquid":
@@ -300,7 +307,8 @@ def Prev():
     SetTab1Variables(ReactantsArray[CurrentReactant-1])
     SetStatusNextPrevButtons()
     
-
+PrevButton=ttk.Button(F1, text="Prev", command=Prev,state='disabled'); PrevButton.pack(side="left")
+NextButton=ttk.Button(F1, text="Next", command=Next,state='disabled'); NextButton.pack(side="left")
 HeaderLabel=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabel.pack();
 ttk.Label(tab1,text =" ").pack();
 ttk.Label(tab1,text ="Reactant Name").pack(); rname=ttk.Entry(tab1); rname.pack(); 
@@ -313,15 +321,14 @@ ttk.Label(tab1,text ="Concentration units (numerator)").pack(); ConcNumType=ttk.
 ttk.Label(tab1,text ="Concentration units (denominator)").pack(); ConcDenType=ttk.Combobox(tab1, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType.pack(); ConcDenType.bind("<<ComboboxSelected>>", ConcDenTypecallback)
 ttk.Label(tab1,text ="Density (g/mL)").pack(); density=ttk.Entry(tab1); density.insert(0, '1'); density.pack(); 
 molaritylabel=ttk.Label(tab1,text ="---"); molaritylabel.pack();
-ttk.Button(tab1, text="Check values", command=CheckReactantParameters).pack()
-ttk.Button(tab1, text="Save changes", command=SaveReactantParameters).pack()
-ttk.Button(tab1, text="Ignore changes", command=LoadReactantParameters).pack()
-ttk.Button(tab1, text="Clear all values", command=ClearParameters).pack()
-ttk.Button(tab1, text="Add new Reactant", command=AddReactant).pack()
-ttk.Button(tab1, text="Remove Reactant", command=lambda: print("remove reactant")).pack()
-PrevButton=ttk.Button(tab1, text="Prev", command=Prev,state='disabled'); PrevButton.pack()
-NextButton=ttk.Button(tab1, text="Next", command=Next,state='disabled'); NextButton.pack()
+ttk.Button(F3, text="Check values", command=CheckReactantParameters).pack(side="left")
+ttk.Button(F3, text="Save changes", command=SaveReactantParameters).pack(side="left")
+ttk.Button(F3, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
+ttk.Button(F3, text="Clear all values", command=ClearParameters).pack(side="left")
+ttk.Button(F2, text="Add new Reactant", command=AddReactant).pack(side="left")
+ttk.Button(F2, text="Remove Reactant", command=lambda: print("remove reactant")).pack(side="left")
 
+##################   E N D   O F   T A B 1   #############################################################
 
 def reactortypecallback(eventObject):
   print("reactor type callback")
