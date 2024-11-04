@@ -221,7 +221,6 @@ def CheckReactantParameters():
     M=Try2CalculateMolarity()
     if M>0:
         molaritylabel.config(text="Calculated molarity: "+str(M)+" M")
-    print("Reactant parameters are correct")
     return True
 
 def SetTab1Variables(parms):
