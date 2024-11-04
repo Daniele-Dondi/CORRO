@@ -1,6 +1,16 @@
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox
-  
+
+ReactantsArray=[]
+CurrentReactant=1
+
+'''
+ReactantsArray.append([324,432,4,4,4])
+print(ReactantsArray)
+ReactantsArray.append([34,2,84,4,4])
+print(ReactantsArray[0])
+'''
+
 root = tk.Tk() 
 root.title("CORRO CONFIGURATOR")
 root.geometry('500x600+500+200')
@@ -23,9 +33,8 @@ tabControl.add(tab2, text ='Reactors')
 tabControl.add(tab3, text ='Syringes') 
 tabControl.pack(expand = 1, fill ="both")
 
-def rtypecallback(eventObject):
+def EnableDisableTab1():
     ReactantType=rtype.get()
-    #print("Selected value rtype:", ReactantType)
     if ReactantType=="Pure liquid":
         purity.configure(state='normal')
         concentration.configure(state='disabled')
@@ -34,14 +43,22 @@ def rtypecallback(eventObject):
     elif ReactantType=="Solution":
         purity.configure(state='disabled')
         concentration.configure(state='normal')
-        ConcNumType.configure(state='normal')
-        ConcDenType.configure(state='normal')
+        ConcNumType.configure(state='readonly')
+        ConcDenType.configure(state='readonly')
     elif ReactantType=="Solvent":
         purity.configure(state='disabled')
         concentration.configure(state='disabled')
         ConcNumType.configure(state='disabled')
         ConcDenType.configure(state='disabled')
-        
+    else:    
+        purity.configure(state='normal')
+        concentration.configure(state='normal')
+        ConcNumType.configure(state='readonly')
+        ConcDenType.configure(state='readonly')
+
+
+def rtypecallback(eventObject):
+    EnableDisableTab1()   
 
 def ConcNumTypecallback(eventObject):
     numerator=ConcNumType.get()
@@ -134,7 +151,7 @@ def Try2CalculateMolarity():
                 MM=float(MW.get())
                 if MM<1: return 0
                 value=value/MM
-            #now we should have moles
+            #now value should be in moles/somethg
             if UnitDen=="L":
                 return value
             if UnitDen=="mL":
@@ -178,38 +195,91 @@ def CheckReactantParameters():
         return False
     M=Try2CalculateMolarity()
     if M>0:
-        print("Calculated molarity: ",M)
+        molaritylabel.config(text="Calculated molarity: "+str(M)+" M")
     print("Reactant parameters are correct")
     return True
 
-def SaveReactantParameters():
-    if CheckReactantParameters():
-      print("save reactant")
+def SetTab1Variables(parms):
+    purity.delete(0,tk.END)
+    density.delete(0,tk.END)
+    rname.insert(0,parms[0])
+    rtype.set(parms[1])
+    rformula.insert(0,parms[2])
+    MW.insert(0,parms[3])
+    purity.insert(0,parms[4])
+    conclabel.config(text=parms[5])
+    concentration.insert(0,parms[6])
+    ConcNumType.set(parms[7])
+    ConcDenType.set(parms[8])
+    density.insert(0,parms[9])
+    molaritylabel.config(text=parms[10])
+    EnableDisableTab1()   
 
-def ClearParameters():
-    answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
+def LoadReactantParameters():
+    global CurrentReactant
+    answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
     if answer:
-      name.delete(0,tk.END)
+     ClearAllValues()   
+     if len(ReactantsArray)==0: return
+     SetTab1Variables(ReactantsArray[CurrentReactant-1])
+
+def GetTab1Variables():
+    return [rname.get(),rtype.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
+
+def SaveReactantParameters():
+    global CurrentReactant
+    if CheckReactantParameters():
+      newvalues=GetTab1Variables()
+      if len(ReactantsArray)==0:  
+       ReactantsArray.append(newvalues)
+      else:
+       answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
+       if answer:
+        ReactantsArray[CurrentReactant-1]=newvalues
+      print(ReactantsArray)
+
+def ClearAllValues():
+      rname.delete(0,tk.END)
+      rtype.set("")
       rformula.delete(0,tk.END)
       MW.delete(0,tk.END)
       purity.delete(0,tk.END)
       purity.insert(0,"100")
+      concentration.delete(0,tk.END)
+      ConcNumType.set("")
+      ConcDenType.set("")
       density.delete(0,tk.END)
       density.insert(0,"1")
-  
-ttk.Label(tab1,text ="Reactant Name").pack(); rname=ttk.Entry(tab1); rname.pack()
+      molaritylabel.config(text="---")
+      EnableDisableTab1()
+
+def ClearParameters():
+    answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
+    if answer: ClearAllValues()
+
+def AddReactant():
+    if len(ReactantsArray)==0 or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1]):
+        messagebox.showinfo(message="Finish first to edit the current reagent")
+        return
+
+
+HeaderLabel=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabel.pack();
+ttk.Label(tab1,text =" ").pack();
+ttk.Label(tab1,text ="Reactant Name").pack(); rname=ttk.Entry(tab1); rname.pack(); 
 ttk.Label(tab1,text ="Reactant Type").pack(); rtype=ttk.Combobox(tab1, values = ('Solution','Solvent','Pure liquid'), state = 'readonly'); rtype.pack(); rtype.bind("<<ComboboxSelected>>", rtypecallback)
-ttk.Label(tab1,text ="Chemical formula").pack(); rformula=ttk.Entry(tab1); rformula.pack()
+ttk.Label(tab1,text ="Chemical formula").pack(); rformula=ttk.Entry(tab1); rformula.pack(); 
 ttk.Label(tab1,text ="Molecular Mass").pack(); MW=ttk.Entry(tab1); MW.pack(); MW.bind("<Button-1>", Try2CalculateMWfromFormula)
-ttk.Label(tab1,text ="Purity %").pack(); purity=ttk.Entry(tab1); purity.insert(0, '100'); purity.pack()
-conclabel=ttk.Label(tab1,text ="Concentration"); conclabel.pack(); concentration=ttk.Entry(tab1); concentration.pack()
+ttk.Label(tab1,text ="Purity %").pack(); purity=ttk.Entry(tab1); purity.insert(0, '100'); purity.pack(); 
+conclabel=ttk.Label(tab1,text ="Concentration"); conclabel.pack(); concentration=ttk.Entry(tab1); concentration.pack(); 
 ttk.Label(tab1,text ="Concentration units (numerator)").pack(); ConcNumType=ttk.Combobox(tab1, values = ('g', 'mg', 'mol', 'mmol'), state = 'readonly'); ConcNumType.pack(); ConcNumType.bind("<<ComboboxSelected>>", ConcNumTypecallback)
 ttk.Label(tab1,text ="Concentration units (denominator)").pack(); ConcDenType=ttk.Combobox(tab1, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType.pack(); ConcDenType.bind("<<ComboboxSelected>>", ConcDenTypecallback)
-ttk.Label(tab1,text ="Density (g/mL)").pack(); density=ttk.Entry(tab1); density.insert(0, '1'); density.pack()
+ttk.Label(tab1,text ="Density (g/mL)").pack(); density=ttk.Entry(tab1); density.insert(0, '1'); density.pack(); 
+molaritylabel=ttk.Label(tab1,text ="---"); molaritylabel.pack();
 ttk.Button(tab1, text="Check values", command=CheckReactantParameters).pack()
 ttk.Button(tab1, text="Save changes", command=SaveReactantParameters).pack()
+ttk.Button(tab1, text="Ignore changes", command=LoadReactantParameters).pack()
 ttk.Button(tab1, text="Clear all values", command=ClearParameters).pack()
-ttk.Button(tab1, text="Add Reactant", command=lambda: print("add reactant")).pack()
+ttk.Button(tab1, text="Add Reactant", command=AddReactant).pack()
 ttk.Button(tab1, text="Remove Reactant", command=lambda: print("remove reactant")).pack()
 
 
