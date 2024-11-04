@@ -257,11 +257,10 @@ def SaveReactantParameters():
       newvalues=GetTab1Variables()
       if len(ReactantsArray)==CurrentReactant-1:  
        ReactantsArray.append(newvalues)
-      else:
+      elif NotSavedDataTab1():
        answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
        if answer:
         ReactantsArray[CurrentReactant-1]=newvalues
-      print(ReactantsArray)
 
 def ClearAllValuesT1():
       ReactantName.delete(0,tk.END)
@@ -448,7 +447,8 @@ def LoadSyringeParameters():
     
 def SaveSyringeParameters():
     global CurrentSyringe
-    SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
+    if NotSavedDataTab3():
+     SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
 
 def NextT3():
     global CurrentSyringe
