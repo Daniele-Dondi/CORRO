@@ -5,6 +5,11 @@ ReactantsArray=[]
 CurrentReactant=1
 
 SyringesOptions=["Not in use","Air/Waste"]
+CurrentSyringe=1
+TotalNumberOfSyringes=6
+SyringesArray=[[SyringesOptions[0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
+print(SyringesArray)
+
 
 def SaveAllData():
     return
@@ -52,7 +57,9 @@ F1T2 = ttk.Frame(tab2); F1T2.pack()
 F2T2 = ttk.Frame(tab2); F2T2.pack(side="bottom",fill="y")
 F3T2 = ttk.Frame(tab2); F3T2.pack(side="bottom",fill="y")
 tab3 = ttk.Frame(tabControl)
-
+F1T3 = ttk.Frame(tab3); F1T3.pack()
+F2T3 = ttk.Frame(tab3); F2T3.pack(side="bottom",fill="y")
+F3T3 = ttk.Frame(tab3); F3T3.pack(side="bottom",fill="y")
   
 tabControl.add(tab1, text ='Reactants') 
 tabControl.add(tab2, text ='Apparatus')
@@ -380,25 +387,103 @@ ttk.Button(F2T1, text="Remove Reactant", command=DeleteCurrentReactant).pack(sid
 
 ##################   E N D   O F   T A B  1   #############################################################
 
-def reactortypecallback(eventObject):
+def ApparatusTypeCallback(eventObject):
   print("reactor type callback")
 
-ttk.Label(tab2,text ="Apparatus").pack()
-ttk.Label(tab2,text ="Name").pack(); reactor_name=ttk.Entry(tab2); reactor_name.pack()
-ttk.Label(tab2,text ="Type").pack(); reactor_type=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator'), state = 'readonly'); reactor_type.pack(); reactor_type.bind("<<ComboboxSelected>>", reactortypecallback)
+def NextT2():
+    global CurrentReactant
+    if NotSavedDataTab1():
+     messagebox.showinfo(message="Finish first to edit the current reagent")
+     return
+    CurrentReactant+=1
+    HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValuesT1()
+    SetTab1Variables(ReactantsArray[CurrentReactant-1])
+    SetStatusNextPrevButtonsT1()
+    
+def PrevT2():
+    global CurrentReactant
+    if NotSavedDataTab1():
+     messagebox.showinfo(message="Finish first to edit the current reagent")
+     return
+    CurrentReactant-=1
+    HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValuesT1()
+    SetTab1Variables(ReactantsArray[CurrentReactant-1])
+    SetStatusNextPrevButtonsT1()
+ 
+
+PrevT2Button=ttk.Button(F1T2, text="Prev", command=PrevT2,state='disabled'); PrevT2Button.pack(side="left")
+NextT2Button=ttk.Button(F1T2, text="Next", command=NextT2,state='disabled'); NextT2Button.pack(side="left")
+HeaderLabelT2=ttk.Label(tab2,text ="Apparatus n. 1 of 1",font=("Arial", 12)); HeaderLabelT2.pack();
+ttk.Label(tab2,text ="Name").pack(); ApparatusName=ttk.Entry(tab2); ApparatusName.pack()
+ttk.Label(tab2,text ="Type").pack(); ApparatusType=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator'), state = 'readonly')
+ApparatusType.pack(); ApparatusType.bind("<<ComboboxSelected>>", ApparatusTypeCallback)
 ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Entry(tab2); heated.pack()
 ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Entry(tab2); stirred.pack()
 ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.pack()
 ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
 ttk.Button(tab2, text="Add Reactor", command=lambda: print("on clicked!")).pack()
 
+def NotSavedDataTab3():
+    return
 
-ttk.Label(tab3,text ="SYRINGE").pack()
-ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit1type.pack()
-ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit2type.pack()
-ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit3type.pack()
-ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit4type.pack()
-ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit5type.pack()
+def ClearAllValuesT3():
+    return
+
+def SetTab3Variables(parms):
+    exit1type.set(parms[0])
+    exit2type.set(parms[1])
+    exit3type.set(parms[2])
+    exit4type.set(parms[3])
+    exit5type.set(parms[4])
+
+def SetStatusNextPrevButtonsT3():
+    global CurrentSyringe
+    if CurrentSyringe==1:
+        PrevT3Button.configure(state='disabled')
+    else:
+        PrevT3Button.configure(state='enabled')
+    if CurrentSyringe>=6:
+        NextT3Button.configure(state='disabled')
+    else:
+        NextT3Button.configure(state='enabled')
+
+def LoadSyringeParameters():
+    global CurrentSyringe
+    ClearAllValuesT3()   
+    SetTab3Variables(SyringesArray[CurrentSyringe-1])
+
+def NextT3():
+    global CurrentSyringe
+    if NotSavedDataTab3():
+     messagebox.showinfo(message="Finish first to edit the current syringe")
+     return
+    CurrentSyringe+=1
+    HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
+    ClearAllValuesT3()
+    SetTab3Variables(SyringesArray[CurrentSyringe-1])
+    SetStatusNextPrevButtonsT3()
+    
+def PrevT3():
+    global CurrentSyringe
+    if NotSavedDataTab3():
+     messagebox.showinfo(message="Finish first to edit the current syringe")
+     return
+    CurrentSyringe-=1
+    HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
+    ClearAllValuesT3()
+    SetTab3Variables(SyringesArray[CurrentSyringe-1])
+    SetStatusNextPrevButtonsT3()
+
+PrevT3Button=ttk.Button(F1T3, text="Prev", command=PrevT3,state='enabled'); PrevT3Button.pack(side="left")
+NextT3Button=ttk.Button(F1T3, text="Next", command=NextT3,state='enabled'); NextT3Button.pack(side="left")
+HeaderLabelT3=ttk.Label(tab3,text ="Syringe n. 1 of 6",font=("Arial", 12)); HeaderLabelT3.pack();
+ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit1type.current(1); exit1type.pack() 
+ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit2type.current(0); exit2type.pack()
+ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit3type.current(0); exit3type.pack()
+ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit4type.current(0); exit4type.pack()
+ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit5type.current(0); exit5type.pack()
 
 ttk.Button(tab3, text="Save changes", command=lambda: print("on clicked!")).pack()
   
