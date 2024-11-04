@@ -294,7 +294,6 @@ def DeleteCurrentReactant():
             CurrentReactant-=1
             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
             SetTab1Variables(ReactantsArray[CurrentReactant-1])
-            SetStatusNextPrevButtons()
     else:
         del ReactantsArray[CurrentReactant-1]
         if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
@@ -302,7 +301,7 @@ def DeleteCurrentReactant():
         else:    
             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
             SetTab1Variables(ReactantsArray[CurrentReactant-1])
-            SetStatusNextPrevButtons()
+    SetStatusNextPrevButtons()
     
 
 def Next():
