@@ -284,6 +284,27 @@ def AddReactant():
     ClearAllValues()
     SetStatusNextPrevButtons()
 
+def DeleteCurrentReactant():
+    global CurrentReactant
+    ClearAllValues()
+    if CurrentReactant>len(ReactantsArray): #we have the number but still it is not saved in the array. So the array is shorter
+        if CurrentReactant==1:
+            return
+        else:
+            CurrentReactant-=1
+            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+            SetTab1Variables(ReactantsArray[CurrentReactant-1])
+            SetStatusNextPrevButtons()
+    else:
+        del ReactantsArray[CurrentReactant-1]
+        if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
+            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+        else:    
+            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+            SetTab1Variables(ReactantsArray[CurrentReactant-1])
+            SetStatusNextPrevButtons()
+    
+
 def Next():
     global CurrentReactant
     if NotSavedDataTab1():
@@ -326,7 +347,7 @@ ttk.Button(F3, text="Save changes", command=SaveReactantParameters).pack(side="l
 ttk.Button(F3, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
 ttk.Button(F3, text="Clear all values", command=ClearParameters).pack(side="left")
 ttk.Button(F2, text="Add new Reactant", command=AddReactant).pack(side="left")
-ttk.Button(F2, text="Remove Reactant", command=lambda: print("remove reactant")).pack(side="left")
+ttk.Button(F2, text="Remove Reactant", command=DeleteCurrentReactant).pack(side="left")
 
 ##################   E N D   O F   T A B 1   #############################################################
 
