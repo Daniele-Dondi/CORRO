@@ -4,16 +4,10 @@ from tkinter import ttk, Menu, messagebox
 ReactantsArray=[]
 CurrentReactant=1
 
-'''
-ReactantsArray.append([324,432,4,4,4])
-print(ReactantsArray)
-ReactantsArray.append([34,2,84,4,4])
-print(ReactantsArray[0])
-'''
 
 root = tk.Tk() 
 root.title("CORRO CONFIGURATOR")
-root.geometry('500x600+500+200')
+root.geometry('500x700+500+200')
 menubar = Menu(root)
 file_menu = Menu(menubar,tearoff=0)
 file_menu.add_command(label='Open')
@@ -220,7 +214,7 @@ def LoadReactantParameters():
     answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
     if answer:
      ClearAllValues()   
-     if len(ReactantsArray)==0: return
+     if not(len(ReactantsArray)>CurrentReactant-1): return
      SetTab1Variables(ReactantsArray[CurrentReactant-1])
 
 def GetTab1Variables():
@@ -253,19 +247,59 @@ def ClearAllValues():
       molaritylabel.config(text="---")
       EnableDisableTab1()
 
+def SetStatusNextPrevButtons():
+    global CurrentReactant
+    if CurrentReactant-1>0:
+        PrevButton.configure(state='enabled')
+    else:
+        PrevButton.configure(state='disabled')
+    if CurrentReactant<len(ReactantsArray):
+        NextButton.configure(state='enabled')
+    else:
+        NextButton.configure(state='disabled')
+        
+
 def ClearParameters():
     answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
     if answer: ClearAllValues()
 
+def NotSavedDataTab1():
+    global CurrentReactant
+    return not(len(ReactantsArray)>CurrentReactant-1) or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1])
+
 def AddReactant():
     global CurrentReactant
-    if not(len(ReactantsArray)>CurrentReactant-1) or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1]):
+    if NotSavedDataTab1():
         messagebox.showinfo(message="Finish first to edit the current reagent")
         return
-    CurrentReactant+=1
+    CurrentReactant=len(ReactantsArray)+1
     HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
     ClearAllValues()
+    SetStatusNextPrevButtons()
 
+def Next():
+    global CurrentReactant
+    if NotSavedDataTab1():
+     messagebox.showinfo(message="Finish first to edit the current reagent")
+     return
+    CurrentReactant+=1
+    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValues()
+    SetTab1Variables(ReactantsArray[CurrentReactant-1])
+    SetStatusNextPrevButtons()
+    
+
+def Prev():
+    global CurrentReactant
+    if NotSavedDataTab1():
+     messagebox.showinfo(message="Finish first to edit the current reagent")
+     return
+    CurrentReactant-=1
+    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValues()
+    SetTab1Variables(ReactantsArray[CurrentReactant-1])
+    SetStatusNextPrevButtons()
+    
 
 HeaderLabel=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabel.pack();
 ttk.Label(tab1,text =" ").pack();
@@ -285,6 +319,8 @@ ttk.Button(tab1, text="Ignore changes", command=LoadReactantParameters).pack()
 ttk.Button(tab1, text="Clear all values", command=ClearParameters).pack()
 ttk.Button(tab1, text="Add new Reactant", command=AddReactant).pack()
 ttk.Button(tab1, text="Remove Reactant", command=lambda: print("remove reactant")).pack()
+PrevButton=ttk.Button(tab1, text="Prev", command=Prev,state='disabled'); PrevButton.pack()
+NextButton=ttk.Button(tab1, text="Next", command=Next,state='disabled'); NextButton.pack()
 
 
 def reactortypecallback(eventObject):
