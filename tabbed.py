@@ -286,22 +286,24 @@ def AddReactant():
 
 def DeleteCurrentReactant():
     global CurrentReactant
-    ClearAllValues()
-    if CurrentReactant>len(ReactantsArray): #we have the number but still it is not saved in the array. So the array is shorter
-        if CurrentReactant==1:
-            return
-        else:
-            CurrentReactant-=1
-            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
-            SetTab1Variables(ReactantsArray[CurrentReactant-1])
-    else:
-        del ReactantsArray[CurrentReactant-1]
-        if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
-            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
-        else:    
-            HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
-            SetTab1Variables(ReactantsArray[CurrentReactant-1])
-    SetStatusNextPrevButtons()
+    answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current reactant?")
+    if answer:
+     ClearAllValues()
+     if CurrentReactant>len(ReactantsArray): #we have the number but still it is not saved in the array. So the array is shorter
+         if CurrentReactant==1:
+             return
+         else:
+             CurrentReactant-=1
+             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+             SetTab1Variables(ReactantsArray[CurrentReactant-1])
+     else:
+         del ReactantsArray[CurrentReactant-1]
+         if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
+             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+         else:    
+             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+             SetTab1Variables(ReactantsArray[CurrentReactant-1])
+     SetStatusNextPrevButtons()
     
 
 def Next():
