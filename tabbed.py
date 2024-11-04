@@ -4,6 +4,10 @@ from tkinter import ttk, Menu, messagebox
 ReactantsArray=[]
 CurrentReactant=1
 
+SyringesOptions=["Not in use","Air/Waste"]
+
+def SaveAllData():
+    return
 
 root = tk.Tk() 
 root.title("CORRO CONFIGURATOR")
@@ -11,42 +15,65 @@ root.geometry('500x550+500+200')
 menubar = Menu(root)
 file_menu = Menu(menubar,tearoff=0)
 file_menu.add_command(label='Open')
-file_menu.add_command(label='Save')
+file_menu.add_command(label='Save',command=SaveAllData)
 file_menu.add_separator()
 file_menu.add_command(label='Exit',command=root.destroy)
 root.config(menu=menubar)
 menubar.add_cascade(label="File",menu=file_menu)
 
-tabControl = ttk.Notebook(root) 
-tab1 = ttk.Frame(tabControl) 
+
+
+def on_tab_selected(event):
+    global SyringesOptions
+    selected_tab = event.widget.select()
+    tab_text = event.widget.tab(selected_tab, "text")
+    if tab_text == "Syringes":
+        SyringesOptions=["Not in use","Air/Waste"]
+        count=0
+        for element in ReactantsArray:
+            count+=1
+            SyringesOptions.append("Reactant"+str(count)+": "+element[0])
+        #same with apparatus    
+        exit1type.config(values=SyringesOptions)
+        exit2type.config(values=SyringesOptions)
+        exit3type.config(values=SyringesOptions)
+        exit4type.config(values=SyringesOptions)
+        exit5type.config(values=SyringesOptions)    
+   
+
+tabControl = ttk.Notebook(root)
+tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
+tab1 = ttk.Frame(tabControl)
+F1T1 = ttk.Frame(tab1); F1T1.pack()
+F2T1 = ttk.Frame(tab1); F2T1.pack(side="bottom",fill="y")
+F3T1 = ttk.Frame(tab1); F3T1.pack(side="bottom",fill="y")
 tab2 = ttk.Frame(tabControl)
+F1T2 = ttk.Frame(tab2); F1T2.pack()
+F2T2 = ttk.Frame(tab2); F2T2.pack(side="bottom",fill="y")
+F3T2 = ttk.Frame(tab2); F3T2.pack(side="bottom",fill="y")
 tab3 = ttk.Frame(tabControl)
-F1 = ttk.Frame(tab1)
-F1.pack()
-F2 = ttk.Frame(tab1)
-F2.pack(side="bottom",fill="y")
-F3 = ttk.Frame(tab1)
-F3.pack(side="bottom",fill="y")
+
   
 tabControl.add(tab1, text ='Reactants') 
-tabControl.add(tab2, text ='Reactors')
+tabControl.add(tab2, text ='Apparatus')
 tabControl.add(tab3, text ='Syringes') 
 tabControl.pack(expand = 1, fill ="both")
 
+
 ##################   T A B 1   #############################################################
 def EnableDisableTab1():
-    ReactantType=rtype.get()
-    if ReactantType=="Pure liquid":
+    TypeOfReactant=ReactantType.get()
+    if TypeOfReactant=="Pure liquid":
         purity.configure(state='normal')
         concentration.configure(state='disabled')
         ConcNumType.configure(state='disabled')
         ConcDenType.configure(state='disabled')    
-    elif ReactantType=="Solution":
+    elif TypeOfReactant=="Solution":
         purity.configure(state='disabled')
         concentration.configure(state='normal')
         ConcNumType.configure(state='readonly')
         ConcDenType.configure(state='readonly')
-    elif ReactantType=="Solvent":
+    elif TypeOfReactant=="Solvent":
         purity.configure(state='disabled')
         concentration.configure(state='disabled')
         ConcNumType.configure(state='disabled')
@@ -58,7 +85,7 @@ def EnableDisableTab1():
         ConcDenType.configure(state='readonly')
 
 
-def rtypecallback(eventObject):
+def ReactantTypecallback(eventObject):
     EnableDisableTab1()   
 
 def ConcNumTypecallback(eventObject):
@@ -131,12 +158,13 @@ def Try2CalculateMWfromFormula(eventObject):
     formula=rformula.get()
     if not formula=="":
      MM=CalcMW(formula)
-     MW.delete(0,tk.END)  # Clear any existing text
-     MW.insert(0,str(MM))  # Insert new text
+     if not MM == 0:
+      MW.delete(0,tk.END)  # Clear any existing text
+      MW.insert(0,str(MM))  # Insert new text
 
 def Try2CalculateMolarity():
-    ReactantType=rtype.get()
-    if ReactantType=="Solution":
+    TypeOfReactant=ReactantType.get()
+    if TypeOfReactant=="Solution":
         value=concentration.get()
         UnitNum=ConcNumType.get()
         UnitDen=ConcDenType.get()
@@ -162,7 +190,7 @@ def Try2CalculateMolarity():
                 return value*10*den
         except:
             return 0
-    if ReactantType=="Pure liquid":
+    if TypeOfReactant=="Pure liquid":
         try:
          MM=float(MW.get())
          if MM<1: return 0
@@ -174,10 +202,10 @@ def Try2CalculateMolarity():
     return 0
 
 def CheckReactantParameters():
-    if rname.get()=="":
+    if ReactantName.get()=="":
         messagebox.showerror("ERROR", "Reactant name cannot be empty. Insert a valid name and retry.")
         return False
-    if rtype.get()=="":
+    if ReactantType.get()=="":
         messagebox.showerror("ERROR", "Reactant type cannot be empty. Insert a valid type and retry.")
         return False
     try:
@@ -203,8 +231,8 @@ def CheckReactantParameters():
 def SetTab1Variables(parms):
     purity.delete(0,tk.END)
     density.delete(0,tk.END)
-    rname.insert(0,parms[0])
-    rtype.set(parms[1])
+    ReactantName.insert(0,parms[0])
+    ReactantType.set(parms[1])
     rformula.insert(0,parms[2])
     MW.insert(0,parms[3])
     purity.insert(0,parms[4])
@@ -220,12 +248,12 @@ def LoadReactantParameters():
     global CurrentReactant
     answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
     if answer:
-     ClearAllValues()   
+     ClearAllValuesT1()   
      if not(len(ReactantsArray)>CurrentReactant-1): return
      SetTab1Variables(ReactantsArray[CurrentReactant-1])
 
 def GetTab1Variables():
-    return [rname.get(),rtype.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
+    return [ReactantName.get(),ReactantType.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
 
 def SaveReactantParameters():
     global CurrentReactant
@@ -239,9 +267,9 @@ def SaveReactantParameters():
         ReactantsArray[CurrentReactant-1]=newvalues
       print(ReactantsArray)
 
-def ClearAllValues():
-      rname.delete(0,tk.END)
-      rtype.set("")
+def ClearAllValuesT1():
+      ReactantName.delete(0,tk.END)
+      ReactantType.set("")
       rformula.delete(0,tk.END)
       MW.delete(0,tk.END)
       purity.delete(0,tk.END)
@@ -254,21 +282,21 @@ def ClearAllValues():
       molaritylabel.config(text="---")
       EnableDisableTab1()
 
-def SetStatusNextPrevButtons():
+def SetStatusNextPrevButtonsT1():
     global CurrentReactant
     if CurrentReactant-1>0:
-        PrevButton.configure(state='enabled')
+        PrevT1Button.configure(state='enabled')
     else:
-        PrevButton.configure(state='disabled')
+        PrevT1Button.configure(state='disabled')
     if CurrentReactant<len(ReactantsArray):
-        NextButton.configure(state='enabled')
+        NextT1Button.configure(state='enabled')
     else:
-        NextButton.configure(state='disabled')
+        NextT1Button.configure(state='disabled')
         
 
-def ClearParameters():
+def ClearReactantParameters():
     answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
-    if answer: ClearAllValues()
+    if answer: ClearAllValuesT1()
 
 def NotSavedDataTab1():
     global CurrentReactant
@@ -280,61 +308,61 @@ def AddReactant():
         messagebox.showinfo(message="Finish first to edit the current reagent")
         return
     CurrentReactant=len(ReactantsArray)+1
-    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
-    ClearAllValues()
-    SetStatusNextPrevButtons()
+    HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+    ClearAllValuesT1()
+    SetStatusNextPrevButtonsT1()
 
 def DeleteCurrentReactant():
     global CurrentReactant
     answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current reactant?")
     if answer:
-     ClearAllValues()
+     ClearAllValuesT1()
      if CurrentReactant>len(ReactantsArray): #we have the number but still it is not saved in the array. So the array is shorter
          if CurrentReactant==1:
              return
          else:
              CurrentReactant-=1
-             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+             HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
              SetTab1Variables(ReactantsArray[CurrentReactant-1])
      else:
          del ReactantsArray[CurrentReactant-1]
          if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
-             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+             HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
          else:    
-             HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+             HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
              SetTab1Variables(ReactantsArray[CurrentReactant-1])
-     SetStatusNextPrevButtons()
+     SetStatusNextPrevButtonsT1()
     
 
-def Next():
+def NextT1():
     global CurrentReactant
     if NotSavedDataTab1():
      messagebox.showinfo(message="Finish first to edit the current reagent")
      return
     CurrentReactant+=1
-    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
-    ClearAllValues()
+    HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValuesT1()
     SetTab1Variables(ReactantsArray[CurrentReactant-1])
-    SetStatusNextPrevButtons()
+    SetStatusNextPrevButtonsT1()
     
 
-def Prev():
+def PrevT1():
     global CurrentReactant
     if NotSavedDataTab1():
      messagebox.showinfo(message="Finish first to edit the current reagent")
      return
     CurrentReactant-=1
-    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
-    ClearAllValues()
+    HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
+    ClearAllValuesT1()
     SetTab1Variables(ReactantsArray[CurrentReactant-1])
-    SetStatusNextPrevButtons()
+    SetStatusNextPrevButtonsT1()
     
-PrevButton=ttk.Button(F1, text="Prev", command=Prev,state='disabled'); PrevButton.pack(side="left")
-NextButton=ttk.Button(F1, text="Next", command=Next,state='disabled'); NextButton.pack(side="left")
-HeaderLabel=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabel.pack();
+PrevT1Button=ttk.Button(F1T1, text="Prev", command=PrevT1,state='disabled'); PrevT1Button.pack(side="left")
+NextT1Button=ttk.Button(F1T1, text="Next", command=NextT1,state='disabled'); NextT1Button.pack(side="left")
+HeaderLabelT1=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabelT1.pack();
 ttk.Label(tab1,text =" ").pack();
-ttk.Label(tab1,text ="Reactant Name").pack(); rname=ttk.Entry(tab1); rname.pack(); 
-ttk.Label(tab1,text ="Reactant Type").pack(); rtype=ttk.Combobox(tab1, values = ('Solution','Solvent','Pure liquid'), state = 'readonly'); rtype.pack(); rtype.bind("<<ComboboxSelected>>", rtypecallback)
+ttk.Label(tab1,text ="Reactant Name").pack(); ReactantName=ttk.Entry(tab1); ReactantName.pack(); 
+ttk.Label(tab1,text ="Reactant Type").pack(); ReactantType=ttk.Combobox(tab1, values = ('Solution','Solvent','Pure liquid'), state = 'readonly'); ReactantType.pack(); ReactantType.bind("<<ComboboxSelected>>", ReactantTypecallback)
 ttk.Label(tab1,text ="Chemical formula").pack(); rformula=ttk.Entry(tab1); rformula.pack(); 
 ttk.Label(tab1,text ="Molecular Mass").pack(); MW=ttk.Entry(tab1); MW.pack(); MW.bind("<Button-1>", Try2CalculateMWfromFormula)
 ttk.Label(tab1,text ="Purity %").pack(); purity=ttk.Entry(tab1); purity.insert(0, '100'); purity.pack(); 
@@ -343,19 +371,19 @@ ttk.Label(tab1,text ="Concentration units (numerator)").pack(); ConcNumType=ttk.
 ttk.Label(tab1,text ="Concentration units (denominator)").pack(); ConcDenType=ttk.Combobox(tab1, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType.pack(); ConcDenType.bind("<<ComboboxSelected>>", ConcDenTypecallback)
 ttk.Label(tab1,text ="Density (g/mL)").pack(); density=ttk.Entry(tab1); density.insert(0, '1'); density.pack(); 
 molaritylabel=ttk.Label(tab1,text ="---"); molaritylabel.pack();
-ttk.Button(F3, text="Check values", command=CheckReactantParameters).pack(side="left")
-ttk.Button(F3, text="Save changes", command=SaveReactantParameters).pack(side="left")
-ttk.Button(F3, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
-ttk.Button(F3, text="Clear all values", command=ClearParameters).pack(side="left")
-ttk.Button(F2, text="Add new Reactant", command=AddReactant).pack(side="left")
-ttk.Button(F2, text="Remove Reactant", command=DeleteCurrentReactant).pack(side="left")
+ttk.Button(F3T1, text="Check values", command=CheckReactantParameters).pack(side="left")
+ttk.Button(F3T1, text="Save changes", command=SaveReactantParameters).pack(side="left")
+ttk.Button(F3T1, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
+ttk.Button(F3T1, text="Clear all values", command=ClearReactantParameters).pack(side="left")
+ttk.Button(F2T1, text="Add new Reactant", command=AddReactant).pack(side="left")
+ttk.Button(F2T1, text="Remove Reactant", command=DeleteCurrentReactant).pack(side="left")
 
-##################   E N D   O F   T A B 1   #############################################################
+##################   E N D   O F   T A B  1   #############################################################
 
 def reactortypecallback(eventObject):
   print("reactor type callback")
 
-ttk.Label(tab2,text ="REACTOR").pack()
+ttk.Label(tab2,text ="Apparatus").pack()
 ttk.Label(tab2,text ="Name").pack(); reactor_name=ttk.Entry(tab2); reactor_name.pack()
 ttk.Label(tab2,text ="Type").pack(); reactor_type=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator'), state = 'readonly'); reactor_type.pack(); reactor_type.bind("<<ComboboxSelected>>", reactortypecallback)
 ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Entry(tab2); heated.pack()
@@ -364,12 +392,13 @@ ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.
 ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
 ttk.Button(tab2, text="Add Reactor", command=lambda: print("on clicked!")).pack()
 
+
 ttk.Label(tab3,text ="SYRINGE").pack()
-ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = ('Air/Waste', 'Reactant1', 'Reactant2'), state = 'readonly'); exit1type.pack()
-ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = ('Air/Waste', 'Reactant1', 'Reactant2'), state = 'readonly'); exit2type.pack()
-ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = ('Air/Waste', 'Reactant1', 'Reactant2'), state = 'readonly'); exit3type.pack()
-ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = ('Air/Waste', 'Reactant1', 'Reactant2'), state = 'readonly'); exit4type.pack()
-ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = ('Air/Waste', 'Reactant1', 'Reactant2'), state = 'readonly'); exit5type.pack()
+ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit1type.pack()
+ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit2type.pack()
+ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit3type.pack()
+ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit4type.pack()
+ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit5type.pack()
 
 ttk.Button(tab3, text="Save changes", command=lambda: print("on clicked!")).pack()
   
