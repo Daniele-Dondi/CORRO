@@ -230,7 +230,7 @@ def SaveReactantParameters():
     global CurrentReactant
     if CheckReactantParameters():
       newvalues=GetTab1Variables()
-      if len(ReactantsArray)==0:  
+      if len(ReactantsArray)==CurrentReactant-1:  
        ReactantsArray.append(newvalues)
       else:
        answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
@@ -258,9 +258,13 @@ def ClearParameters():
     if answer: ClearAllValues()
 
 def AddReactant():
-    if len(ReactantsArray)==0 or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1]):
+    global CurrentReactant
+    if not(len(ReactantsArray)>CurrentReactant-1) or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1]):
         messagebox.showinfo(message="Finish first to edit the current reagent")
         return
+    CurrentReactant+=1
+    HeaderLabel.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
+    ClearAllValues()
 
 
 HeaderLabel=ttk.Label(tab1,text ="Reactant n. 1 of 1",font=("Arial", 12)); HeaderLabel.pack();
@@ -279,7 +283,7 @@ ttk.Button(tab1, text="Check values", command=CheckReactantParameters).pack()
 ttk.Button(tab1, text="Save changes", command=SaveReactantParameters).pack()
 ttk.Button(tab1, text="Ignore changes", command=LoadReactantParameters).pack()
 ttk.Button(tab1, text="Clear all values", command=ClearParameters).pack()
-ttk.Button(tab1, text="Add Reactant", command=AddReactant).pack()
+ttk.Button(tab1, text="Add new Reactant", command=AddReactant).pack()
 ttk.Button(tab1, text="Remove Reactant", command=lambda: print("remove reactant")).pack()
 
 
