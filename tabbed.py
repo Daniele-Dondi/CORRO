@@ -41,8 +41,8 @@ def on_tab_selected(event):
         exit2type.config(values=SyringesOptions)
         exit3type.config(values=SyringesOptions)
         exit4type.config(values=SyringesOptions)
-        exit5type.config(values=SyringesOptions)    
-   
+        exit5type.config(values=SyringesOptions)
+  
 
 tabControl = ttk.Notebook(root)
 tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
@@ -259,6 +259,8 @@ def SaveReactantParameters():
       elif NotSavedDataTab1():
        answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
        if answer:
+        if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the SyringesArray
+            UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get())           
         ReactantsArray[CurrentReactant-1]=newvalues
 
 def ClearAllValuesT1():
@@ -307,6 +309,17 @@ def AddReactant():
     ClearAllValuesT1()
     SetStatusNextPrevButtonsT1()
 
+def UpdateEntryFromSyringesArray(Item,position,NewValue):
+    global SyringesArray
+    Item="Reactant"+str(position)+": "+Item
+    print(Item)
+    print(SyringesArray)
+    for element in SyringesArray:
+      for i, n in enumerate(element):
+       if n==Item:
+         element[i]=NewValue
+    print(SyringesArray)                
+
 def DeleteCurrentReactant():
     global CurrentReactant
     answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current reactant?")
@@ -320,6 +333,7 @@ def DeleteCurrentReactant():
              HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
              SetTab1Variables(ReactantsArray[CurrentReactant-1])
      else:
+         UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use")
          del ReactantsArray[CurrentReactant-1]
          if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
              HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
@@ -407,12 +421,14 @@ PrevT2Button=ttk.Button(F1T2, text="Prev", command=PrevT2,state='disabled'); Pre
 NextT2Button=ttk.Button(F1T2, text="Next", command=NextT2,state='disabled'); NextT2Button.pack(side="left")
 HeaderLabelT2=ttk.Label(tab2,text ="Apparatus n. 1 of 1",font=("Arial", 12)); HeaderLabelT2.pack(pady="10");
 ttk.Label(tab2,text ="Name").pack(); ApparatusName=ttk.Entry(tab2); ApparatusName.pack()
-ttk.Label(tab2,text ="Type").pack(); ApparatusType=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator'), state = 'readonly')
+ttk.Label(tab2,text ="Type").pack(); ApparatusType=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator',"Photo reactor","Flow reactor"), state = 'readonly')
 ApparatusType.pack(); ApparatusType.bind("<<ComboboxSelected>>", ApparatusTypeCallback)
 ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Entry(tab2); heated.pack()
 ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Entry(tab2); stirred.pack()
 ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.pack()
 ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
+ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
+ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
 ttk.Button(tab2, text="Add Reactor", command=lambda: print("on clicked!")).pack()
 
 def NotSavedDataTab3():
