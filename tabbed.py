@@ -394,9 +394,12 @@ ttk.Button(F3T1, text="Remove Reactant", command=DeleteCurrentReactant).pack(sid
 def ApparatusTypeCallback(eventObject):
   print("reactor type callback")
 
+def NotSavedDataTab2():
+    return False
+
 def NextT2():
     global CurrentReactant
-    if NotSavedDataTab1():
+    if NotSavedDataTab2():
      messagebox.showinfo(message="Finish first to edit the current reagent")
      return
     CurrentReactant+=1
@@ -407,7 +410,7 @@ def NextT2():
     
 def PrevT2():
     global CurrentReactant
-    if NotSavedDataTab1():
+    if NotSavedDataTab2():
      messagebox.showinfo(message="Finish first to edit the current reagent")
      return
     CurrentReactant-=1
