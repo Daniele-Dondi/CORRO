@@ -9,6 +9,9 @@ CurrentSyringe=1
 TotalNumberOfSyringes=6
 SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
 
+ApparatusArray=[]
+CurrentApparatus=1
+
 def SaveAllData():
     return
 
@@ -394,26 +397,26 @@ def StartConfigurator(window):
     ##################   E N D   O F   T A B  1   #############################################################
 
     def ApparatusTypeCallback(eventObject):
-      print("reactor type callback")
+      print("apparatus type callback")
 
     def NotSavedDataTab2():
         return False
 
     def NextT2():
-        global CurrentReactant
+        global CurrentApparatus
         if NotSavedDataTab2():
-         messagebox.showinfo(message="Finish first to edit the current reagent")
+         messagebox.showinfo(message="Finish first to edit the current apparatus")
          return
-        CurrentReactant+=1
-        HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
-        ClearAllValuesT1()
-        SetTab1Variables(ReactantsArray[CurrentReactant-1])
-        SetStatusNextPrevButtonsT1()
+        CurrentApparatus+=1
+        HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(len(ApparatusArray)))
+        ClearAllValuesT2()
+        SetTab2Variables(ApparatusArray[CurrentApparatus-1])
+        SetStatusNextPrevButtonsT2()
         
     def PrevT2():
         global CurrentReactant
         if NotSavedDataTab2():
-         messagebox.showinfo(message="Finish first to edit the current reagent")
+         messagebox.showinfo(message="Finish first to edit the current apparatus")
          return
         CurrentReactant-=1
         HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
@@ -434,7 +437,14 @@ def StartConfigurator(window):
     ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
     ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
     ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
-    ttk.Button(tab2, text="Add Reactor", command=lambda: print("on clicked!")).pack()
+    F2T2 = ttk.Frame(tab1); F2T2.pack(pady="10")
+    F3T2 = ttk.Frame(tab1); F3T2.pack()
+    ttk.Button(F2T2, text="Save changes", command=SaveReactantParameters).pack(side="left")
+    ttk.Button(F2T2, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
+    ttk.Button(F2T2, text="Clear all values", command=ClearReactantParameters).pack(side="left")
+    ttk.Button(F3T2, text="Add new Apparatus", command=AddReactant).pack(side="left")
+    ttk.Button(F3T2, text="Remove Apparatus", command=DeleteCurrentReactant).pack(side="left")
+
 
     def NotSavedDataTab3():
         global CurrentSyringe
@@ -507,4 +517,4 @@ def StartConfigurator(window):
     ttk.Button(tab3, text="Ignore changes", command=LoadSyringeParameters).pack()
 
       
-    ConfiguratorWindow.mainloop()   
+    #ConfiguratorWindow.mainloop()   
