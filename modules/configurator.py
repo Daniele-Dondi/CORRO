@@ -41,6 +41,16 @@ def StartConfigurator(window):
             for element in ReactantsArray:
                 count+=1
                 SyringesOptions.append("Reactant"+str(count)+": "+element[0])
+            count=0
+            for element in ApparatusArray:
+                count+=1
+                name="Apparatus"+str(count)+": "+element[0]
+                if element[1] in ['Heated reactor','Non heated reactor','Liquid/liquid separator']:
+                    SyringesOptions.append(name+" IN")
+                    SyringesOptions.append(name+" OUT")
+                else:
+                    SyringesOptions.append(name)
+                
             #same with apparatus    
             exit1type.config(values=SyringesOptions)
             exit2type.config(values=SyringesOptions)
@@ -265,7 +275,7 @@ def StartConfigurator(window):
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
            if answer:
             if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the SyringesArray
-                UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get())           
+                UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")           
             ReactantsArray[CurrentReactant-1]=newvalues
 
     def ClearAllValuesT1():
@@ -314,16 +324,13 @@ def StartConfigurator(window):
         ClearAllValuesT1()
         SetStatusNextPrevButtonsT1()
 
-    def UpdateEntryFromSyringesArray(Item,position,NewValue):
+    def UpdateEntryFromSyringesArray(Item,position,NewValue,EntryType):
         global SyringesArray
-        Item="Reactant"+str(position)+": "+Item
-        print(Item)
-        print(SyringesArray)
+        Item=EntryType+str(position)+": "+Item # EntryType should be Reactant or Apparatus
         for element in SyringesArray:
           for i, n in enumerate(element):
            if n==Item:
              element[i]=NewValue
-        print(SyringesArray)                
 
     def DeleteCurrentReactant():
         global CurrentReactant
@@ -338,7 +345,7 @@ def StartConfigurator(window):
                  HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
                  SetTab1Variables(ReactantsArray[CurrentReactant-1])
          else:
-             UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use")
+             UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use","Reactant")
              del ReactantsArray[CurrentReactant-1]
              if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
                  HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
@@ -396,8 +403,107 @@ def StartConfigurator(window):
 
     ##################   E N D   O F   T A B  1   #############################################################
 
+    def CheckApparatusParameters():
+        if ApparatusName.get()=="":
+            messagebox.showerror("ERROR", "Apparatus name cannot be empty. Insert a valid name and retry.")
+            return False
+        if ApparatusType.get()=="":
+            messagebox.showerror("ERROR", "Apparatus type cannot be empty. Insert a valid type and retry.")
+            return False
+        return True
+
+    def EnableDisableTab2():
+        return
+
+    def SetTab2Variables(parms):
+        ApparatusName.insert(0,parms[0])
+        ApparatusType.set(parms[1])
+        EnableDisableTab2()   
+
+    def LoadApparatusParameters():
+        global CurrentApparatus
+        answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
+        if answer:
+         ClearAllValuesT2()   
+         if not(len(ApparatusArray)>CurrentApparatus-1): return
+         SetTab2Variables(ApparatusArray[CurrentApparatus-1])
+
+    def GetTab2Variables():
+        return [ApparatusName.get(),ApparatusType.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
+
+    def SaveApparatusParameters():
+        global CurrentApparatus
+        if CheckApparatusParameters():
+          newvalues=GetTab2Variables()
+          if len(ApparatusArray)==CurrentApparatus-1:  
+           ApparatusArray.append(newvalues)
+          elif NotSavedDataTab2():
+           answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Apparatus?")
+           if answer:
+            if not ApparatusName.get()==ApparatusArray[CurrentApparatus-1][0]: #Apparatus name has changed, we have to update the SyringesArray
+                UpdateEntryFromSyringesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")           
+            ApparatusArray[CurrentApparatus-1]=newvalues
+
+    def ClearAllValuesT2():
+          ApparatusName.delete(0,tk.END)
+          ApparatusType.set("")
+          EnableDisableTab2()
+
+    def SetStatusNextPrevButtonsT2():
+        global CurrentApparatus
+        if CurrentApparatus-1>0:
+            PrevT2Button.configure(state='enabled')
+        else:
+            PrevT2Button.configure(state='disabled')
+        if CurrentApparatus<len(ApparatusArray):
+            NextT2Button.configure(state='enabled')
+        else:
+            NextT2Button.configure(state='disabled')
+            
+
+    def ClearApparatusParameters():
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
+        if answer: ClearAllValuesT2()
+
+    def NotSavedDataTab2():
+        global CurrentApparatus
+        return not(len(ApparatusArray)>CurrentApparatus-1) or not(GetTab2Variables()==ApparatusArray[CurrentApparatus-1])
+
+    def AddApparatus():
+        global CurrentApparatus
+        if NotSavedDataTab2():
+            messagebox.showinfo(message="Finish first to edit the current reagent")
+            return
+        CurrentApparatus=len(ApparatusArray)+1
+        HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
+        ClearAllValuesT2()
+        SetStatusNextPrevButtonsT2()
+
+
+    def DeleteCurrentApparatus():
+        global CurrentApparatus
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Apparatus?")
+        if answer:
+         ClearAllValuesT2()
+         if CurrentApparatus>len(ApparatusArray): #we have the number but still it is not saved in the array. So the array is shorter
+             if CurrentApparatus==1:
+                 return
+             else:
+                 CurrentApparatus-=1
+                 HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
+                 SetTab2Variables(ApparatusArray[CurrentApparatus-1])
+         else:
+             UpdateEntryFromSyringesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Not in use","Apparatus")
+             del ApparatusArray[CurrentApparatus-1]
+             if CurrentApparatus>len(ApparatusArray): #we deleted the first and only Apparatus
+                 HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
+             else:    
+                 HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(len(ApparatusArray)))
+                 SetTab2Variables(ApparatusArray[CurrentApparatus-1])
+         SetStatusNextPrevButtonsT2()
+        
     def ApparatusTypeCallback(eventObject):
-      print("apparatus type callback")
+      EnableDisableTab2()
 
     def NotSavedDataTab2():
         return False
@@ -414,15 +520,15 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT2()
         
     def PrevT2():
-        global CurrentReactant
+        global CurrentApparatus
         if NotSavedDataTab2():
          messagebox.showinfo(message="Finish first to edit the current apparatus")
          return
-        CurrentReactant-=1
-        HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(len(ReactantsArray)))
-        ClearAllValuesT1()
-        SetTab1Variables(ReactantsArray[CurrentReactant-1])
-        SetStatusNextPrevButtonsT1()
+        CurrentApparatus-=1
+        HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(len(ApparatusArray)))
+        ClearAllValuesT2()
+        SetTab2Variables(ApparatusArray[CurrentApparatus-1])
+        SetStatusNextPrevButtonsT2()
      
     F1T2 = ttk.Frame(tab2); F1T2.pack()
     PrevT2Button=ttk.Button(F1T2, text="Prev", command=PrevT2,state='disabled'); PrevT2Button.pack(side="left")
@@ -437,13 +543,13 @@ def StartConfigurator(window):
     ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
     ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
     ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
-    F2T2 = ttk.Frame(tab1); F2T2.pack(pady="10")
-    F3T2 = ttk.Frame(tab1); F3T2.pack()
-    ttk.Button(F2T2, text="Save changes", command=SaveReactantParameters).pack(side="left")
-    ttk.Button(F2T2, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
-    ttk.Button(F2T2, text="Clear all values", command=ClearReactantParameters).pack(side="left")
-    ttk.Button(F3T2, text="Add new Apparatus", command=AddReactant).pack(side="left")
-    ttk.Button(F3T2, text="Remove Apparatus", command=DeleteCurrentReactant).pack(side="left")
+    F2T2 = ttk.Frame(tab2); F2T2.pack(pady="10")
+    F3T2 = ttk.Frame(tab2); F3T2.pack()
+    ttk.Button(F2T2, text="Save changes", command=SaveApparatusParameters).pack(side="left")
+    ttk.Button(F2T2, text="Ignore changes", command=LoadApparatusParameters).pack(side="left")
+    ttk.Button(F2T2, text="Clear all values", command=ClearApparatusParameters).pack(side="left")
+    ttk.Button(F3T2, text="Add new Apparatus", command=AddApparatus).pack(side="left")
+    ttk.Button(F3T2, text="Remove Apparatus", command=DeleteCurrentApparatus).pack(side="left")
 
 
     def NotSavedDataTab3():
