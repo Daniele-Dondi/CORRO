@@ -34,7 +34,6 @@ import os
 import serial
 from os import listdir
 from os.path import isfile, join
-import sys
 
 
 #global vars
