@@ -466,7 +466,10 @@ def LoadSyringeParameters():
 def SaveSyringeParameters():
     global CurrentSyringe
     if NotSavedDataTab3():
-     SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
+     if "Air/Waste" not in GetTab3Variables():
+        messagebox.showerror("ERROR", "One exit MUST BE Air/Waste")
+     else:   
+        SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
 
 def NextT3():
     global CurrentSyringe
