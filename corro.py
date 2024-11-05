@@ -34,7 +34,11 @@ import os
 import serial
 from os import listdir
 from os.path import isfile, join
+from modules.configurator import *
+from modules.listserialports import *
 
+
+print(AvailableSerialPorts())
 
 #global vars
 connected = 0
@@ -1183,7 +1187,7 @@ def Record():
   return      
 
 def Configurator():
-  return      
+  StartConfigurator(base)      
 
 def Wizard():
   return      
