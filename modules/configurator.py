@@ -460,6 +460,15 @@ def StartConfigurator(window):
     def SetTab2Variables(parms):
         ApparatusName.insert(0,parms[0])
         ApparatusType.set(parms[1])
+        thermo.set(parms[2])
+        heated.set(parms[3])
+        stirred.set(parms[4])
+        onoff.set(parms[5])
+        otheronoff.set(parms[6])
+        minvol.insert(0,parms[7])
+        maxvol.insert(0,parms[8])
+        maxinputs.insert(0,parms[9])
+        maxoutputs.insert(0,parms[10])
         EnableDisableTab2()   
 
     def LoadApparatusParameters():
@@ -472,9 +481,6 @@ def StartConfigurator(window):
 
     def GetTab2Variables():
         return [ApparatusName.get(),ApparatusType.get(),thermo.get(),heated.get(),stirred.get(),onoff.get(),otheronoff.get(),minvol.get(),maxvol.get(),maxinputs.get(),maxoutputs.get()]
-
-    def RemoveSelectedItemsFromComboLists():
-        return
 
     def SaveApparatusParameters():
         global CurrentApparatus
@@ -557,8 +563,6 @@ def StartConfigurator(window):
     def ApparatusTypeCallback(eventObject):
       EnableDisableTab2()
 
-    def NotSavedDataTab2():
-        return False
 
     def NextT2():
         global CurrentApparatus
