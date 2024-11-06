@@ -1371,5 +1371,5 @@ if len(macrolist)>0:
 if AutoConnect: Connect()
 
 #Start the main loop
-base.protocol("WM_DELETE_WINDOW", on_closing)
+#base.protocol("WM_DELETE_WINDOW", on_closing)
 base.mainloop()

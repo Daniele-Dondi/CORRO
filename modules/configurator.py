@@ -11,6 +11,9 @@ SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in ra
 
 ApparatusArray=[]
 CurrentApparatus=1
+PIDList=["None","Heater 1","Heater 2"]
+ThermoList=["None","Thermocouple 1","Thermocouple 2"]
+PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
 def SaveAllData():
     return
@@ -18,7 +21,7 @@ def SaveAllData():
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
-    ConfiguratorWindow.geometry('500x550+500+200')
+    ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
     menubar = Menu(ConfiguratorWindow)
     file_menu = Menu(menubar,tearoff=0)
@@ -410,6 +413,45 @@ def StartConfigurator(window):
         if ApparatusType.get()=="":
             messagebox.showerror("ERROR", "Apparatus type cannot be empty. Insert a valid type and retry.")
             return False
+        InUseThermo=""
+        InUseHeater=""
+        InUseBT=""
+        for element in ApparatusArray:
+            InUseThermo+=element[2]
+            InUseHeater+=element[3]
+            InUseBT+=element[4]+element[5]+element[6]
+        item=thermo.get()
+        if not(item=="None") and item in InUseThermo:
+                messagebox.showerror("ERROR", "Thermocouple "+item+" already used in other apparatus")
+                return False
+        item=heated.get()
+        if not(item=="None") and item in InUseHeater:
+                messagebox.showerror("ERROR", "Heather connection "+item+" already used in other apparatus")
+                return False
+        testarray=[]
+        item=stirred.get()
+        if not(item=="None"):
+            testarray.append(item)
+            if item in InUseBT:
+                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+                return False
+        item=onoff.get()
+        if not(item=="None"):
+            if item in InUseBT:
+                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+                return False
+            if item in testarray:
+                messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
+                return False
+            testarray.append(item)
+        item=otheronoff.get()
+        if not(item=="None"):
+            if item in InUseBT:
+                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+                return False
+            if item in testarray:
+                messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
+                return False
         return True
 
     def EnableDisableTab2():
@@ -429,7 +471,10 @@ def StartConfigurator(window):
          SetTab2Variables(ApparatusArray[CurrentApparatus-1])
 
     def GetTab2Variables():
-        return [ApparatusName.get(),ApparatusType.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
+        return [ApparatusName.get(),ApparatusType.get(),thermo.get(),heated.get(),stirred.get(),onoff.get(),otheronoff.get(),minvol.get(),maxvol.get(),maxinputs.get(),maxoutputs.get()]
+
+    def RemoveSelectedItemsFromComboLists():
+        return
 
     def SaveApparatusParameters():
         global CurrentApparatus
@@ -447,6 +492,15 @@ def StartConfigurator(window):
     def ClearAllValuesT2():
           ApparatusName.delete(0,tk.END)
           ApparatusType.set("")
+          thermo.set("None")
+          heated.set("None")
+          stirred.set("None")
+          onoff.set("None")
+          otheronoff.set("None")
+          minvol.delete(0,tk.END)
+          maxvol.delete(0,tk.END)
+          maxinputs.delete(0,tk.END)
+          maxoutputs.delete(0,tk.END)
           EnableDisableTab2()
 
     def SetStatusNextPrevButtonsT2():
@@ -460,7 +514,6 @@ def StartConfigurator(window):
         else:
             NextT2Button.configure(state='disabled')
             
-
     def ClearApparatusParameters():
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
         if answer: ClearAllValuesT2()
@@ -478,7 +531,6 @@ def StartConfigurator(window):
         HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
         ClearAllValuesT2()
         SetStatusNextPrevButtonsT2()
-
 
     def DeleteCurrentApparatus():
         global CurrentApparatus
@@ -535,14 +587,17 @@ def StartConfigurator(window):
     NextT2Button=ttk.Button(F1T2, text="Next", command=NextT2,state='disabled'); NextT2Button.pack(side="left")
     HeaderLabelT2=ttk.Label(tab2,text ="Apparatus n. 1 of 1",font=("Arial", 12)); HeaderLabelT2.pack(pady="10");
     ttk.Label(tab2,text ="Name").pack(); ApparatusName=ttk.Entry(tab2); ApparatusName.pack()
-    ttk.Label(tab2,text ="Type").pack(); ApparatusType=ttk.Combobox(tab2, values = ('Heated reactor','Non heated reactor','Chromatographic column','Liquid/liquid separator',"Photo reactor","Flow reactor"), state = 'readonly')
+    ttk.Label(tab2,text ="Type").pack(); ApparatusType=ttk.Combobox(tab2, values = ("Heated reactor","Non heated reactor","Chromatographic column","Liquid/liquid separator","Photo reactor","Flow reactor","Other"), state = "readonly")
     ApparatusType.pack(); ApparatusType.bind("<<ComboboxSelected>>", ApparatusTypeCallback)
-    ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Entry(tab2); heated.pack()
-    ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Entry(tab2); stirred.pack()
+    ttk.Label(tab2,text ="Thermocouple connection").pack(); thermo=ttk.Combobox(tab2, values = ThermoList, state = "readonly"); thermo.current(0); thermo.pack() 
+    ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Combobox(tab2, values = PIDList, state = "readonly"); heated.current(0); heated.pack()
+    ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Combobox(tab2, values = PowerList, state = "readonly"); stirred.current(0); stirred.pack()
+    ttk.Label(tab2,text ="Power ON/OFF connection").pack(); onoff=ttk.Combobox(tab2, values = PowerList, state = "readonly"); onoff.current(0); onoff.pack()
+    ttk.Label(tab2,text ="Other ON/OFF connection").pack(); otheronoff=ttk.Combobox(tab2, values = PowerList, state = "readonly"); otheronoff.current(0); otheronoff.pack()    
     ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.pack()
     ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
     ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
-    ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
+    ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=0, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
     F2T2 = ttk.Frame(tab2); F2T2.pack(pady="10")
     F3T2 = ttk.Frame(tab2); F3T2.pack()
     ttk.Button(F2T2, text="Save changes", command=SaveApparatusParameters).pack(side="left")
