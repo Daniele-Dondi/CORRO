@@ -48,11 +48,11 @@ def StartConfigurator(window):
             for element in ApparatusArray:
                 count+=1
                 name="Apparatus"+str(count)+": "+element[0]
-                if element[1] in ['Heated reactor','Non heated reactor','Liquid/liquid separator']:
-                    SyringesOptions.append(name+" IN")
-                    SyringesOptions.append(name+" OUT")
-                else:
-                    SyringesOptions.append(name)
+                #if element[1] in ['Heated reactor','Non heated reactor','Liquid/liquid separator']:
+                SyringesOptions.append(name+" IN")
+                SyringesOptions.append(name+" OUT")
+                #else:
+                #    SyringesOptions.append(name)
                 
             #same with apparatus    
             exit1type.config(values=SyringesOptions)
@@ -332,8 +332,16 @@ def StartConfigurator(window):
         Item=EntryType+str(position)+": "+Item # EntryType should be Reactant or Apparatus
         for element in SyringesArray:
           for i, n in enumerate(element):
-           if n==Item:
-             element[i]=NewValue
+           if EntryType=="Apparatus":
+            if n==Item+" IN":
+              element[i]=NewValue+" IN"
+            elif n==Item+" OUT":
+              element[i]=NewValue+" OUT"
+           else:    
+            if n==Item:
+              element[i]=NewValue
+        SetTab3Variables(SyringesArray[CurrentSyringe-1])      
+           
 
     def DeleteCurrentReactant():
         global CurrentReactant
@@ -406,7 +414,7 @@ def StartConfigurator(window):
 
     ##################   E N D   O F   T A B  1   #############################################################
 
-    def CheckApparatusParameters():
+    def CheckApparatusParameters(avoid):
         if ApparatusName.get()=="":
             messagebox.showerror("ERROR", "Apparatus name cannot be empty. Insert a valid name and retry.")
             return False
@@ -416,10 +424,13 @@ def StartConfigurator(window):
         InUseThermo=""
         InUseHeater=""
         InUseBT=""
+        i=0
         for element in ApparatusArray:
-            InUseThermo+=element[2]
-            InUseHeater+=element[3]
-            InUseBT+=element[4]+element[5]+element[6]
+            if not(i==avoid-1):
+             InUseThermo+=element[2]
+             InUseHeater+=element[3]
+             InUseBT+=element[4]+element[5]+element[6]
+            i+=1 
         item=thermo.get()
         if not(item=="None") and item in InUseThermo:
                 messagebox.showerror("ERROR", "Thermocouple "+item+" already used in other apparatus")
@@ -467,7 +478,9 @@ def StartConfigurator(window):
         otheronoff.set(parms[6])
         minvol.insert(0,parms[7])
         maxvol.insert(0,parms[8])
+        maxinputs.delete(0,tk.END)
         maxinputs.insert(0,parms[9])
+        maxoutputs.delete(0,tk.END)
         maxoutputs.insert(0,parms[10])
         EnableDisableTab2()   
 
@@ -484,7 +497,7 @@ def StartConfigurator(window):
 
     def SaveApparatusParameters():
         global CurrentApparatus
-        if CheckApparatusParameters():
+        if CheckApparatusParameters(CurrentApparatus):
           newvalues=GetTab2Variables()
           if len(ApparatusArray)==CurrentApparatus-1:  
            ApparatusArray.append(newvalues)
@@ -506,7 +519,9 @@ def StartConfigurator(window):
           minvol.delete(0,tk.END)
           maxvol.delete(0,tk.END)
           maxinputs.delete(0,tk.END)
+          maxinputs.insert(0,"1")
           maxoutputs.delete(0,tk.END)
+          maxoutputs.insert(0,"0")
           EnableDisableTab2()
 
     def SetStatusNextPrevButtonsT2():
@@ -562,7 +577,6 @@ def StartConfigurator(window):
         
     def ApparatusTypeCallback(eventObject):
       EnableDisableTab2()
-
 
     def NextT2():
         global CurrentApparatus
