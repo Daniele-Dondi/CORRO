@@ -1,5 +1,6 @@
 import tkinter as tk                     
-from tkinter import ttk, Menu, messagebox
+from tkinter import ttk, Menu, messagebox, filedialog
+import pickle
 
 ReactantsArray=[]
 CurrentReactant=1
@@ -15,24 +16,62 @@ PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
-def SaveAllData():
-    return
 
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
     ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
+    
+    def LoadAllData():
+     global CurrentReactant,CurrentSyringe,CurrentApparatus
+     #ReactantsArray,SyringesArray,ApparatusArray
+     filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
+     filename = filedialog.askopenfilename(filetypes=filetypes)
+     if filename=="": return
+     fin=open(filename, 'rb')
+     ReactantsArray=pickle.load(fin)
+     SyringesArray=pickle.load(fin)
+     ApparatusArray=pickle.load(fin)
+     fin.close()
+     CurrentReactant=1
+     CurrentSyringe=1     
+     CurrentApparatus=1
+     SetStatusNextPrevButtonsT1()
+     SetStatusNextPrevButtonsT2()
+     SetStatusNextPrevButtonsT3()
+     LoadReactantParameters()
+     LoadSyringeParameters()
+     LoadApparatusParameters()
+     a=len(ReactantsArray)
+     if a==0: a=1
+     HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(a))
+     a=len(ApparatusArray)
+     if a==0: a=1
+     HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(a))
+     a=len(SyringesArray)
+     if a==0: a=1
+     HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
+
+    def SaveAllData():
+     filetypes=(('SyringeBOT connection files','*.conn'),('All files','*.*'))
+     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     if filename=="": return
+     if not ".conn" in filename: filename+=".conn"
+     fout=open(filename, 'wb')
+     pickle.dump(ReactantsArray,fout)
+     pickle.dump(SyringesArray,fout)
+     pickle.dump(ApparatusArray,fout)
+     fout.close() 
+    
     menubar = Menu(ConfiguratorWindow)
     file_menu = Menu(menubar,tearoff=0)
-    file_menu.add_command(label='Open')
+    file_menu.add_command(label='Open',command=LoadAllData)
     file_menu.add_command(label='Save',command=SaveAllData)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=ConfiguratorWindow.destroy)
     ConfiguratorWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
-
-
 
     def on_tab_selected(event):
         global SyringesOptions
@@ -257,10 +296,13 @@ def StartConfigurator(window):
         molaritylabel.config(text=parms[10])
         EnableDisableTab1()   
 
-    def LoadReactantParameters():
+    def AskLoadReactantParameters():
         global CurrentReactant
         answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
         if answer:
+            LoadReactantParameters()
+            
+    def LoadReactantParameters():            
          ClearAllValuesT1()   
          if not(len(ReactantsArray)>CurrentReactant-1): return
          SetTab1Variables(ReactantsArray[CurrentReactant-1])
@@ -407,7 +449,7 @@ def StartConfigurator(window):
     F3T1 = ttk.Frame(tab1); F3T1.pack()
     ttk.Button(F2T1, text="Check values", command=CheckReactantParameters).pack(side="left")
     ttk.Button(F2T1, text="Save changes", command=SaveReactantParameters).pack(side="left")
-    ttk.Button(F2T1, text="Ignore changes", command=LoadReactantParameters).pack(side="left")
+    ttk.Button(F2T1, text="Ignore changes", command=AskLoadReactantParameters).pack(side="left")
     ttk.Button(F2T1, text="Clear all values", command=ClearReactantParameters).pack(side="left")
     ttk.Button(F3T1, text="Add new Reactant", command=AddReactant).pack(side="left")
     ttk.Button(F3T1, text="Remove Reactant", command=DeleteCurrentReactant).pack(side="left")
@@ -484,10 +526,13 @@ def StartConfigurator(window):
         maxoutputs.insert(0,parms[10])
         EnableDisableTab2()   
 
-    def LoadApparatusParameters():
+    def AskLoadApparatusParameters():
         global CurrentApparatus
         answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
         if answer:
+            LoadApparatusParameters()
+            
+    def LoadApparatusParameters():            
          ClearAllValuesT2()   
          if not(len(ApparatusArray)>CurrentApparatus-1): return
          SetTab2Variables(ApparatusArray[CurrentApparatus-1])
@@ -619,7 +664,7 @@ def StartConfigurator(window):
     F2T2 = ttk.Frame(tab2); F2T2.pack(pady="10")
     F3T2 = ttk.Frame(tab2); F3T2.pack()
     ttk.Button(F2T2, text="Save changes", command=SaveApparatusParameters).pack(side="left")
-    ttk.Button(F2T2, text="Ignore changes", command=LoadApparatusParameters).pack(side="left")
+    ttk.Button(F2T2, text="Ignore changes", command=AskLoadApparatusParameters).pack(side="left")
     ttk.Button(F2T2, text="Clear all values", command=ClearApparatusParameters).pack(side="left")
     ttk.Button(F3T2, text="Add new Apparatus", command=AddApparatus).pack(side="left")
     ttk.Button(F3T2, text="Remove Apparatus", command=DeleteCurrentApparatus).pack(side="left")
