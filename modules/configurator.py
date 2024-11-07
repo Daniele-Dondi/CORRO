@@ -24,8 +24,7 @@ def StartConfigurator(window):
     ConfiguratorWindow.grab_set()
     
     def LoadAllData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus
-     #ReactantsArray,SyringesArray,ApparatusArray
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
      filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
      filename = filedialog.askopenfilename(filetypes=filetypes)
      if filename=="": return
