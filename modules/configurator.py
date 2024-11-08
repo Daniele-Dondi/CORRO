@@ -16,7 +16,8 @@ PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
-  
+def GetReactantsArray():
+    return ReactantsArray
 
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)

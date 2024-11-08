@@ -139,7 +139,7 @@ try:
 except:
  pass
 
-print(AvailableSerialPorts())
+#print(AvailableSerialPorts())
 
 def on_closing():
         Close()
@@ -1206,7 +1206,7 @@ def Configurator():
   StartConfigurator(base)      
 
 def Wizard():
-  return      
+  print(GetReactantsArray())
 
 ############################################################################################################################
 #                                                                                                                          #
