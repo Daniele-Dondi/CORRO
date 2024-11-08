@@ -16,23 +16,14 @@ PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
-
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
     ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
     
-    def LoadAllData():
+    def ShowData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
-     filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
-     filename = filedialog.askopenfilename(filetypes=filetypes)
-     if filename=="": return
-     fin=open(filename, 'rb')
-     ReactantsArray=pickle.load(fin)
-     SyringesArray=pickle.load(fin)
-     ApparatusArray=pickle.load(fin)
-     fin.close()
      CurrentReactant=1
      CurrentSyringe=1     
      CurrentApparatus=1
@@ -51,6 +42,18 @@ def StartConfigurator(window):
      a=len(SyringesArray)
      if a==0: a=1
      HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
+        
+    def LoadAllData():
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
+     filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
+     filename = filedialog.askopenfilename(filetypes=filetypes)
+     if filename=="": return
+     fin=open(filename, 'rb')
+     ReactantsArray=pickle.load(fin)
+     SyringesArray=pickle.load(fin)
+     ApparatusArray=pickle.load(fin)
+     fin.close()
+     ShowData()
 
     def SaveAllData():
      filetypes=(('SyringeBOT connection files','*.conn'),('All files','*.*'))
