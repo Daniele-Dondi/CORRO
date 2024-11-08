@@ -16,11 +16,19 @@ PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+  
+
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
     ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
+    def Close():
+      MsgBox = tk.messagebox.askquestion ('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
+      if MsgBox == 'yes':  
+       ConfiguratorWindow.destroy()    
+    ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
+    
     
     def ShowData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
@@ -71,7 +79,7 @@ def StartConfigurator(window):
     file_menu.add_command(label='Open',command=LoadAllData)
     file_menu.add_command(label='Save',command=SaveAllData)
     file_menu.add_separator()
-    file_menu.add_command(label='Exit',command=ConfiguratorWindow.destroy)
+    file_menu.add_command(label='Exit',command=Close)
     ConfiguratorWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
 
@@ -743,4 +751,4 @@ def StartConfigurator(window):
     ttk.Button(tab3, text="Ignore changes", command=LoadSyringeParameters).pack()
 
       
-    #ConfiguratorWindow.mainloop()   
+    #ConfiguratorWindow.mainloop()

@@ -139,6 +139,7 @@ try:
 except:
  pass
 
+print(AvailableSerialPorts())
 
 def on_closing():
         Close()
