@@ -38,8 +38,6 @@ from modules.configurator import *
 from modules.listserialports import *
 
 
-print(AvailableSerialPorts())
-
 #global vars
 connected = 0
 GO_Fullscreen=False #if true, app starts in fullscreen mode
@@ -124,6 +122,23 @@ Time_Hook_Macro="" #macro to call when condition is true
 #Macro global variables are variables that are available to all scripts and are kept up to program exit
 #To access them use the commands getglobal and setglobal
 global_vars=[]
+
+#update build version file
+try:
+ BuildVerFile=open("build","r")
+ BuildVersion=int(BuildVerFile.readline())
+ BuildVerFile.close()
+ if BuildVersion<0: BuildVersion=0
+except:
+ BuildVersion=0
+BuildVersion+=1
+try:
+ BuildVerFile=open("build","w")
+ BuildVerFile.write(str(BuildVersion))
+ BuildVerFile.close()
+except:
+ pass
+
 
 def on_closing():
         Close()
@@ -1207,7 +1222,7 @@ base.bind('<Key>', keypress)
 F = Frame(base)
 F.pack(side="left",fill="y")
 #Software name
-F.master.title("CO.R.RO 1.2")
+F.master.title("CO.R.RO 1.2 Build "+str(BuildVersion))
 #Frame F
 lTitle = Label(F, text="CO.R.RO",  font=("Verdana 15 bold"))
 lTitle.pack(side="top")
