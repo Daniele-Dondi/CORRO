@@ -40,17 +40,17 @@ def InputTypecallback(event):
     if "Reactant" in Input:
         M=GetMolarityOfInput(Input)
         if M>0:
+            PossibleUnits.append("mmol")            
             PossibleUnits.append("mol")
-            PossibleUnits.append("mmol")
             MM=GetMMOfInput(Input)
             if MM>0:
+                PossibleUnits.append("mg")                
                 PossibleUnits.append("g")
-                PossibleUnits.append("mg")
     elif "Apparatus" in Input:
         MaxVol=GetMaxVolumeApparatus(Input)
         if MaxVol>0:
          PossibleUnits.append("ALL")
-    Units.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+1)
+    Units.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+2)
     if not Units.get() in PossibleUnits:
         Units.set("")
     if "Apparatus" in Input:
@@ -82,7 +82,10 @@ def CheckValues():
     Output=Destination.get()
     Quantity=Amount.get()
     Unit=Units.get()
-    if Input=="" or Output=="" or Quantity=="" or Unit=="": return
+    if Input=="" or Output=="" or Quantity=="" or Unit=="":
+        SyringeLabel.config(text="---")
+        AlertButton.pack_forget()
+        return
     try:
         Quantity=float(Quantity)
     except:
@@ -121,13 +124,20 @@ def CheckValues():
             if M>0 and MM>0:
                 Quantity=Quantity/MM/M*1000
             else:
-                print("check error molarity")
+                print("check error mass")
                 return
         except:
             return
-    SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+"mL")
+    SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
+    MaxVol=GetMaxVolumeApparatus(Output)
+    if MaxVol>0 and Quantity>MaxVol:
+        AlertButton.pack()
+    else:
+        AlertButton.pack_forget()
         
-        
+
+def VolumeAlert():
+    messagebox.showerror("ERROR", "Inserted volume exceeds the maximum capacity of reactor")
 
 LoadConnFile('../test.conn')
 AvailableInputs=GetAllSyringeInputs()
@@ -136,7 +146,6 @@ OutputsList=[]
 
 main = tk.Tk()
 main.geometry('800x620+500+150')
-
 F=tk.Frame(main, bd=1, bg="grey")
 F.place(x=10,y=10)
 make_draggable(F)
@@ -164,4 +173,7 @@ Destination.pack(side="left")
 Check=tk.Button(Line1,text="check",command=CheckValues)
 Check.pack(side="left")
 SyringeLabel=tk.Label(Line2,text="---")
-SyringeLabel.pack()
+SyringeLabel.pack(side="left")
+AlertButton=tk.Button(Line2,text="!",state="normal",bg="red",command=VolumeAlert)
+#AlertButton.pack(side="left")
+

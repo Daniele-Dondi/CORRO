@@ -31,7 +31,9 @@ def InitAllData():
 
 def GetMaxVolumeApparatus(Name):
     global ApparatusArray
-    Name=Name[:-4] #removes OUT
+    if Name[:-1]=="T": Name=Name[:-4] #removes OUT
+    else: Name=Name[:-3] #removes IN
+    
     try:    
        NamesArray=["Apparatus"+str(i+1)+": "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
        
