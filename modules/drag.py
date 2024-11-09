@@ -89,7 +89,7 @@ def CheckValues():
         print("Check quantity error")
         return
     syrnums=WhichSiringeIsConnectedTo(Input)
-    print(Input,Output,syrnums)
+    #print(Input,Output,syrnums)
     AvailableSyringes=[]
     for syringe in syrnums:
         Outputs=GetAllOutputsOfSyringe(int(syringe))
@@ -97,7 +97,7 @@ def CheckValues():
          if Output in connection:
             AvailableSyringes.append(syringe)
             break
-    print(AvailableSyringes)
+    #print(AvailableSyringes)
     if len(AvailableSyringes)==0:
         print("Internal Error CHECK")
         return
