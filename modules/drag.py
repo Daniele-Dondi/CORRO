@@ -31,7 +31,6 @@ def UnitTypecallback(event):
             Units.set("mL")
         else:
             Units.set("")
-    return
        
 def InputTypecallback(event):
     global OutputsList
@@ -54,13 +53,13 @@ def InputTypecallback(event):
     if not Units.get() in PossibleUnits:
         Units.set("")
     if "Apparatus" in Input:
-        afrdame.config(text="Take")
-        frdame.config(text="from")
-        yfrdame.config(text="to")
+        Label1.config(text="Take")
+        Label2.config(text="from")
+        Label3.config(text="to")
     else:
-        afrdame.config(text="Put")        
-        frdame.config(text="of")
-        yfrdame.config(text="in")        
+        Label1.config(text="Put")        
+        Label2.config(text="of")
+        Label3.config(text="in")        
     SyrNums=WhichSiringeIsConnectedTo(Input)
     OutputsList=[]
     for SyringeNum in SyrNums:
@@ -128,16 +127,25 @@ def CheckValues():
                 return
         except:
             return
+    Quantity=round(Quantity,2)
+    if Quantity<0.1:
+        AlertButtonMinVol.pack()
+    else:
+        AlertButtonMinVol.pack_forget()    
     SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
     MaxVol=GetMaxVolumeApparatus(Output)
     if MaxVol>0 and Quantity>MaxVol:
-        AlertButton.pack()
+        AlertButtonMaxVol.pack()
     else:
-        AlertButton.pack_forget()
+        AlertButtonMaxVol.pack_forget()
         
+def MaxVolumeAlert():
+    messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
 
-def VolumeAlert():
-    messagebox.showerror("ERROR", "Inserted volume exceeds the maximum capacity of reactor")
+def MinVolumeAlert():
+    messagebox.showerror("Warning", "Volume exceedingly small")    
+
+
 
 LoadConnFile('../test.conn')
 AvailableInputs=GetAllSyringeInputs()
@@ -153,20 +161,20 @@ Line1=tk.Frame(F)
 Line1.pack()
 Line2=tk.Frame(F)
 Line2.pack()
-afrdame = tk.Label(Line1,text="Put")
-afrdame.pack(side="left")
-Amount = tk.Entry(Line1,state="normal",width=10)
+Label1=tk.Label(Line1,text="Put")
+Label1.pack(side="left")
+Amount=tk.Entry(Line1,state="normal",width=10)
 Amount.pack(side="left")
 Units=ttk.Combobox(Line1, values = ('mL','L'), state = 'readonly',width=3)
 Units.bind("<<ComboboxSelected>>", UnitTypecallback)
 Units.pack(side="left")
-frdame = tk.Label(Line1,text="of")
-frdame.pack(side="left")
+Label2=tk.Label(Line1,text="of")
+Label2.pack(side="left")
 Source=ttk.Combobox(Line1, values = AvailableInputs, state = 'readonly',width=MaxCharsInList(AvailableInputs))
 Source.bind("<<ComboboxSelected>>", InputTypecallback)
 Source.pack(side="left")
-yfrdame = tk.Label(Line1,text="in")
-yfrdame.pack(side="left")
+Label3=tk.Label(Line1,text="in")
+Label3.pack(side="left")
 Destination=ttk.Combobox(Line1, state = 'disabled')
 Destination.bind("<<ComboboxSelected>>", OutputTypecallback)
 Destination.pack(side="left")
@@ -174,6 +182,7 @@ Check=tk.Button(Line1,text="check",command=CheckValues)
 Check.pack(side="left")
 SyringeLabel=tk.Label(Line2,text="---")
 SyringeLabel.pack(side="left")
-AlertButton=tk.Button(Line2,text="!",state="normal",bg="red",command=VolumeAlert)
+AlertButtonMaxVol=tk.Button(Line2,text="!",state="normal",bg="red",command=MaxVolumeAlert)
+AlertButtonMinVol=tk.Button(Line2,text="!",state="normal",bg="yellow",command=MinVolumeAlert)
 #AlertButton.pack(side="left")
 
