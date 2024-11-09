@@ -39,7 +39,6 @@ def GetMaxVolumeApparatus(Name):
     except:
        MaxVol=0.0
     return MaxVol
-    
 
 def GetMolarityOfInput(Name):
     global ReactantsArray

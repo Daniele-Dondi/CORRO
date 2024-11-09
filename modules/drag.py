@@ -18,39 +18,41 @@ def on_drag_motion(event):
     widget.place(x=x, y=y)
 
 def OutputTypecallback(event):
-    #Output=ysunit.get()
+    #Output=Destination.get()
     return
 
 def UnitTypecallback(event):
-    Unit=unit.get()
+    Unit=Units.get()
     if Unit=="ALL":
-        MaxVol=GetMaxVolumeApparatus(sunit.get())
+        MaxVol=GetMaxVolumeApparatus(Source.get())
         if MaxVol>0:
-            rdame.delete(0,tk.END)
-            rdame.insert(0,str(MaxVol))
-            unit.set("mL")
+            Amount.delete(0,tk.END)
+            Amount.insert(0,str(MaxVol))
+            Units.set("mL")
         else:
-            unit.set("")
+            Units.set("")
     return
        
 def InputTypecallback(event):
     global OutputsList
-    Input=sunit.get()
+    Input=Source.get()
     PossibleUnits=["mL","L"]
     if "Reactant" in Input:
         M=GetMolarityOfInput(Input)
         if M>0:
             PossibleUnits.append("mol")
+            PossibleUnits.append("mmol")
             MM=GetMMOfInput(Input)
             if MM>0:
                 PossibleUnits.append("g")
+                PossibleUnits.append("mg")
     elif "Apparatus" in Input:
         MaxVol=GetMaxVolumeApparatus(Input)
         if MaxVol>0:
          PossibleUnits.append("ALL")
-    unit.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+1)
-    if not unit.get() in PossibleUnits:
-        unit.set("")
+    Units.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+1)
+    if not Units.get() in PossibleUnits:
+        Units.set("")
     if "Apparatus" in Input:
         afrdame.config(text="Take")
         frdame.config(text="from")
@@ -68,12 +70,64 @@ def InputTypecallback(event):
                 OutputsList.append(Output)
     PossibleOutputs=[OutputsList[i][0] for i in range(len(OutputsList))]
     PossibleOutputs.sort()
-    ysunit.config(values = PossibleOutputs,state="readonly",width=MaxCharsInList(PossibleOutputs))
-    if not ysunit.get() in PossibleOutputs:
-        ysunit.set("")
+    Destination.config(values = PossibleOutputs,state="readonly",width=MaxCharsInList(PossibleOutputs))
+    if not Destination.get() in PossibleOutputs:
+        Destination.set("")
         
 def MaxCharsInList(list):
     return max([len(list[i]) for i in range(len(list))])
+
+def CheckValues():
+    Input=Source.get()
+    Output=Destination.get()
+    Quantity=Amount.get()
+    Unit=Units.get()
+    if Input=="" or Output=="" or Quantity=="" or Unit=="": return
+    try:
+        Quantity=float(Quantity)
+    except:
+        print("Check quantity error")
+        return
+    syrnums=WhichSiringeIsConnectedTo(Input)
+    print(Input,Output,syrnums)
+    AvailableSyringes=[]
+    for syringe in syrnums:
+        Outputs=GetAllOutputsOfSyringe(int(syringe))
+        for connection in Outputs:
+         if Output in connection:
+            AvailableSyringes.append(syringe)
+            break
+    print(AvailableSyringes)
+    if len(AvailableSyringes)==0:
+        print("Internal Error CHECK")
+        return
+    if Unit=="L": Quantity=Quantity*1000
+    elif Unit=="mol" or Unit=="mmol":
+        if Unit=="mmol": Quantity=Quantity/1000        
+        try:
+            M=GetMolarityOfInput(Input)
+            if M>0:
+                Quantity=Quantity/M*1000
+            else:
+                print("check error molarity")
+                return
+        except:
+            return
+    elif Unit=="g" or Unit=="mg":
+        if Unit=="mg": Quantity=Quantity/1000
+        try:
+            M=GetMolarityOfInput(Input)
+            MM=GetMMOfInput(Input)
+            if M>0 and MM>0:
+                Quantity=Quantity/MM/M*1000
+            else:
+                print("check error molarity")
+                return
+        except:
+            return
+    SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+"mL")
+        
+        
 
 LoadConnFile('../test.conn')
 AvailableInputs=GetAllSyringeInputs()
@@ -92,20 +146,22 @@ Line2=tk.Frame(F)
 Line2.pack()
 afrdame = tk.Label(Line1,text="Put")
 afrdame.pack(side="left")
-rdame = tk.Entry(Line1,state="normal",width=10)
-rdame.pack(side="left")
-unit=ttk.Combobox(Line1, values = ('mL','L'), state = 'readonly',width=3)
-unit.bind("<<ComboboxSelected>>", UnitTypecallback)
-unit.pack(side="left")
+Amount = tk.Entry(Line1,state="normal",width=10)
+Amount.pack(side="left")
+Units=ttk.Combobox(Line1, values = ('mL','L'), state = 'readonly',width=3)
+Units.bind("<<ComboboxSelected>>", UnitTypecallback)
+Units.pack(side="left")
 frdame = tk.Label(Line1,text="of")
 frdame.pack(side="left")
-sunit=ttk.Combobox(Line1, values = AvailableInputs, state = 'readonly',width=MaxCharsInList(AvailableInputs))
-sunit.bind("<<ComboboxSelected>>", InputTypecallback)
-sunit.pack(side="left")
+Source=ttk.Combobox(Line1, values = AvailableInputs, state = 'readonly',width=MaxCharsInList(AvailableInputs))
+Source.bind("<<ComboboxSelected>>", InputTypecallback)
+Source.pack(side="left")
 yfrdame = tk.Label(Line1,text="in")
 yfrdame.pack(side="left")
-ysunit=ttk.Combobox(Line1, state = 'disabled')
-ysunit.bind("<<ComboboxSelected>>", OutputTypecallback)
-ysunit.pack(side="left")
+Destination=ttk.Combobox(Line1, state = 'disabled')
+Destination.bind("<<ComboboxSelected>>", OutputTypecallback)
+Destination.pack(side="left")
+Check=tk.Button(Line1,text="check",command=CheckValues)
+Check.pack(side="left")
 SyringeLabel=tk.Label(Line2,text="---")
 SyringeLabel.pack()
