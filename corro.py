@@ -1207,9 +1207,6 @@ def Configurator():
   StartConfigurator(base)      
 
 def Wizard():
-  print(GetReactantsArray())
-  print(GetApparatusArray())
-  print(GetSyringesArray())
   StartWizard(base)
 
 ############################################################################################################################

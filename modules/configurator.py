@@ -29,6 +29,40 @@ def InitAllData():
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+def WhichSiringeIsConnectedTo(Name):
+    value=[]
+    for i, element in enumerate(SyringesArray):
+        if Name in element:
+            value.append(str(i))
+    return value
+
+def GetAllSyringeInputs():
+    value=[]
+    for Syringe, element in enumerate(SyringesArray):
+      for Exit,connection in enumerate(element):
+          if "Reactant" in connection or ("Apparatus" in connection and "OUT" in connection):
+            value.append([str(Syringe),str(Exit),connection])
+    return value
+
+def GetAllOutputsOfSyringe(num):
+    value=[]
+    for Exit,connection in enumerate(SyringesArray[num]):
+      if ("Apparatus" in connection and "IN" in connection):
+        value.append([str(Exit),connection])
+    return value    
+
+def GetReactantsNames():
+    value=[]
+    for element in ReactantsArray:
+        value.append(element[0])
+    return value
+
+def ApparatusNames():
+    value=[]
+    for element in ApparatusArray:
+        value.append(element[0])
+    return value
+
 def GetReactantsArray():
     return ReactantsArray
 
