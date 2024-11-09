@@ -29,6 +29,36 @@ def InitAllData():
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+def GetMaxVolumeApparatus(Name):
+    global ApparatusArray
+    Name=Name[:-4] #removes OUT
+    try:    
+       NamesArray=["Apparatus"+str(i+1)+": "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
+       
+       MaxVol=float(ApparatusArray[NamesArray.index(Name)][8])
+    except:
+       MaxVol=0.0
+    return MaxVol
+    
+
+def GetMolarityOfInput(Name):
+    global ReactantsArray
+    try:    
+       NamesArray=["Reactant"+str(i+1)+": "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
+       Molarity=float(ReactantsArray[NamesArray.index(Name)][10].split(":")[1].split()[0])
+    except:
+       Molarity=0.0
+    return Molarity
+
+def GetMMOfInput(Name):
+    global ReactantsArray
+    try:    
+       NamesArray=["Reactant"+str(i+1)+": "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
+       MM=float(ReactantsArray[NamesArray.index(Name)][3])
+    except:
+       MM=0.0
+    return MM    
+
 def WhichSiringeIsConnectedTo(Name):
     value=[]
     for i, element in enumerate(SyringesArray):
@@ -40,15 +70,16 @@ def GetAllSyringeInputs():
     value=[]
     for Syringe, element in enumerate(SyringesArray):
       for Exit,connection in enumerate(element):
-          if "Reactant" in connection or ("Apparatus" in connection and "OUT" in connection):
-            value.append([str(Syringe),str(Exit),connection])
+          if ("Reactant" in connection or ("Apparatus" in connection and "OUT" in connection)) and not connection in value:
+            value.append(connection) #value.append([str(Syringe),str(Exit),connection])
+    value.sort()        
     return value
 
 def GetAllOutputsOfSyringe(num):
     value=[]
     for Exit,connection in enumerate(SyringesArray[num]):
       if ("Apparatus" in connection and "IN" in connection):
-        value.append([str(Exit),connection])
+        value.append([connection]) #value.append([str(Exit),connection])
     return value    
 
 def GetReactantsNames():
@@ -74,6 +105,7 @@ def GetSyringesArray():
 
 def LoadConnFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray
+    print(filename)
     fin=open(filename, 'rb')
     ReactantsArray=pickle.load(fin)
     SyringesArray=pickle.load(fin)
