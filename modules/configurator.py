@@ -4,32 +4,60 @@ import pickle
 
 ReactantsArray=[]
 CurrentReactant=1
-
 SyringesOptions=["Not in use","Air/Waste"]
 CurrentSyringe=1
 TotalNumberOfSyringes=6
 SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
-
 ApparatusArray=[]
 CurrentApparatus=1
 PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+
+def InitAllData():
+    global ReactantsArray, CurrentReactant, SyringesOptions, CurrentSyringe, TotalNumberOfSyringes, SyringesArray, ApparatusArray, CurrentApparatus, PIDList, ThermoList, PowerList
+    ReactantsArray=[]
+    CurrentReactant=1
+    SyringesOptions=["Not in use","Air/Waste"]
+    CurrentSyringe=1
+    TotalNumberOfSyringes=6
+    SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
+    ApparatusArray=[]
+    CurrentApparatus=1
+    PIDList=["None","Heater 1","Heater 2"]
+    ThermoList=["None","Thermocouple 1","Thermocouple 2"]
+    PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
+
 def GetReactantsArray():
     return ReactantsArray
+
+def GetApparatusArray():
+    return ApparatusArray
+
+def GetSyringesArray():
+    return SyringesArray
+
+def LoadConnFile(filename):
+    global ReactantsArray,SyringesArray,ApparatusArray
+    fin=open(filename, 'rb')
+    ReactantsArray=pickle.load(fin)
+    SyringesArray=pickle.load(fin)
+    ApparatusArray=pickle.load(fin)
+    fin.close()
 
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
     ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
-    def Close():
-      MsgBox = tk.messagebox.askquestion ('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
-      if MsgBox == 'yes':  
-       ConfiguratorWindow.destroy()    
-    ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
     
+    def Close():
+      MsgBox = tk.messagebox.askquestion ('Exit Configurator','Are you sure you want to exit configurator?',icon = 'warning')
+      if MsgBox == 'yes':  
+       ConfiguratorWindow.destroy()
+       
+    ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
     
     def ShowData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
@@ -54,15 +82,13 @@ def StartConfigurator(window):
         
     def LoadAllData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
-     filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
-     filename = filedialog.askopenfilename(filetypes=filetypes)
-     if filename=="": return
-     fin=open(filename, 'rb')
-     ReactantsArray=pickle.load(fin)
-     SyringesArray=pickle.load(fin)
-     ApparatusArray=pickle.load(fin)
-     fin.close()
-     ShowData()
+     MsgBox = tk.messagebox.askquestion ('Load Data','By loading data from file current data will be overwritten. Proceed?',icon = 'warning')
+     if MsgBox == 'yes':  
+         filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
+         filename = filedialog.askopenfilename(filetypes=filetypes)
+         if filename=="": return
+         LoadConnFile(filename)
+         ShowData()
 
     def SaveAllData():
      filetypes=(('SyringeBOT connection files','*.conn'),('All files','*.*'))
@@ -73,13 +99,22 @@ def StartConfigurator(window):
      pickle.dump(ReactantsArray,fout)
      pickle.dump(SyringesArray,fout)
      pickle.dump(ApparatusArray,fout)
-     fout.close() 
+     fout.close()
+
+    def ClearAllData():
+     MsgBox = tk.messagebox.askquestion ('Clear Data','Current data will be overwritten. Proceed?',icon = 'warning')
+     if MsgBox == 'yes':
+         InitAllData()
+         ShowData()
+        
     
     menubar = Menu(ConfiguratorWindow)
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='Open',command=LoadAllData)
     file_menu.add_command(label='Save',command=SaveAllData)
     file_menu.add_separator()
+    file_menu.add_command(label='Clear all data',command=ClearAllData)
+    file_menu.add_separator()    
     file_menu.add_command(label='Exit',command=Close)
     ConfiguratorWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
@@ -750,6 +785,6 @@ def StartConfigurator(window):
 
     ttk.Button(tab3, text="Save changes", command=SaveSyringeParameters).pack(pady="10")
     ttk.Button(tab3, text="Ignore changes", command=LoadSyringeParameters).pack()
-
+    InitAllData()
       
     #ConfiguratorWindow.mainloop()

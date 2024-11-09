@@ -35,6 +35,7 @@ import serial
 from os import listdir
 from os.path import isfile, join
 from modules.configurator import *
+from modules.wizard import *
 from modules.listserialports import *
 
 
@@ -1207,6 +1208,9 @@ def Configurator():
 
 def Wizard():
   print(GetReactantsArray())
+  print(GetApparatusArray())
+  print(GetSyringesArray())
+  StartWizard(base)
 
 ############################################################################################################################
 #                                                                                                                          #

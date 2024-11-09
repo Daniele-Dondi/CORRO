@@ -8,5 +8,5 @@ from tkinter import ttk
 from modules.configurator import *
 
 base = Tk()
-Button(base, text="OK",command=lambda: StartConfigurator(base)).pack()
+StartConfigurator(base)
 base.mainloop()
