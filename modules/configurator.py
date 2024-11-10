@@ -33,7 +33,6 @@ def GetMaxVolumeApparatus(Name):
     global ApparatusArray
     if Name[-1:]=="T": Name=Name[:-4] #removes OUT
     else: Name=Name[:-3] #removes IN
-    print("getmacx",Name)
     try:    
        NamesArray=["Apparatus"+str(i+1)+": "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
        MaxVol=float(ApparatusArray[NamesArray.index(Name)][8])
@@ -78,7 +77,7 @@ def GetAllSyringeInputs():
 def GetAllOutputsOfSyringe(num):
     value=[]
     for Exit,connection in enumerate(SyringesArray[num]):
-      if ("Apparatus" in connection and "IN" in connection):
+      if ("Apparatus" in connection and "IN" in connection) or "Air/Waste" in connection:
         value.append([connection]) #value.append([str(Exit),connection])
     return value    
 

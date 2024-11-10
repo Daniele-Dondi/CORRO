@@ -47,7 +47,6 @@ def InputTypecallback(event):
                 PossibleUnits.append("g")
     elif "Apparatus" in Input:
         MaxVol=GetMaxVolumeApparatus(Input)
-        print(Input,MaxVol)        
         if MaxVol>0:
          PossibleUnits.append("ALL")
     Units.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+2)
@@ -86,6 +85,7 @@ def CheckValues():
         SyringeLabel.config(text="---")
         AlertButtonMinVol.pack_forget()        
         AlertButtonMaxVol.pack_forget()
+        AlertButtonWaste.pack_forget()
         return
     try:
         Quantity=float(Quantity)
@@ -131,13 +131,17 @@ def CheckValues():
             return
     Quantity=round(Quantity,2)
     if Quantity<0.1:
-        AlertButtonMinVol.pack()
+        AlertButtonMinVol.pack(side="left")
     else:
-        AlertButtonMinVol.pack_forget()    
+        AlertButtonMinVol.pack_forget()
+    if Output=="Air/Waste":
+        AlertButtonWaste.pack(side="left")
+    else:
+        AlertButtonWaste.pack_forget()    
     SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
     MaxVol=GetMaxVolumeApparatus(Output)
     if MaxVol>0 and Quantity>MaxVol:
-        AlertButtonMaxVol.pack()
+        AlertButtonMaxVol.pack(side="left")
     else:
         AlertButtonMaxVol.pack_forget()
         
@@ -147,7 +151,8 @@ def MaxVolumeAlert():
 def MinVolumeAlert():
     messagebox.showerror("Warning", "Volume exceedingly small")    
 
-
+def WasteVolumeAlert():
+    messagebox.showerror("Warning", "Liquid poured into waste exit")    
 
 LoadConnFile('../test.conn')
 AvailableInputs=GetAllSyringeInputs()
@@ -184,7 +189,8 @@ Check=tk.Button(Line1,text="check",command=CheckValues)
 Check.pack(side="left")
 SyringeLabel=tk.Label(Line2,text="---")
 SyringeLabel.pack(side="left")
-AlertButtonMaxVol=tk.Button(Line2,text="!",state="normal",bg="red",command=MaxVolumeAlert)
-AlertButtonMinVol=tk.Button(Line2,text="!",state="normal",bg="yellow",command=MinVolumeAlert)
+AlertButtonMaxVol=tk.Button(Line2,text="Vmax!",state="normal",bg="red",command=MaxVolumeAlert)
+AlertButtonMinVol=tk.Button(Line2,text="Vmin!",state="normal",bg="yellow",command=MinVolumeAlert)
+AlertButtonWaste=tk.Button(Line2,text="W",state="normal",bg="green",command=WasteVolumeAlert)
 #AlertButton.pack(side="left")
 
