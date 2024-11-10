@@ -37,6 +37,7 @@ from os.path import isfile, join
 from modules.configurator import *
 from modules.wizard import *
 from modules.listserialports import *
+from modules.buildvercalculator import *
 
 
 #global vars
@@ -124,21 +125,7 @@ Time_Hook_Macro="" #macro to call when condition is true
 #To access them use the commands getglobal and setglobal
 global_vars=[]
 
-#update build version file
-try:
- BuildVerFile=open("build","r")
- BuildVersion=int(BuildVerFile.readline())
- BuildVerFile.close()
- if BuildVersion<0: BuildVersion=0
-except:
- BuildVersion=0
-BuildVersion+=1
-try:
- BuildVerFile=open("build","w")
- BuildVerFile.write(str(BuildVersion))
- BuildVerFile.close()
-except:
- pass
+BuildVersion=GetBuildVersion()
 
 #print(AvailableSerialPorts())
 
