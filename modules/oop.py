@@ -13,8 +13,8 @@ class Pour(ttk.Frame):
         self.Line1.pack()
         self.Line2=tk.Frame(self)
         self.Line2.pack()        
-        self.label = ttk.Label(self.Line1, text="Put")
-        self.label.pack(side="left")
+        self.Label1=ttk.Label(self.Line1, text="Put")
+        self.Label1.pack(side="left")
         self.Amount=tk.Entry(self.Line1,state="normal",width=10)
         self.Amount.pack(side="left")
         self.Units=ttk.Combobox(self.Line1, values = ('mL','L'), state = 'readonly',width=3)
@@ -39,22 +39,135 @@ class Pour(ttk.Frame):
         
 
     def CheckValues(self):
-        return
+        Input=self.Source.get()
+        Output=self.Destination.get()
+        Quantity=self.Amount.get()
+        Unit=self.Units.get()
+        if Input=="" or Output=="" or Quantity=="" or Unit=="":
+            self.SyringeLabel.config(text="---")
+            self.AlertButtonMinVol.pack_forget()        
+            self.AlertButtonMaxVol.pack_forget()
+            self.AlertButtonWaste.pack_forget()
+            return
+        try:
+            Quantity=float(Quantity)
+        except:
+            print("Check quantity error")
+            return
+        syrnums=WhichSiringeIsConnectedTo(Input)
+        AvailableSyringes=[]
+        for syringe in syrnums:
+            Outputs=GetAllOutputsOfSyringe(int(syringe))
+            for connection in Outputs:
+             if Output in connection:
+                AvailableSyringes.append(syringe)
+                break
+        if len(AvailableSyringes)==0:
+            print("Internal Error CHECK")
+            return
+        if Unit=="L": Quantity=Quantity*1000
+        elif Unit=="mol" or Unit=="mmol":
+            if Unit=="mmol": Quantity=Quantity/1000        
+            try:
+                M=GetMolarityOfInput(Input)
+                if M>0:
+                    Quantity=Quantity/M*1000
+                else:
+                    print("check error molarity")
+                    return
+            except:
+                return
+        elif Unit=="g" or Unit=="mg":
+            if Unit=="mg": Quantity=Quantity/1000
+            try:
+                M=GetMolarityOfInput(Input)
+                MM=GetMMOfInput(Input)
+                if M>0 and MM>0:
+                    Quantity=Quantity/MM/M*1000
+                else:
+                    print("check error mass")
+                    return
+            except:
+                return
+        Quantity=round(Quantity,2)
+        if Quantity<0.1:
+            self.AlertButtonMinVol.pack(side="left")
+        else:
+            self.AlertButtonMinVol.pack_forget()
+        if Output=="Air/Waste":
+            self.AlertButtonWaste.pack(side="left")
+        else:
+            self.AlertButtonWaste.pack_forget()    
+        self.SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
+        MaxVol=GetMaxVolumeApparatus(Output)
+        if MaxVol>0 and Quantity>MaxVol:
+            self.AlertButtonMaxVol.pack(side="left")
+        else:
+            self.AlertButtonMaxVol.pack_forget()
     
-    def MaxVolumeAlert():
-        return
-    
-    def MinVolumeAlert():
-        return
+    def MaxVolumeAlert(self):
+        messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
 
-    def WasteVolumeAlert():
-        return
-        
+    def MinVolumeAlert(self):
+        messagebox.showerror("Warning", "Volume exceedingly small")    
+
+    def WasteVolumeAlert(self):
+        messagebox.showerror("Warning", "Liquid poured into waste exit")
+    
     def UnitTypecallback(self,event):
-        return
+        Unit=self.Units.get()
+        if Unit=="ALL":
+            MaxVol=GetMaxVolumeApparatus(self.Source.get())
+            if MaxVol>0:
+                self.Amount.delete(0,tk.END)
+                self.Amount.insert(0,str(MaxVol))
+                self.Units.set("mL")
+            else:
+                self.Units.set("")
+
+    def MaxCharsInList(self,list):
+     return max([len(list[i]) for i in range(len(list))])
     
     def InputTypecallback(self,event):
-        return    
+        Input=self.Source.get()
+        PossibleUnits=["mL","L"]
+        if "Reactant" in Input:
+            M=GetMolarityOfInput(Input)
+            if M>0:
+                PossibleUnits.append("mmol")            
+                PossibleUnits.append("mol")
+                MM=GetMMOfInput(Input)
+                if MM>0:
+                    PossibleUnits.append("mg")                
+                    PossibleUnits.append("g")
+        elif "Apparatus" in Input:
+            MaxVol=GetMaxVolumeApparatus(Input)
+            if MaxVol>0:
+             PossibleUnits.append("ALL")
+        self.Units.config(values=PossibleUnits, state="readonly",width=self.MaxCharsInList(PossibleUnits)+2)
+        if not self.Units.get() in PossibleUnits:
+            self.Units.set("")
+        if "Apparatus" in Input:
+            self.Label1.config(text="Take")
+            self.Label2.config(text="from")
+            self.Label3.config(text="to")
+        else:
+            self.Label1.config(text="Put")        
+            self.Label2.config(text="of")
+            self.Label3.config(text="in")        
+        SyrNums=WhichSiringeIsConnectedTo(Input)
+        OutputsList=[]
+        for SyringeNum in SyrNums:
+            AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
+            for Output in AvailableOutputs:
+                if Output not in OutputsList:
+                    OutputsList.append(Output)
+        PossibleOutputs=[OutputsList[i][0] for i in range(len(OutputsList))]
+        PossibleOutputs.sort()
+        self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
+        if not self.Destination.get() in PossibleOutputs:
+            self.Destination.set("")
+
 
 def make_draggable(widget):
     widget.bind("<Button-1>", on_drag_start)
@@ -79,7 +192,7 @@ frame.place(x=10,y=10)
 make_draggable(frame)
 
 frame2=Pour(main)
-frame2.place(x=10,y=10)
+frame2.place(x=10,y=50)
 make_draggable(frame2)
 
 

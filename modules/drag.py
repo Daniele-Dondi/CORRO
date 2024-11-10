@@ -29,7 +29,6 @@ def UnitTypecallback(event):
             Units.set("")
        
 def InputTypecallback(event):
-    global OutputsList
     Input=Source.get()
     PossibleUnits=["mL","L"]
     if "Reactant" in Input:
@@ -89,7 +88,6 @@ def CheckValues():
         print("Check quantity error")
         return
     syrnums=WhichSiringeIsConnectedTo(Input)
-    #print(Input,Output,syrnums)
     AvailableSyringes=[]
     for syringe in syrnums:
         Outputs=GetAllOutputsOfSyringe(int(syringe))
@@ -97,7 +95,6 @@ def CheckValues():
          if Output in connection:
             AvailableSyringes.append(syringe)
             break
-    #print(AvailableSyringes)
     if len(AvailableSyringes)==0:
         print("Internal Error CHECK")
         return
@@ -152,7 +149,6 @@ def WasteVolumeAlert():
 
 LoadConnFile('../test.conn')
 AvailableInputs=GetAllSyringeInputs()
-OutputsList=[]
 
 
 main = tk.Tk()
