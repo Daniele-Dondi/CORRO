@@ -17,10 +17,6 @@ def on_drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
-def OutputTypecallback(event):
-    #Output=Destination.get()
-    return
-
 def UnitTypecallback(event):
     Unit=Units.get()
     if Unit=="ALL":
@@ -183,7 +179,6 @@ Source.pack(side="left")
 Label3=tk.Label(Line1,text="in")
 Label3.pack(side="left")
 Destination=ttk.Combobox(Line1, state = 'disabled')
-Destination.bind("<<ComboboxSelected>>", OutputTypecallback)
 Destination.pack(side="left")
 Check=tk.Button(Line1,text="check",command=CheckValues)
 Check.pack(side="left")
