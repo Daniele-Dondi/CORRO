@@ -47,6 +47,7 @@ def InputTypecallback(event):
                 PossibleUnits.append("g")
     elif "Apparatus" in Input:
         MaxVol=GetMaxVolumeApparatus(Input)
+        print(Input,MaxVol)        
         if MaxVol>0:
          PossibleUnits.append("ALL")
     Units.config(values=PossibleUnits, state="readonly",width=MaxCharsInList(PossibleUnits)+2)
@@ -83,7 +84,8 @@ def CheckValues():
     Unit=Units.get()
     if Input=="" or Output=="" or Quantity=="" or Unit=="":
         SyringeLabel.config(text="---")
-        AlertButton.pack_forget()
+        AlertButtonMinVol.pack_forget()        
+        AlertButtonMaxVol.pack_forget()
         return
     try:
         Quantity=float(Quantity)

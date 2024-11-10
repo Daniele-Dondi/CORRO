@@ -31,12 +31,11 @@ def InitAllData():
 
 def GetMaxVolumeApparatus(Name):
     global ApparatusArray
-    if Name[:-1]=="T": Name=Name[:-4] #removes OUT
+    if Name[-1:]=="T": Name=Name[:-4] #removes OUT
     else: Name=Name[:-3] #removes IN
-    
+    print("getmacx",Name)
     try:    
        NamesArray=["Apparatus"+str(i+1)+": "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
-       
        MaxVol=float(ApparatusArray[NamesArray.index(Name)][8])
     except:
        MaxVol=0.0
@@ -844,11 +843,11 @@ def StartConfigurator(window):
     PrevT3Button=ttk.Button(F1T3, text="Prev", command=PrevT3,state='enabled'); PrevT3Button.pack(side="left")
     NextT3Button=ttk.Button(F1T3, text="Next", command=NextT3,state='enabled'); NextT3Button.pack(side="left")
     HeaderLabelT3=ttk.Label(tab3,text ="Syringe n. 1 of 6",font=("Arial", 12)); HeaderLabelT3.pack(pady="10");
-    ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit1type.current(1); exit1type.pack() 
-    ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit2type.current(0); exit2type.pack()
-    ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit3type.current(0); exit3type.pack()
-    ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit4type.current(0); exit4type.pack()
-    ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly'); exit5type.current(0); exit5type.pack()
+    ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit1type.current(1); exit1type.pack() 
+    ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit2type.current(0); exit2type.pack()
+    ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit3type.current(0); exit3type.pack()
+    ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit4type.current(0); exit4type.pack()
+    ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit5type.current(0); exit5type.pack()
 
     ttk.Button(tab3, text="Save changes", command=SaveSyringeParameters).pack(pady="10")
     ttk.Button(tab3, text="Ignore changes", command=LoadSyringeParameters).pack()
