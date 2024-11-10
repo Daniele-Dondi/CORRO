@@ -43,6 +43,7 @@ class Pour(ttk.Frame):
         Output=self.Destination.get()
         Quantity=self.Amount.get()
         Unit=self.Units.get()
+        self.SyringeLabel.config(text="---")
         if Input=="" or Output=="" or Quantity=="" or Unit=="":
             self.SyringeLabel.config(text="---")
             self.AlertButtonMinVol.pack_forget()        
@@ -52,7 +53,7 @@ class Pour(ttk.Frame):
         try:
             Quantity=float(Quantity)
         except:
-            print("Check quantity error")
+            self.SyringeLabel.config(text="Quantity error")
             return
         syrnums=WhichSiringeIsConnectedTo(Input)
         AvailableSyringes=[]
@@ -63,7 +64,7 @@ class Pour(ttk.Frame):
                 AvailableSyringes.append(syringe)
                 break
         if len(AvailableSyringes)==0:
-            print("Internal Error CHECK")
+            self.SyringeLabel.config(text="Internal Error CHECK no avail syringes")
             return
         if Unit=="L": Quantity=Quantity*1000
         elif Unit=="mol" or Unit=="mmol":
@@ -73,7 +74,7 @@ class Pour(ttk.Frame):
                 if M>0:
                     Quantity=Quantity/M*1000
                 else:
-                    print("check error molarity")
+                    self.SyringeLabel.config(text="check error molarity")
                     return
             except:
                 return
@@ -85,7 +86,7 @@ class Pour(ttk.Frame):
                 if M>0 and MM>0:
                     Quantity=Quantity/MM/M*1000
                 else:
-                    print("check error mass")
+                    self.SyringeLabel.config(text="check error mass")
                     return
             except:
                 return
@@ -195,5 +196,9 @@ frame2=Pour(main)
 frame2.place(x=10,y=50)
 make_draggable(frame2)
 
+frame3=Pour(main)
+frame3.place(x=10,y=90)
+make_draggable(frame3)
 
+#main.mainloop()
 
