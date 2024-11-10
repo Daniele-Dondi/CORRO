@@ -192,5 +192,5 @@ SyringeLabel.pack(side="left")
 AlertButtonMaxVol=tk.Button(Line2,text="Vmax!",state="normal",bg="red",command=MaxVolumeAlert)
 AlertButtonMinVol=tk.Button(Line2,text="Vmin!",state="normal",bg="yellow",command=MinVolumeAlert)
 AlertButtonWaste=tk.Button(Line2,text="W",state="normal",bg="green",command=WasteVolumeAlert)
-#AlertButton.pack(side="left")
+
 

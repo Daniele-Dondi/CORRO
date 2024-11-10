@@ -153,6 +153,7 @@ def StartConfigurator(window):
          filename = filedialog.askopenfilename(filetypes=filetypes)
          if filename=="": return
          LoadConnFile(filename)
+         SetSyringeOptions()
          ShowData()
 
     def SaveAllData():
@@ -184,32 +185,31 @@ def StartConfigurator(window):
     ConfiguratorWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
 
-    def on_tab_selected(event):
+    def SetSyringeOptions():
         global SyringesOptions
+        SyringesOptions=["Not in use","Air/Waste"]
+        count=0
+        for element in ReactantsArray:
+            count+=1
+            SyringesOptions.append("Reactant"+str(count)+": "+element[0])
+        count=0
+        for element in ApparatusArray:
+            count+=1
+            name="Apparatus"+str(count)+": "+element[0]
+            SyringesOptions.append(name+" IN")
+            SyringesOptions.append(name+" OUT")
+        exit1type.config(values=SyringesOptions)
+        exit2type.config(values=SyringesOptions)
+        exit3type.config(values=SyringesOptions)
+        exit4type.config(values=SyringesOptions)
+        exit5type.config(values=SyringesOptions)
+
+
+    def on_tab_selected(event):
         selected_tab = event.widget.select()
         tab_text = event.widget.tab(selected_tab, "text")
         if tab_text == "Syringes":
-            SyringesOptions=["Not in use","Air/Waste"]
-            count=0
-            for element in ReactantsArray:
-                count+=1
-                SyringesOptions.append("Reactant"+str(count)+": "+element[0])
-            count=0
-            for element in ApparatusArray:
-                count+=1
-                name="Apparatus"+str(count)+": "+element[0]
-                #if element[1] in ['Heated reactor','Non heated reactor','Liquid/liquid separator']:
-                SyringesOptions.append(name+" IN")
-                SyringesOptions.append(name+" OUT")
-                #else:
-                #    SyringesOptions.append(name)
-                
-            #same with apparatus    
-            exit1type.config(values=SyringesOptions)
-            exit2type.config(values=SyringesOptions)
-            exit3type.config(values=SyringesOptions)
-            exit4type.config(values=SyringesOptions)
-            exit5type.config(values=SyringesOptions)
+            SetSyringeOptions()
       
 
     tabControl = ttk.Notebook(ConfiguratorWindow)
@@ -813,10 +813,15 @@ def StartConfigurator(window):
     def SaveSyringeParameters():
         global CurrentSyringe
         if NotSavedDataTab3():
-         if "Air/Waste" not in GetTab3Variables():
+         SyringeConnections=GetTab3Variables()
+         if "Air/Waste" not in SyringeConnections:
             messagebox.showerror("ERROR", "One exit MUST BE Air/Waste")
-         else:   
-            SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
+            return
+         for i,Connection in enumerate(SyringeConnections):
+             if not(Connection=="Not in use") and Connection in SyringeConnections[i+1:]:
+                  messagebox.showerror("ERROR", "Duplicated connection: "+Connection)
+                  return
+         SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
 
     def NextT3():
         global CurrentSyringe
