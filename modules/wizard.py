@@ -350,6 +350,7 @@ class Heat(ttk.Frame):
 PourArray=[]
 HeatArray=[]
 WashArray=[]
+FunctionArray=[]
 CurrentY=2
 
 def make_draggable(widget):
@@ -406,13 +407,25 @@ def StartWizard(window):
         HeatArray.append(heat)
         
     def CreateNewWash():
-        global HeatArray,CurrentY
+        global WashArray,CurrentY
         num=len(WashArray)
-        pour=Pour(frame2,num)
+        pour=Pour(frame2,num)#
         pour.place(x=10,y=CurrentY)
         CurrentY+=50    
         make_draggable(pour)
-        WashArray.append(pour)        
+        WashArray.append(pour)
+
+    def CreateNewFunction():
+        global FunctionArray,CurrentY
+        num=len(FunctionArray)
+        pour=Pour(frame2,num)#
+        pour.place(x=10,y=CurrentY)
+        CurrentY+=50    
+        make_draggable(pour)
+        FunctionArray.append(pour)
+
+
+        FunctionArray
 
     
     WizardWindow=tk.Toplevel(window)
@@ -427,6 +440,8 @@ def StartWizard(window):
     New2.pack(side="left")
     New2=tk.Button(frame1,text="Wash reactor",command=CreateNewWash)
     New2.pack(side="left")
+    New3=tk.Button(frame1,text="Function",command=CreateNewFunction)
+    New3.pack(side="left")    
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=800)
     frame2.pack()
     
