@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import *
 from configurator import *
 
 class Pour(ttk.Frame):
-    def __init__(self, container):
+    def __init__(self, container,num):
+        self.num=num
         self.AvailableInputs=GetAllSyringeInputs()
         super().__init__(container)
         self.create_widgets()
@@ -17,7 +18,7 @@ class Pour(ttk.Frame):
         self.Label1.pack(side="left")
         self.Amount=tk.Entry(self.Line1,state="normal",width=10)
         self.Amount.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ('mL','L'), state = 'readonly',width=3)
+        self.Units=ttk.Combobox(self.Line1, values = ('mL','L',str(self.num)), state = 'readonly',width=3)
         self.Units.bind("<<ComboboxSelected>>", self.UnitTypecallback)
         self.Units.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="of")
@@ -31,14 +32,20 @@ class Pour(ttk.Frame):
         self.Destination.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
+        self.Delete.pack(side="left")
         self.SyringeLabel=tk.Label(self.Line2,text="---")
         self.SyringeLabel.pack(side="left")
         self.AlertButtonMaxVol=tk.Button(self.Line2,text="Vmax!",state="normal",bg="red",command=self.MaxVolumeAlert)
         self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
         self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
-        
+
+      
+    def Delete(self):
+        DeletePourObject(self.num)
 
     def CheckValues(self):
+        print("fre")
         Input=self.Source.get()
         Output=self.Destination.get()
         Quantity=self.Amount.get()
@@ -184,16 +191,46 @@ def on_drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
-main = tk.Tk()
-main.geometry('800x620+500+150')
+def DeletePourObject(num):
+    global PourArray
+    print("Deleting Pour n.",num)
+    PourArray[num].destroy()
+    #PourArray.pop(num)
+    return
+
+def CreateNewPour():
+    global PourArray
+    num=len(PourArray)
+    pour=Pour(frame2,num)
+    pour.place(x=10,y=num*50)
+    make_draggable(pour)
+    PourArray.append(pour)
+    
+def CreateNewHeat():
+    global HeatArray
+    pour=Pour(frame2)
+    pour.place(x=10,y=10)
+    make_draggable(pour)
+    HeatArray.append(pour)    
+
 LoadConnFile('../test.conn')
-frame=Pour(main)
-frame.place(x=10,y=10)
-make_draggable(frame)
+PourArray=[]
+HeatArray=[]
 
-frame2=Pour(main)
-frame2.place(x=10,y=50)
-make_draggable(frame2)
+root = tk.Tk()
+root.geometry("1000x800")
+ 
+frame1 = tk.Frame(root)
+frame1.pack(side="top")
+New1=tk.Button(frame1,text="Pour liquid",command=CreateNewPour)
+New1.pack(side="left")
+New2=tk.Button(frame1,text="Heat reactor",command=CreateNewHeat)
+New2.pack(side="left")
+ 
+frame2 = tk.Frame(root,bg="white",width=1000,height=800)
+frame2.pack()
 
+ 
+root.mainloop()
 
 
