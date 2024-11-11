@@ -3,7 +3,7 @@ from tkinter import *
 from configurator import *
 
 class Pour(ttk.Frame):
-    def __init__(self, container,num):
+    def __init__(self,container,num):
         self.num=num
         self.AvailableInputs=GetAllSyringeInputs()
         super().__init__(container)
@@ -18,7 +18,7 @@ class Pour(ttk.Frame):
         self.Label1.pack(side="left")
         self.Amount=tk.Entry(self.Line1,state="normal",width=10)
         self.Amount.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ('mL','L',str(self.num)), state = 'readonly',width=3)
+        self.Units=ttk.Combobox(self.Line1, values = ('mL','L'), state = 'readonly',width=3)
         self.Units.bind("<<ComboboxSelected>>", self.UnitTypecallback)
         self.Units.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="of")
@@ -59,7 +59,7 @@ class Pour(ttk.Frame):
         try:
             Quantity=float(Quantity)
         except:
-            print("Check quantity error")
+            self.SyringeLabel.config(text="Check quantity error")
             return
         syrnums=WhichSiringeIsConnectedTo(Input)
         AvailableSyringes=[]
@@ -70,7 +70,7 @@ class Pour(ttk.Frame):
                 AvailableSyringes.append(syringe)
                 break
         if len(AvailableSyringes)==0:
-            print("Internal Error CHECK")
+            self.SyringeLabel.config(text="Internal Error Check")
             return
         if Unit=="L": Quantity=Quantity*1000
         elif Unit=="mol" or Unit=="mmol":
@@ -80,7 +80,7 @@ class Pour(ttk.Frame):
                 if M>0:
                     Quantity=Quantity/M*1000
                 else:
-                    print("check error molarity")
+                    self.SyringeLabel.config(text="Check error molarity")
                     return
             except:
                 return
@@ -92,7 +92,7 @@ class Pour(ttk.Frame):
                 if M>0 and MM>0:
                     Quantity=Quantity/MM/M*1000
                 else:
-                    print("check error mass")
+                    self.SyringeLabel.config(text="check error mass")
                     return
             except:
                 return
@@ -208,14 +208,24 @@ def CreateNewPour():
     
 def CreateNewHeat():
     global HeatArray
-    pour=Pour(frame2)
-    pour.place(x=10,y=10)
+    num=len(HeatArray)
+    pour=Pour(frame2,num)
+    pour.place(x=10,y=num*50)
     make_draggable(pour)
-    HeatArray.append(pour)    
+    HeatArray.append(pour)
+    
+def CreateNewWash():
+    global HeatArray
+    num=len(WashArray)
+    pour=Pour(frame2,num)
+    pour.place(x=10,y=num*50)
+    make_draggable(pour)
+    WashArray.append(pour)        
 
 LoadConnFile('../test.conn')
 PourArray=[]
 HeatArray=[]
+WashArray=[]
 
 root = tk.Tk()
 root.geometry("1000x800")
@@ -224,7 +234,9 @@ frame1 = tk.Frame(root)
 frame1.pack(side="top")
 New1=tk.Button(frame1,text="Pour liquid",command=CreateNewPour)
 New1.pack(side="left")
-New2=tk.Button(frame1,text="Heat reactor",command=CreateNewHeat)
+New2=tk.Button(frame1,text="Heat/activate reactor",command=CreateNewHeat)
+New2.pack(side="left")
+New2=tk.Button(frame1,text="Wash reactor",command=CreateNewWash)
 New2.pack(side="left")
  
 frame2 = tk.Frame(root,bg="white",width=1000,height=800)
