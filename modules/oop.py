@@ -410,7 +410,7 @@ LoadConnFile('../test.conn')
 PourArray=[]
 HeatArray=[]
 WashArray=[]
-CurrentY=0
+CurrentY=2
 
 root = tk.Tk()
 root.geometry("1000x800")
