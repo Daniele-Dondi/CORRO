@@ -23,7 +23,7 @@ class Pour(ttk.Frame):
         self.Units.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="of")
         self.Label2.pack(side="left")
-        self.Source=ttk.Combobox(self.Line1, values = self.AvailableInputs, state = 'readonly')
+        self.Source=ttk.Combobox(self.Line1, values = self.AvailableInputs, width=self.MaxCharsInList(self.AvailableInputs), state = 'readonly')
         self.Source.bind("<<ComboboxSelected>>", self.InputTypecallback)
         self.Source.pack(side="left")
         self.Label3=tk.Label(self.Line1,text="in")
