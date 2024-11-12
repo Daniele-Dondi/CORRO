@@ -206,15 +206,13 @@ class Heat(ttk.Frame):
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
         self.Delete.pack(side="left")
-        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling")
+        self.Checked=tk.IntVar()
+        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
         self.Wait.select()
         self.Wait.pack(side="left")
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
-        self.AlertButtonMaxVol=tk.Button(self.Line2,text="Vmax!",state="normal",bg="red",command=self.MaxVolumeAlert)
-        self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
-        self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
-
+        self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
       
     def Delete(self):
         DeleteHeatObject(self.num)
@@ -236,69 +234,17 @@ class Heat(ttk.Frame):
             return
         else:
             self.StatusLabel.config(text="Valid values")
-    
-    def MaxVolumeAlert(self):
-        messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
-
-    def MinVolumeAlert(self):
-        messagebox.showerror("Warning", "Volume exceedingly small")    
-
-    def WasteVolumeAlert(self):
-        messagebox.showerror("Warning", "Liquid poured into waste exit")
-    
-    def UnitTypecallback(self,event):
-        Unit=self.Units.get()
-        if Unit=="ALL":
-            MaxVol=GetMaxVolumeApparatus(self.Source.get())
-            if MaxVol>0:
-                self.Amount.delete(0,tk.END)
-                self.Amount.insert(0,str(MaxVol))
-                self.Units.set("mL")
+            if self.Checked.get()==0:
+                self.HighTempAlertButton.pack(side="left")
             else:
-                self.Units.set("")
-
+                self.HighTempAlertButton.pack_forget()            
+    
+    def HighTempAlert(self):
+        messagebox.showerror("Warning", "The reactor will be hot after this step")
+    
     def MaxCharsInList(self,list):
      return max([len(list[i]) for i in range(len(list))])
     
-    def InputTypecallback(self,event):
-        Input=self.Source.get()
-        PossibleUnits=["mL","L"]
-        if "Reactant" in Input:
-            M=GetMolarityOfInput(Input)
-            if M>0:
-                PossibleUnits.append("mmol")            
-                PossibleUnits.append("mol")
-                MM=GetMMOfInput(Input)
-                if MM>0:
-                    PossibleUnits.append("mg")                
-                    PossibleUnits.append("g")
-        elif "Apparatus" in Input:
-            MaxVol=GetMaxVolumeApparatus(Input)
-            if MaxVol>0:
-             PossibleUnits.append("ALL")
-        self.Units.config(values=PossibleUnits, state="readonly",width=self.MaxCharsInList(PossibleUnits)+2)
-        if not self.Units.get() in PossibleUnits:
-            self.Units.set("")
-        if "Apparatus" in Input:
-            self.Label1.config(text="Take")
-            self.Label2.config(text="from")
-            self.Label3.config(text="to")
-        else:
-            self.Label1.config(text="Put")        
-            self.Label2.config(text="of")
-            self.Label3.config(text="in")        
-        SyrNums=WhichSiringeIsConnectedTo(Input)
-        OutputsList=[]
-        for SyringeNum in SyrNums:
-            AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
-            for Output in AvailableOutputs:
-                if Output not in OutputsList:
-                    OutputsList.append(Output)
-        PossibleOutputs=[OutputsList[i][0] for i in range(len(OutputsList))]
-        PossibleOutputs.sort()
-        self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
-        if not self.Destination.get() in PossibleOutputs:
-            self.Destination.set("")
 
 ###################### end of classes ######################
 PourArray=[]
