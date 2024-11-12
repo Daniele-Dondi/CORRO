@@ -425,8 +425,6 @@ def StartWizard(window):
         FunctionArray.append(pour)
 
 
-        FunctionArray
-
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
@@ -440,8 +438,12 @@ def StartWizard(window):
     New2.pack(side="left")
     New2=tk.Button(frame1,text="Wash reactor",command=CreateNewWash)
     New2.pack(side="left")
-    New3=tk.Button(frame1,text="Function",command=CreateNewFunction)
+    New3=tk.Button(frame1,text="Device ON/OFF",command=CreateNewFunction)
     New3.pack(side="left")    
+    New4=tk.Button(frame1,text="Titrate",command=CreateNewFunction)
+    New4.pack(side="left")    
+    New5=tk.Button(frame1,text="Function",command=CreateNewFunction)
+    New5.pack(side="left")    
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=800)
     frame2.pack()
     
