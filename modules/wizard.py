@@ -5,6 +5,7 @@ from modules.configurator import *
 class Pour(ttk.Frame):
     def __init__(self,container,num):
         self.num=num
+        self.Action=""
         self.AvailableInputs=GetAllSyringeInputs()
         super().__init__(container)
         self.create_widgets()
@@ -34,8 +35,8 @@ class Pour(ttk.Frame):
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
         self.Delete.pack(side="left")
-        self.SyringeLabel=tk.Label(self.Line2,text="---")
-        self.SyringeLabel.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
         self.AlertButtonMaxVol=tk.Button(self.Line2,text="Vmax!",state="normal",bg="red",command=self.MaxVolumeAlert)
         self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
         self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
@@ -49,8 +50,9 @@ class Pour(ttk.Frame):
         Output=self.Destination.get()
         Quantity=self.Amount.get()
         Unit=self.Units.get()
+        self.Action=""
         if Input=="" or Output=="" or Quantity=="" or Unit=="":
-            self.SyringeLabel.config(text="---")
+            self.StatusLabel.config(text="---")
             self.AlertButtonMinVol.pack_forget()        
             self.AlertButtonMaxVol.pack_forget()
             self.AlertButtonWaste.pack_forget()
@@ -58,7 +60,7 @@ class Pour(ttk.Frame):
         try:
             Quantity=float(Quantity)
         except:
-            self.SyringeLabel.config(text="Check quantity error")
+            self.StatusLabel.config(text="Check quantity error")
             return
         syrnums=WhichSiringeIsConnectedTo(Input)
         AvailableSyringes=[]
@@ -69,7 +71,7 @@ class Pour(ttk.Frame):
                 AvailableSyringes.append(syringe)
                 break
         if len(AvailableSyringes)==0:
-            self.SyringeLabel.config(text="Internal Error Check")
+            self.StatusLabel.config(text="Internal Error Check")
             return
         if Unit=="L": Quantity=Quantity*1000
         elif Unit=="mol" or Unit=="mmol":
@@ -79,7 +81,7 @@ class Pour(ttk.Frame):
                 if M>0:
                     Quantity=Quantity/M*1000
                 else:
-                    self.SyringeLabel.config(text="Check error molarity")
+                    self.StatusLabel.config(text="Check error molarity")
                     return
             except:
                 return
@@ -91,7 +93,7 @@ class Pour(ttk.Frame):
                 if M>0 and MM>0:
                     Quantity=Quantity/MM/M*1000
                 else:
-                    self.SyringeLabel.config(text="check error mass")
+                    self.StatusLabel.config(text="check error mass")
                     return
             except:
                 return
@@ -104,7 +106,8 @@ class Pour(ttk.Frame):
             self.AlertButtonWaste.pack(side="left")
         else:
             self.AlertButtonWaste.pack_forget()    
-        self.SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
+        self.StatusLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
+        self.Action='Syr'.join(AvailableSyringes)+","+Input+","+Output+","+str(Quantity)
         MaxVol=GetMaxVolumeApparatus(Output)
         if MaxVol>0 and Quantity>MaxVol:
             self.AlertButtonMaxVol.pack(side="left")
@@ -272,14 +275,15 @@ def DeletePourObject(num):
     global PourArray
     print("Deleting Pour n.",num)
     PourArray[num].destroy()
-    #PourArray.pop(num)
+    PourArray[num]=""
+    print(PourArray)
     return
 
 def DeleteHeatObject(num):
     global HeatArray
     print("Deleting Heat n.",num)
     HeatArray[num].destroy()
-    #PourArray.pop(num)
+    HeatArray[num]=""
     return
 
 
@@ -299,6 +303,9 @@ def StartWizard(window):
         
     def CreateNewHeat():
         global HeatArray,CurrentY
+##        global PourArray
+##        PourArray[0].CheckValues()
+##        print(PourArray[0].StatusLabel.cget("text"))
         num=len(HeatArray)
         heat=Heat(frame2,num)
         heat.place(x=10,y=CurrentY)
@@ -324,11 +331,16 @@ def StartWizard(window):
         make_draggable(pour)
         FunctionArray.append(pour)
 
+    def CheckProcedure():
+        global PourArray
+        for item in PourArray:
+            if not item=="":
+                print(item.winfo_y())
 
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
-    WizardWindow.geometry('1000x800+500+150')
+    WizardWindow.geometry('1000x600+500+10')
     WizardWindow.grab_set()
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
@@ -338,9 +350,11 @@ def StartWizard(window):
     tk.Button(frame1,text="Device ON/OFF",command=CreateNewFunction).pack(side="left")    
     tk.Button(frame1,text="Titrate",command=CreateNewFunction).pack(side="left")    
     tk.Button(frame1,text="Function",command=CreateNewFunction).pack(side="left")    
-    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=800)
+    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=400)
     frame2.pack()
-    
+    frame3 = tk.Frame(WizardWindow,bg="cyan",width=1000,height=30)
+    frame3.pack(side="bottom")
+    tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
 
 ##    root = tk.Tk()
