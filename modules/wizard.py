@@ -40,7 +40,6 @@ class Pour(ttk.Frame):
         self.AlertButtonMaxVol=tk.Button(self.Line2,text="Vmax!",state="normal",bg="red",command=self.MaxVolumeAlert)
         self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
         self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
-
       
     def Delete(self):
         DeletePourObject(self.num)
@@ -193,7 +192,7 @@ class Heat(ttk.Frame):
         self.Line3.pack()        
         self.Label1=ttk.Label(self.Line1, text="Heat")
         self.Label1.pack(side="left")
-        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, state = 'readonly')
+        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
         self.Source.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="at")
         self.Label2.pack(side="left")
@@ -247,6 +246,81 @@ class Heat(ttk.Frame):
     
     def MaxCharsInList(self,list):
      return max([len(list[i]) for i in range(len(list))])
+
+
+class Wash(ttk.Frame):
+    def __init__(self,container,num):
+        self.num=num
+        self.AvailableApparatus=GetAllVesselApparatus()
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Line3=tk.Frame(self)
+        self.Line3.pack()        
+        self.Label1=ttk.Label(self.Line1, text="Wash")
+        self.Label1.pack(side="left")
+        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
+        self.Source.pack(side="left")
+        self.Label2=tk.Label(self.Line1,text="with")
+        self.Label2.pack(side="left")
+        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly') #
+        self.Source.pack(side="left")
+        self.Label3=ttk.Label(self.Line1, text="°C for")
+        self.Label3.pack(side="left")
+        self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.pack(side="left")
+        self.Label4=tk.Label(self.Line1,text="min")
+        self.Label4.pack(side="left")
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
+        self.Delete.pack(side="left")
+        self.Checked=tk.IntVar()
+        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
+        self.Wait.select()
+        self.Wait.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line3,text="---")
+        self.StatusLabel.pack(side="left")
+        self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
+      
+    def Delete(self):
+        DeleteHeatObject(self.num)
+
+    def CheckValues(self):
+        Input=self.Source.get()
+        Temperature=self.Temperature.get()
+        Time=self.Time.get()
+        if Input=="" or Temperature=="":
+            self.StatusLabel.config(text="Non valid values")
+            return
+        if Time=="": Time=0
+        try:
+            Temperature=float(Temperature)
+            Time=float(Time)
+            if Time<0: Time/=0
+        except:
+            self.StatusLabel.config(text="Non valid values")
+            return
+        else:
+            self.StatusLabel.config(text="Valid values")
+            if self.Checked.get()==0:
+                self.HighTempAlertButton.pack(side="left")
+            else:
+                self.HighTempAlertButton.pack_forget()            
+    
+    def HighTempAlert(self):
+        messagebox.showerror("Warning", "The reactor will be hot after this step")
+    
+    def MaxCharsInList(self,list):
+     return max([len(list[i]) for i in range(len(list))])
+
+    
+
     
 
 ###################### end of classes ######################
@@ -303,9 +377,6 @@ def StartWizard(window):
         
     def CreateNewHeat():
         global HeatArray,CurrentY
-##        global PourArray
-##        PourArray[0].CheckValues()
-##        print(PourArray[0].StatusLabel.cget("text"))
         num=len(HeatArray)
         heat=Heat(frame2,num)
         heat.place(x=10,y=CurrentY)
@@ -316,11 +387,11 @@ def StartWizard(window):
     def CreateNewWash():
         global WashArray,CurrentY
         num=len(WashArray)
-        pour=Pour(frame2,num)#
-        pour.place(x=10,y=CurrentY)
+        wash=Wash(frame2,num)
+        wash.place(x=10,y=CurrentY)
         CurrentY+=50    
-        make_draggable(pour)
-        WashArray.append(pour)
+        make_draggable(wash)
+        WashArray.append(wash)
 
     def CreateNewFunction():
         global FunctionArray,CurrentY
@@ -331,11 +402,23 @@ def StartWizard(window):
         make_draggable(pour)
         FunctionArray.append(pour)
 
-    def CheckProcedure():
-        global PourArray
-        for item in PourArray:
+    def GetYStack(array):
+        Result=[]
+        for item in array:
             if not item=="":
-                print(item.winfo_y())
+                #ObjName=str(item.__class__.__name__)                
+                Result.append([item.winfo_y(),item])
+        return Result
+        
+    def CheckProcedure():
+        global PourArray,HeatArray
+        ToBeChecked=[PourArray,HeatArray,WashArray]
+        Sorted=[]
+        for ObjArray in ToBeChecked:
+         Result=GetYStack(ObjArray)
+         Sorted=[*Sorted,*Result]
+        Sorted.sort()
+        print(Sorted) #now we have the array of objects ordered w. respect to Y pos       
 
     
     WizardWindow=tk.Toplevel(window)
@@ -357,18 +440,9 @@ def StartWizard(window):
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
 
-##    root = tk.Tk()
-##    root.geometry("1000x800")
-##    frame1 = tk.Frame(root)
-##    frame1.pack(side="top")
-##    New1=tk.Button(frame1,text="Pour liquid",command=CreateNewPour)
-##    New1.pack(side="left")
-##    New2=tk.Button(frame1,text="Heat/activate reactor",command=CreateNewHeat)
-##    New2.pack(side="left")
-##    New2=tk.Button(frame1,text="Wash reactor",command=CreateNewWash)
-##    New2.pack(side="left")
-##    frame2 = tk.Frame(root,bg="white",width=1000,height=800)
-##    frame2.pack()
-##    root.mainloop()
 
 
+
+##        global PourArray
+##        PourArray[0].CheckValues()
+##        print(PourArray[0].StatusLabel.cget("text"))

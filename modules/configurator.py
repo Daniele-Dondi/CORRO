@@ -29,6 +29,14 @@ def InitAllData():
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+def GetAllVesselApparatus():
+    global ApparatusArray
+    outlist=[]
+    for apparatus in ApparatusArray:
+        if apparatus[1]=="Heated reactor":
+            outlist.append(apparatus[0])
+    return outlist
+
 def GetAllHeatingApparatus():
     global ApparatusArray
     outlist=[]
@@ -695,7 +703,7 @@ def StartConfigurator(window):
           maxinputs.delete(0,tk.END)
           maxinputs.insert(0,"1")
           maxoutputs.delete(0,tk.END)
-          maxoutputs.insert(0,"0")
+          maxoutputs.insert(0,"1")
           EnableDisableTab2()
 
     def SetStatusNextPrevButtonsT2():
@@ -714,8 +722,7 @@ def StartConfigurator(window):
         if answer: ClearAllValuesT2()
 
     def Tab2HavingDefaultValues():
-        print(GetTab2Variables())
-        return GetTab2Variables()==['', '', 'None', 'None', 'None', 'None', 'None', '', '', '1', '0']
+        return GetTab2Variables()==['', '', 'None', 'None', 'None', 'None', 'None', '', '', '1', '1']
 
     def NotSavedDataTab2():
         global CurrentApparatus
@@ -801,6 +808,8 @@ def StartConfigurator(window):
     ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
     ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
     ttk.Label(tab2,text ="Number of outputs:").pack(); maxoutputs=tk.Spinbox(tab2, from_=0, to=10, repeatdelay=500, repeatinterval=200); maxoutputs.pack()
+    maxoutputs.delete(0,tk.END)
+    maxoutputs.insert(0,"1")
     F2T2 = ttk.Frame(tab2); F2T2.pack(pady="10")
     F3T2 = ttk.Frame(tab2); F3T2.pack()
     ttk.Button(F2T2, text="Save changes", command=SaveApparatusParameters).pack(side="left")
