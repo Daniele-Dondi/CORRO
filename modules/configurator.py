@@ -29,6 +29,14 @@ def InitAllData():
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
+def GetAllHeatingApparatus():
+    global ApparatusArray
+    outlist=[]
+    for apparatus in ApparatusArray:
+        if apparatus[1]=="Heated reactor":
+            outlist.append(apparatus[0])
+    return outlist
+
 def GetMaxVolumeApparatus(Name):
     global ApparatusArray
     if Name[-1:]=="T": Name=Name[:-4] #removes OUT
@@ -466,14 +474,24 @@ def StartConfigurator(window):
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
         if answer: ClearAllValuesT1()
 
+    def Tab1HavingDefaultValues():
+        return GetTab1Variables()==['', '', '', '', '100', 'Concentration', '', '', '', '1', '---']
+
     def NotSavedDataTab1():
         global CurrentReactant
-        return not(len(ReactantsArray)>CurrentReactant-1) or not(GetTab1Variables()==ReactantsArray[CurrentReactant-1])
+        if len(ReactantsArray)==CurrentReactant-1:
+         if Tab1HavingDefaultValues():
+               return False
+         else: return True
+        return not(GetTab1Variables()==ReactantsArray[CurrentReactant-1])
 
     def AddReactant():
         global CurrentReactant
-        if NotSavedDataTab1():
+        if len(ReactantsArray)==CurrentReactant-1:
             messagebox.showinfo(message="Finish first to edit the current reagent")
+            return
+        if NotSavedDataTab1():
+            messagebox.showinfo(message="Unsaved data for the current reagent")
             return
         CurrentReactant=len(ReactantsArray)+1
         HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
@@ -695,14 +713,25 @@ def StartConfigurator(window):
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete all parameters inserted?")
         if answer: ClearAllValuesT2()
 
+    def Tab2HavingDefaultValues():
+        print(GetTab2Variables())
+        return GetTab2Variables()==['', '', 'None', 'None', 'None', 'None', 'None', '', '', '1', '0']
+
     def NotSavedDataTab2():
         global CurrentApparatus
-        return not(len(ApparatusArray)>CurrentApparatus-1) or not(GetTab2Variables()==ApparatusArray[CurrentApparatus-1])
+        if len(ApparatusArray)==CurrentApparatus-1:
+         if Tab2HavingDefaultValues():
+               return False
+         else: return True
+        return not(GetTab2Variables()==ApparatusArray[CurrentApparatus-1])    
 
     def AddApparatus():
         global CurrentApparatus
+        if len(ApparatusArray)==CurrentApparatus-1:
+            messagebox.showinfo(message="Finish first to edit the current apparatus")
+            return
         if NotSavedDataTab2():
-            messagebox.showinfo(message="Finish first to edit the current reagent")
+            messagebox.showinfo(message="Unsaved data for the current apparatus")
             return
         CurrentApparatus=len(ApparatusArray)+1
         HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))

@@ -177,7 +177,7 @@ class Pour(ttk.Frame):
 class Heat(ttk.Frame):
     def __init__(self,container,num):
         self.num=num
-        self.AvailableInputs=GetAllSyringeInputs()
+        self.AvailableApparatus=GetAllHeatingApparatus()
         super().__init__(container)
         self.create_widgets()
 
@@ -185,29 +185,32 @@ class Heat(ttk.Frame):
         self.Line1=tk.Frame(self)
         self.Line1.pack()
         self.Line2=tk.Frame(self)
-        self.Line2.pack()        
+        self.Line2.pack()
+        self.Line3=tk.Frame(self)
+        self.Line3.pack()        
         self.Label1=ttk.Label(self.Line1, text="Heat")
         self.Label1.pack(side="left")
-        self.Amount=tk.Entry(self.Line1,state="normal",width=10)
-        self.Amount.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ('mL','L'), state = 'readonly',width=3)
-        self.Units.bind("<<ComboboxSelected>>", self.UnitTypecallback)
-        self.Units.pack(side="left")
-        self.Label2=tk.Label(self.Line1,text="of")
-        self.Label2.pack(side="left")
-        self.Source=ttk.Combobox(self.Line1, values = self.AvailableInputs, state = 'readonly')
-        self.Source.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, state = 'readonly')
         self.Source.pack(side="left")
-        self.Label3=tk.Label(self.Line1,text="in")
+        self.Label2=tk.Label(self.Line1,text="at")
+        self.Label2.pack(side="left")
+        self.Temperature=tk.Entry(self.Line1,state="normal",width=10)
+        self.Temperature.pack(side="left")
+        self.Label3=ttk.Label(self.Line1, text="°C for")
         self.Label3.pack(side="left")
-        self.Destination=ttk.Combobox(self.Line1, state = 'disabled')
-        self.Destination.pack(side="left")
+        self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.pack(side="left")
+        self.Label4=tk.Label(self.Line1,text="min")
+        self.Label4.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
         self.Delete.pack(side="left")
-        self.SyringeLabel=tk.Label(self.Line2,text="---")
-        self.SyringeLabel.pack(side="left")
+        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling")
+        self.Wait.select()
+        self.Wait.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line3,text="---")
+        self.StatusLabel.pack(side="left")
         self.AlertButtonMaxVol=tk.Button(self.Line2,text="Vmax!",state="normal",bg="red",command=self.MaxVolumeAlert)
         self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
         self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
@@ -218,70 +221,21 @@ class Heat(ttk.Frame):
 
     def CheckValues(self):
         Input=self.Source.get()
-        Output=self.Destination.get()
-        Quantity=self.Amount.get()
-        Unit=self.Units.get()
-        if Input=="" or Output=="" or Quantity=="" or Unit=="":
-            self.SyringeLabel.config(text="---")
-            self.AlertButtonMinVol.pack_forget()        
-            self.AlertButtonMaxVol.pack_forget()
-            self.AlertButtonWaste.pack_forget()
+        Temperature=self.Temperature.get()
+        Time=self.Time.get()
+        if Input=="" or Temperature=="":
+            self.StatusLabel.config(text="Non valid values")
             return
+        if Time=="": Time=0
         try:
-            Quantity=float(Quantity)
+            Temperature=float(Temperature)
+            Time=float(Time)
+            if Time<0: Time/=0
         except:
-            self.SyringeLabel.config(text="Check quantity error")
+            self.StatusLabel.config(text="Non valid values")
             return
-        syrnums=WhichSiringeIsConnectedTo(Input)
-        AvailableSyringes=[]
-        for syringe in syrnums:
-            Outputs=GetAllOutputsOfSyringe(int(syringe))
-            for connection in Outputs:
-             if Output in connection:
-                AvailableSyringes.append(syringe)
-                break
-        if len(AvailableSyringes)==0:
-            self.SyringeLabel.config(text="Internal Error Check")
-            return
-        if Unit=="L": Quantity=Quantity*1000
-        elif Unit=="mol" or Unit=="mmol":
-            if Unit=="mmol": Quantity=Quantity/1000        
-            try:
-                M=GetMolarityOfInput(Input)
-                if M>0:
-                    Quantity=Quantity/M*1000
-                else:
-                    self.SyringeLabel.config(text="Check error molarity")
-                    return
-            except:
-                return
-        elif Unit=="g" or Unit=="mg":
-            if Unit=="mg": Quantity=Quantity/1000
-            try:
-                M=GetMolarityOfInput(Input)
-                MM=GetMMOfInput(Input)
-                if M>0 and MM>0:
-                    Quantity=Quantity/MM/M*1000
-                else:
-                    self.SyringeLabel.config(text="check error mass")
-                    return
-            except:
-                return
-        Quantity=round(Quantity,2)
-        if Quantity<0.1:
-            self.AlertButtonMinVol.pack(side="left")
         else:
-            self.AlertButtonMinVol.pack_forget()
-        if Output=="Air/Waste":
-            self.AlertButtonWaste.pack(side="left")
-        else:
-            self.AlertButtonWaste.pack_forget()    
-        self.SyringeLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
-        MaxVol=GetMaxVolumeApparatus(Output)
-        if MaxVol>0 and Quantity>MaxVol:
-            self.AlertButtonMaxVol.pack(side="left")
-        else:
-            self.AlertButtonMaxVol.pack_forget()
+            self.StatusLabel.config(text="Valid values")
     
     def MaxVolumeAlert(self):
         messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
@@ -432,18 +386,12 @@ def StartWizard(window):
     WizardWindow.grab_set()
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
-    New1=tk.Button(frame1,text="Pour liquid",command=CreateNewPour)
-    New1.pack(side="left")
-    New2=tk.Button(frame1,text="Heat/activate reactor",command=CreateNewHeat)
-    New2.pack(side="left")
-    New2=tk.Button(frame1,text="Wash reactor",command=CreateNewWash)
-    New2.pack(side="left")
-    New3=tk.Button(frame1,text="Device ON/OFF",command=CreateNewFunction)
-    New3.pack(side="left")    
-    New4=tk.Button(frame1,text="Titrate",command=CreateNewFunction)
-    New4.pack(side="left")    
-    New5=tk.Button(frame1,text="Function",command=CreateNewFunction)
-    New5.pack(side="left")    
+    tk.Button(frame1,text="Pour liquid",command=CreateNewPour).pack(side="left")
+    tk.Button(frame1,text="Heat reactor",command=CreateNewHeat).pack(side="left")
+    tk.Button(frame1,text="Wash reactor",command=CreateNewWash).pack(side="left")
+    tk.Button(frame1,text="Device ON/OFF",command=CreateNewFunction).pack(side="left")    
+    tk.Button(frame1,text="Titrate",command=CreateNewFunction).pack(side="left")    
+    tk.Button(frame1,text="Function",command=CreateNewFunction).pack(side="left")    
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=800)
     frame2.pack()
     
