@@ -3,8 +3,7 @@ from tkinter import *
 from modules.configurator import *
 
 class Pour(ttk.Frame):
-    def __init__(self,container,num):
-        self.num=num
+    def __init__(self,container):
         self.Action=""
         self.AvailableInputs=GetAllSyringeInputs()
         super().__init__(container)
@@ -33,7 +32,7 @@ class Pour(ttk.Frame):
         self.Destination.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
-        self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")
@@ -41,9 +40,9 @@ class Pour(ttk.Frame):
         self.AlertButtonMinVol=tk.Button(self.Line2,text="Vmin!",state="normal",bg="yellow",command=self.MinVolumeAlert)
         self.AlertButtonWaste=tk.Button(self.Line2,text="W",state="normal",bg="green",command=self.WasteVolumeAlert)
       
-    def Delete(self):
-        DeletePourObject(self.num)
-
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+        
     def CheckValues(self):
         Input=self.Source.get()
         Output=self.Destination.get()
@@ -177,8 +176,8 @@ class Pour(ttk.Frame):
             self.Destination.set("")
 
 class Heat(ttk.Frame):
-    def __init__(self,container,num):
-        self.num=num
+    def __init__(self,container):
+        self.Action=""
         self.AvailableApparatus=GetAllHeatingApparatus()
         super().__init__(container)
         self.create_widgets()
@@ -206,7 +205,7 @@ class Heat(ttk.Frame):
         self.Label4.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
-        self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
         self.Checked=tk.IntVar()
         self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
@@ -216,8 +215,8 @@ class Heat(ttk.Frame):
         self.StatusLabel.pack(side="left")
         self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
       
-    def Delete(self):
-        DeleteHeatObject(self.num)
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
 
     def CheckValues(self):
         Input=self.Source.get()
@@ -249,8 +248,7 @@ class Heat(ttk.Frame):
 
 
 class Wash(ttk.Frame):
-    def __init__(self,container,num):
-        self.num=num
+    def __init__(self,container):
         self.AvailableApparatus=GetAllVesselApparatus()
         super().__init__(container)
         self.create_widgets()
@@ -278,7 +276,7 @@ class Wash(ttk.Frame):
         self.Label4.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
-        self.Delete=tk.Button(self.Line1,text="DEL",command=self.Delete)
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
         self.Checked=tk.IntVar()
         self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
@@ -288,8 +286,8 @@ class Wash(ttk.Frame):
         self.StatusLabel.pack(side="left")
         self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
       
-    def Delete(self):
-        DeleteHeatObject(self.num)
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
 
     def CheckValues(self):
         Input=self.Source.get()
@@ -324,6 +322,7 @@ class Wash(ttk.Frame):
     
 
 ###################### end of classes ######################
+ActionsArray=[]    
 PourArray=[]
 HeatArray=[]
 WashArray=[]
@@ -345,62 +344,34 @@ def on_drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
-def DeletePourObject(num):
-    global PourArray
-    print("Deleting Pour n.",num)
-    PourArray[num].destroy()
-    PourArray[num]=""
-    print(PourArray)
-    return
-
-def DeleteHeatObject(num):
-    global HeatArray
-    print("Deleting Heat n.",num)
-    HeatArray[num].destroy()
-    HeatArray[num]=""
-    return
-
-
+def DeleteObjByIdentifier(ObjIdentifier):
+    global ActionsArray
+    num=ActionsArray.index(ObjIdentifier)
+    ActionsArray.pop(num)
+    ObjIdentifier.destroy()
 
 def StartWizard(window):
     
     LoadConnFile('test.conn')
 
-    def CreateNewPour():
-        global PourArray,CurrentY
-        num=len(PourArray)
-        pour=Pour(frame2,num)
-        pour.place(x=10,y=CurrentY)
-        CurrentY+=50    
-        make_draggable(pour)
-        PourArray.append(pour)
-        
-    def CreateNewHeat():
-        global HeatArray,CurrentY
-        num=len(HeatArray)
-        heat=Heat(frame2,num)
-        heat.place(x=10,y=CurrentY)
-        CurrentY+=70
-        make_draggable(heat)
-        HeatArray.append(heat)
-        
-    def CreateNewWash():
-        global WashArray,CurrentY
-        num=len(WashArray)
-        wash=Wash(frame2,num)
-        wash.place(x=10,y=CurrentY)
-        CurrentY+=50    
-        make_draggable(wash)
-        WashArray.append(wash)
-
-    def CreateNewFunction():
-        global FunctionArray,CurrentY
-        num=len(FunctionArray)
-        pour=Pour(frame2,num)#
-        pour.place(x=10,y=CurrentY)
-        CurrentY+=50    
-        make_draggable(pour)
-        FunctionArray.append(pour)
+    def CreateNewObject(ObjType):
+        global ActionsArray,CurrentY
+        if ObjType=="Pour":
+            Obj=Pour(frame2)
+            YSize=50
+        elif ObjType=="Heat":
+            Obj=Heat(frame2)
+            YSize=70
+        elif ObjType=="Wash":
+            Obj=Wash(frame2)
+            YSize=50
+        else:
+            messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
+            return
+        Obj.place(x=10,y=CurrentY)
+        CurrentY+=YSize
+        make_draggable(Obj)
+        ActionsArray.append(Obj)
 
     def GetYStack(array):
         Result=[]
@@ -409,16 +380,16 @@ def StartWizard(window):
                 #ObjName=str(item.__class__.__name__)                
                 Result.append([item.winfo_y(),item])
         return Result
-        
+
     def CheckProcedure():
-        global PourArray,HeatArray
+        global PourArray,HeatArray,WashArray
         ToBeChecked=[PourArray,HeatArray,WashArray]
         Sorted=[]
         for ObjArray in ToBeChecked:
          Result=GetYStack(ObjArray)
          Sorted=[*Sorted,*Result]
         Sorted.sort()
-        print(Sorted) #now we have the array of objects ordered w. respect to Y pos       
+        print(Sorted) #now we have the array of objects ordered w. respect to Y pos
 
     
     WizardWindow=tk.Toplevel(window)
@@ -427,16 +398,19 @@ def StartWizard(window):
     WizardWindow.grab_set()
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
-    tk.Button(frame1,text="Pour liquid",command=CreateNewPour).pack(side="left")
-    tk.Button(frame1,text="Heat reactor",command=CreateNewHeat).pack(side="left")
-    tk.Button(frame1,text="Wash reactor",command=CreateNewWash).pack(side="left")
-    tk.Button(frame1,text="Device ON/OFF",command=CreateNewFunction).pack(side="left")    
-    tk.Button(frame1,text="Titrate",command=CreateNewFunction).pack(side="left")    
-    tk.Button(frame1,text="Function",command=CreateNewFunction).pack(side="left")    
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=400)
     frame2.pack()
     frame3 = tk.Frame(WizardWindow,bg="cyan",width=1000,height=30)
-    frame3.pack(side="bottom")
+    frame3.pack(side="bottom")    
+    tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
+    tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
+    tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
+    tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
+    tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
+    tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
+    tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
+    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Func")).pack(side="left")    
+
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
 
