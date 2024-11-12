@@ -302,7 +302,7 @@ def StartWizard(window):
         num=len(HeatArray)
         heat=Heat(frame2,num)
         heat.place(x=10,y=CurrentY)
-        CurrentY+=50    
+        CurrentY+=70
         make_draggable(heat)
         HeatArray.append(heat)
         
