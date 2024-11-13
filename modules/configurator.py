@@ -90,10 +90,26 @@ def GetAllSyringeInputs():
     value.sort()        
     return value
 
+def GetAllSyringeOutputs():
+    value=[]
+    for Syringe, element in enumerate(SyringesArray):
+      for Exit,connection in enumerate(element):
+          if ("Apparatus" in connection and "IN" in connection) and not connection in value:
+            value.append(connection) #value.append([str(Syringe),str(Exit),connection])
+    value.sort()        
+    return value
+
 def GetAllOutputsOfSyringe(num):
     value=[]
     for Exit,connection in enumerate(SyringesArray[num]):
-      if ("Apparatus" in connection and "IN" in connection) or "Air/Waste" in connection:
+      if ("Apparatus" in connection and "IN" in connection) or "Air/Waste" in connection: #and not connection in value???
+        value.append([connection]) #value.append([str(Exit),connection])
+    return value
+
+def GetAllInputsOfSyringe(num):
+    value=[]
+    for Exit,connection in enumerate(SyringesArray[num]):
+      if ("Reactant" in connection) and not connection in value:
         value.append([connection]) #value.append([str(Exit),connection])
     return value    
 

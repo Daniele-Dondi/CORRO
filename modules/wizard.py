@@ -259,7 +259,10 @@ class Heat(ttk.Frame):
 
 class Wash(ttk.Frame):
     def __init__(self,container):
-        self.AvailableApparatus=GetAllVesselApparatus()
+        #self.AvailableApparatus=GetAllVesselApparatus()
+        self.AvailableApparatus=GetAllSyringeOutputs()
+        self.AvailableInputs=GetAllSyringeInputs()
+        self.Action=[]
         super().__init__(container)
         self.create_widgets()
 
@@ -272,54 +275,55 @@ class Wash(ttk.Frame):
         self.Line3.pack()        
         self.Label1=ttk.Label(self.Line1, text="Wash")
         self.Label1.pack(side="left")
-        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
-        self.Source.pack(side="left")
+        self.Destination=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
+        self.Destination.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Destination.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="with")
         self.Label2.pack(side="left")
-        self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly') #
+        self.Source=ttk.Combobox(self.Line1, values = [], state = 'disabled') 
         self.Source.pack(side="left")
-        self.Label3=ttk.Label(self.Line1, text="°C for")
+        self.Label3=ttk.Label(self.Line2, text="Number of cycles:")
         self.Label3.pack(side="left")
-        self.Time=tk.Entry(self.Line1,state="normal",width=10)
-        self.Time.pack(side="left")
-        self.Label4=tk.Label(self.Line1,text="min")
-        self.Label4.pack(side="left")
+        self.Cycles=tk.Spinbox(self.Line2, from_=1, to=10, repeatdelay=500, repeatinterval=200);
+        self.Cycles.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
-        self.Checked=tk.IntVar()
-        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
-        self.Wait.select()
-        self.Wait.pack(side="left")
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
-        self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
-      
+
+
+    def InputTypecallback(self,event):
+        Vessel=self.Destination.get()
+        SyrNums=WhichSiringeIsConnectedTo(Vessel)
+        InputsList=[]
+        for SyringeNum in SyrNums:
+            AvailableInputs=GetAllInputsOfSyringe(int(SyringeNum))
+            for Input in AvailableInputs:
+                if Input not in InputsList:
+                    InputsList.append(Input)
+        PossibleInputs=[InputsList[i][0] for i in range(len(InputsList))]
+        PossibleInputs.sort()
+        self.Source.config(values = PossibleInputs,state="readonly",width=self.MaxCharsInList(PossibleInputs))
+        if not self.Source.get() in PossibleInputs:
+            self.Source.set("")    
+    
     def DeleteMe(self):
         DeleteObjByIdentifier(self)
 
+    def GetAction(self):
+        return self.Action        
+
     def CheckValues(self):
-        Input=self.Source.get()
-        Temperature=self.Temperature.get()
-        Time=self.Time.get()
-        if Input=="" or Temperature=="":
-            self.StatusLabel.config(text="Non valid values")
-            return
-        if Time=="": Time=0
-        try:
-            Temperature=float(Temperature)
-            Time=float(Time)
-            if Time<0: Time/=0
-        except:
-            self.StatusLabel.config(text="Non valid values")
-            return
-        else:
-            self.StatusLabel.config(text="Valid values")
-            if self.Checked.get()==0:
-                self.HighTempAlertButton.pack(side="left")
-            else:
-                self.HighTempAlertButton.pack_forget()            
+        Destination=self.Destination.get()
+        Source=self.Source.get()
+        Cycles=self.Cycles.get()
+        self.Action=[]
+        self.StatusLabel.config(text="---")
+        if not Destination=="" and not Source=="":
+         self.Action=[Destination,Source,Cycles]
+         self.StatusLabel.config(text="Ok")
     
     def HighTempAlert(self):
         messagebox.showerror("Warning", "The reactor will be hot after this step")
