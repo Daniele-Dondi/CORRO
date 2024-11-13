@@ -4,7 +4,7 @@ from modules.configurator import *
 
 class Pour(ttk.Frame):
     def __init__(self,container):
-        self.Action=""
+        self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         super().__init__(container)
         self.create_widgets()
@@ -42,13 +42,17 @@ class Pour(ttk.Frame):
       
     def DeleteMe(self):
         DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
         
     def CheckValues(self):
         Input=self.Source.get()
         Output=self.Destination.get()
         Quantity=self.Amount.get()
+        Amount=Quantity #we keep amount with the current units, Quantity will be transformed in mL
         Unit=self.Units.get()
-        self.Action=""
+        self.Action=[]
         if Input=="" or Output=="" or Quantity=="" or Unit=="":
             self.StatusLabel.config(text="---")
             self.AlertButtonMinVol.pack_forget()        
@@ -105,7 +109,7 @@ class Pour(ttk.Frame):
         else:
             self.AlertButtonWaste.pack_forget()    
         self.StatusLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
-        self.Action='Syr'.join(AvailableSyringes)+","+Input+","+Output+","+str(Quantity)
+        self.Action=[AvailableSyringes,Quantity,Amount,Unit,Input,Output] #Quantity=mL, Amount measured in Unit
         MaxVol=GetMaxVolumeApparatus(Output)
         if MaxVol>0 and Quantity>MaxVol:
             self.AlertButtonMaxVol.pack(side="left")
@@ -177,7 +181,7 @@ class Pour(ttk.Frame):
 
 class Heat(ttk.Frame):
     def __init__(self,container):
-        self.Action=""
+        self.Action=[]
         self.AvailableApparatus=GetAllHeatingApparatus()
         super().__init__(container)
         self.create_widgets()
@@ -218,11 +222,16 @@ class Heat(ttk.Frame):
     def DeleteMe(self):
         DeleteObjByIdentifier(self)
 
+    def GetAction(self):
+        return self.Action
+
     def CheckValues(self):
-        Input=self.Source.get()
+        Apparatus=self.Source.get()
         Temperature=self.Temperature.get()
         Time=self.Time.get()
-        if Input=="" or Temperature=="":
+        Wait4Cooling=self.Checked.get()
+        self.Action=[]        
+        if Apparatus=="" or Temperature=="":
             self.StatusLabel.config(text="Non valid values")
             return
         if Time=="": Time=0
@@ -235,7 +244,8 @@ class Heat(ttk.Frame):
             return
         else:
             self.StatusLabel.config(text="Valid values")
-            if self.Checked.get()==0:
+            self.Action=[Apparatus,Temperature,Time,Wait4Cooling]
+            if Wait4Cooling==0:
                 self.HighTempAlertButton.pack(side="left")
             else:
                 self.HighTempAlertButton.pack_forget()            
@@ -319,14 +329,8 @@ class Wash(ttk.Frame):
 
     
 
-    
-
 ###################### end of classes ######################
 ActionsArray=[]    
-PourArray=[]
-HeatArray=[]
-WashArray=[]
-FunctionArray=[]
 CurrentY=2
 
 def make_draggable(widget):
@@ -376,20 +380,21 @@ def StartWizard(window):
     def GetYStack(array):
         Result=[]
         for item in array:
-            if not item=="":
-                #ObjName=str(item.__class__.__name__)                
-                Result.append([item.winfo_y(),item])
+            Result.append([item.winfo_y(),item])
         return Result
 
     def CheckProcedure():
-        global PourArray,HeatArray,WashArray
-        ToBeChecked=[PourArray,HeatArray,WashArray]
+        global ActionsArray
         Sorted=[]
-        for ObjArray in ToBeChecked:
-         Result=GetYStack(ObjArray)
-         Sorted=[*Sorted,*Result]
-        Sorted.sort()
-        print(Sorted) #now we have the array of objects ordered w. respect to Y pos
+        Result=GetYStack(ActionsArray)
+        Sorted=Result
+        Sorted.sort() #now we have the array of objects ordered w. respect to Y pos
+        print(len(Sorted)," Actions")
+        for Action in Sorted:
+            Object=Action[1]
+            print(str(Object.__class__.__name__))
+            Object.CheckValues()
+            print(Object.GetAction())
 
     
     WizardWindow=tk.Toplevel(window)
@@ -420,3 +425,6 @@ def StartWizard(window):
 ##        global PourArray
 ##        PourArray[0].CheckValues()
 ##        print(PourArray[0].StatusLabel.cget("text"))
+
+
+            #ObjName=str(item.__class__.__name__)  
