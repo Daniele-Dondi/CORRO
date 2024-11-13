@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import *
+from tkinter.tix import *
 from modules.configurator import *
 
 class Pour(ttk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
+        self.Height=50
         super().__init__(container)
         self.create_widgets()
 
@@ -339,6 +341,7 @@ CurrentY=2
 def make_draggable(widget):
     widget.bind("<Button-1>", on_drag_start)
     widget.bind("<B1-Motion>", on_drag_motion)
+    widget.bind("<ButtonRelease-1>", on_mouse_up)
 
 def on_drag_start(event):
     widget = event.widget
@@ -351,6 +354,14 @@ def on_drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
+def on_mouse_up(event):
+    widget = event.widget
+    x = widget.winfo_x() - widget._drag_start_x + event.x
+    y = widget.winfo_y() - widget._drag_start_y + event.y
+    x=10    
+    #y = y // 50 * 50
+    widget.place(x=x, y=y)
+    
 def DeleteObjByIdentifier(ObjIdentifier):
     global ActionsArray
     num=ActionsArray.index(ObjIdentifier)
@@ -365,6 +376,7 @@ def StartWizard(window):
         global ActionsArray,CurrentY
         if ObjType=="Pour":
             Obj=Pour(frame2)
+            print(Obj.Height)
             YSize=50
         elif ObjType=="Heat":
             Obj=Heat(frame2)
@@ -380,18 +392,16 @@ def StartWizard(window):
         make_draggable(Obj)
         ActionsArray.append(Obj)
 
-    def GetYStack(array):
+    def GetYStack():
+        global ActionsArray
         Result=[]
-        for item in array:
+        for item in ActionsArray:
             Result.append([item.winfo_y(),item])
+        Result.sort() #now we have the array of objects ordered w. respect to Y pos            
         return Result
 
     def CheckProcedure():
-        global ActionsArray
-        Sorted=[]
-        Result=GetYStack(ActionsArray)
-        Sorted=Result
-        Sorted.sort() #now we have the array of objects ordered w. respect to Y pos
+        Sorted=GetYStack()
         print(len(Sorted)," Actions")
         for Action in Sorted:
             Object=Action[1]
@@ -408,6 +418,9 @@ def StartWizard(window):
     frame1.pack(side="top")
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=400)
     frame2.pack()
+##    swin = ScrolledWindow(frame2, width=1000, height=400)
+##    swin.pack()
+##    win = swin.window
     frame3 = tk.Frame(WizardWindow,bg="cyan",width=1000,height=30)
     frame3.pack(side="bottom")    
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
