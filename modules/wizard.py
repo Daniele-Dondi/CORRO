@@ -136,8 +136,8 @@ class Pour(ttk.Frame):
             else:
                 self.Units.set("")
 
-    def MaxCharsInList(self,list):
-     return max([len(list[i]) for i in range(len(list))])
+    def MaxCharsInList(self,List):
+     return max([len(List[i]) for i in range(len(List))])
     
     def InputTypecallback(self,event):
         Input=self.Source.get()
@@ -253,8 +253,8 @@ class Heat(ttk.Frame):
     def HighTempAlert(self):
         messagebox.showerror("Warning", "The reactor will be hot after this step")
     
-    def MaxCharsInList(self,list):
-     return max([len(list[i]) for i in range(len(list))])
+    def MaxCharsInList(self,List):
+     return max([len(List[i]) for i in range(len(List))])
 
 
 class Wash(ttk.Frame):
@@ -293,7 +293,6 @@ class Wash(ttk.Frame):
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
 
-
     def InputTypecallback(self,event):
         Vessel=self.Destination.get()
         SyrNums=WhichSiringeIsConnectedTo(Vessel)
@@ -328,8 +327,8 @@ class Wash(ttk.Frame):
     def HighTempAlert(self):
         messagebox.showerror("Warning", "The reactor will be hot after this step")
     
-    def MaxCharsInList(self,list):
-     return max([len(list[i]) for i in range(len(list))])
+    def MaxCharsInList(self,List):
+     return max([len(List[i]) for i in range(len(List))])
 
     
 
@@ -369,10 +368,10 @@ def StartWizard(window):
             YSize=50
         elif ObjType=="Heat":
             Obj=Heat(frame2)
-            YSize=70
+            YSize=75
         elif ObjType=="Wash":
             Obj=Wash(frame2)
-            YSize=50
+            YSize=70
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
@@ -414,6 +413,7 @@ def StartWizard(window):
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
+    tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
     tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
