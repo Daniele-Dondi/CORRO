@@ -340,6 +340,30 @@ class Wash(ttk.Frame):
 ActionsArray=[]    
 CurrentY=2
 
+def ReorderObjects():
+    global CurrentY
+    CurrentY=2
+    Sorted=GetYStack()
+    for element in Sorted:
+        Item=element[1]
+        Item.place(x=10, y=CurrentY)
+        CurrentY+=int(Item.Height)
+            
+def GetYStack():
+    global ActionsArray
+    Result=[]
+    for item in ActionsArray:
+        Result.append([item.winfo_y(),item])
+    Result.sort() #now we have the array of objects ordered w. respect to Y pos            
+    return Result
+
+def DeleteObjByIdentifier(ObjIdentifier):
+    global ActionsArray
+    num=ActionsArray.index(ObjIdentifier)
+    ActionsArray.pop(num)
+    ObjIdentifier.destroy()
+    ReorderObjects()
+
 def StartWizard(window):
     
     LoadConnFile('test.conn')
@@ -362,22 +386,12 @@ def StartWizard(window):
         widget.place(x=x, y=y)
 
     def on_mouse_up(event):
-        global CurrentY
+
         widget = event.widget
         x = widget.winfo_x() - widget._drag_start_x + event.x
         y = widget.winfo_y() - widget._drag_start_y + event.y
-        CurrentY=2
-        Sorted=GetYStack()
-        for element in Sorted:
-            Item=element[1]
-            Item.place(x=10, y=CurrentY)
-            CurrentY+=int(Item.Height)
-        
-    def DeleteObjByIdentifier(ObjIdentifier):
-        global ActionsArray
-        num=ActionsArray.index(ObjIdentifier)
-        ActionsArray.pop(num)
-        ObjIdentifier.destroy()
+        ReorderObjects()
+
 
     def CreateNewObject(ObjType):
         global ActionsArray,CurrentY
@@ -395,14 +409,6 @@ def StartWizard(window):
         CurrentY+=YSize
         make_draggable(Obj)
         ActionsArray.append(Obj)
-
-    def GetYStack():
-        global ActionsArray
-        Result=[]
-        for item in ActionsArray:
-            Result.append([item.winfo_y(),item])
-        Result.sort() #now we have the array of objects ordered w. respect to Y pos            
-        return Result
 
     def CheckProcedure():
         Sorted=GetYStack()
