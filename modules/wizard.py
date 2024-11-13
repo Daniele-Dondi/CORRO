@@ -185,6 +185,7 @@ class Heat(ttk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.AvailableApparatus=GetAllHeatingApparatus()
+        self.Height=75
         super().__init__(container)
         self.create_widgets()
 
@@ -265,6 +266,7 @@ class Wash(ttk.Frame):
         self.AvailableApparatus=GetAllSyringeOutputs()
         self.AvailableInputs=GetAllSyringeInputs()
         self.Action=[]
+        self.Height=70
         super().__init__(container)
         self.create_widgets()
 
@@ -338,55 +340,57 @@ class Wash(ttk.Frame):
 ActionsArray=[]    
 CurrentY=2
 
-def make_draggable(widget):
-    widget.bind("<Button-1>", on_drag_start)
-    widget.bind("<B1-Motion>", on_drag_motion)
-    widget.bind("<ButtonRelease-1>", on_mouse_up)
-
-def on_drag_start(event):
-    widget = event.widget
-    widget._drag_start_x = event.x
-    widget._drag_start_y = event.y
-
-def on_drag_motion(event):
-    widget = event.widget
-    x = widget.winfo_x() - widget._drag_start_x + event.x
-    y = widget.winfo_y() - widget._drag_start_y + event.y
-    widget.place(x=x, y=y)
-
-def on_mouse_up(event):
-    widget = event.widget
-    x = widget.winfo_x() - widget._drag_start_x + event.x
-    y = widget.winfo_y() - widget._drag_start_y + event.y
-    x=10    
-    #y = y // 50 * 50
-    widget.place(x=x, y=y)
-    
-def DeleteObjByIdentifier(ObjIdentifier):
-    global ActionsArray
-    num=ActionsArray.index(ObjIdentifier)
-    ActionsArray.pop(num)
-    ObjIdentifier.destroy()
-
 def StartWizard(window):
     
     LoadConnFile('test.conn')
+
+    def make_draggable(widget):
+        widget.bind("<Button-1>", on_drag_start)
+        widget.bind("<B1-Motion>", on_drag_motion)
+        widget.bind("<ButtonRelease-1>", on_mouse_up)
+
+    def on_drag_start(event):
+        widget = event.widget
+        widget._drag_start_x = event.x
+        widget._drag_start_y = event.y
+        widget.lift()
+
+    def on_drag_motion(event):
+        widget = event.widget
+        x = widget.winfo_x() - widget._drag_start_x + event.x
+        y = widget.winfo_y() - widget._drag_start_y + event.y
+        widget.place(x=x, y=y)
+
+    def on_mouse_up(event):
+        global CurrentY
+        widget = event.widget
+        x = widget.winfo_x() - widget._drag_start_x + event.x
+        y = widget.winfo_y() - widget._drag_start_y + event.y
+        CurrentY=2
+        Sorted=GetYStack()
+        for element in Sorted:
+            Item=element[1]
+            Item.place(x=10, y=CurrentY)
+            CurrentY+=int(Item.Height)
+        
+    def DeleteObjByIdentifier(ObjIdentifier):
+        global ActionsArray
+        num=ActionsArray.index(ObjIdentifier)
+        ActionsArray.pop(num)
+        ObjIdentifier.destroy()
 
     def CreateNewObject(ObjType):
         global ActionsArray,CurrentY
         if ObjType=="Pour":
             Obj=Pour(frame2)
-            print(Obj.Height)
-            YSize=50
         elif ObjType=="Heat":
             Obj=Heat(frame2)
-            YSize=75
         elif ObjType=="Wash":
             Obj=Wash(frame2)
-            YSize=70
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
+        YSize=Obj.Height
         Obj.place(x=10,y=CurrentY)
         CurrentY+=YSize
         make_draggable(Obj)
