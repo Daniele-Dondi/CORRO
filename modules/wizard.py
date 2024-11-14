@@ -278,7 +278,8 @@ class Wash(ttk.Frame):
         self.AvailableApparatus=GetAllSyringeOutputs()
         self.AvailableInputs=GetAllSyringeInputs()
         self.Action=[]
-        self.Height=70
+        self.Height=75
+        self.MaxVol=0
         super().__init__(container)
         self.create_widgets()
 
@@ -298,8 +299,16 @@ class Wash(ttk.Frame):
         self.Label2.pack(side="left")
         self.Source=ttk.Combobox(self.Line1, values = [], state = 'disabled') 
         self.Source.pack(side="left")
-        self.Label3=ttk.Label(self.Line2, text="Number of cycles:")
+        self.Label3=ttk.Label(self.Line2, text="Washing volume:")
         self.Label3.pack(side="left")
+        self.Volume=tk.Entry(self.Line2,width=7)
+        self.Volume.pack(side="left")
+        self.Label4=ttk.Label(self.Line2, text="mL")
+        self.Label4.pack(side="left")
+        self.AllButton=tk.Button(self.Line2,text="ALL",state="disabled",command=self.AllVolume)
+        self.AllButton.pack(side="left")
+        self.Label5=ttk.Label(self.Line2, text="  Number of cycles:")
+        self.Label5.pack(side="left")
         self.Cycles=tk.Spinbox(self.Line2, from_=1, to=10, repeatdelay=500, repeatinterval=200);
         self.Cycles.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
@@ -308,6 +317,10 @@ class Wash(ttk.Frame):
         self.Delete.pack(side="left")
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
+
+    def AllVolume(self):
+        self.Volume.delete(0,tk.END)
+        self.Volume.insert(0,str(self.MaxVol))
 
     def InputTypecallback(self,event):
         Vessel=self.Destination.get()
@@ -318,6 +331,14 @@ class Wash(ttk.Frame):
             for Input in AvailableInputs:
                 if Input not in InputsList:
                     InputsList.append(Input)
+        self.MaxVol=GetMaxVolumeApparatus(Vessel)
+        self.AllButton.config(state="normal")
+        try:
+          vol=float(self.Volume.get())  
+          if self.MaxVol>0 and vol>self.MaxVol:
+            self.AllVolume()
+        except:
+          pass
         PossibleInputs=[InputsList[i][0] for i in range(len(InputsList))]
         PossibleInputs.sort()
         self.Source.config(values = PossibleInputs,state="readonly",width=self.MaxCharsInList(PossibleInputs))
@@ -334,14 +355,19 @@ class Wash(ttk.Frame):
         Destination=self.Destination.get()
         Source=self.Source.get()
         Cycles=self.Cycles.get()
+        Volume=self.Volume.get()
+        try:
+            Volume=float(Volume)
+        except:
+            Volume=0.0
         self.Action=[]
         self.StatusLabel.config(text="---")
-        if not Destination=="" and not Source=="":
-         self.Action=[Destination,Source,Cycles]
-         self.StatusLabel.config(text="Ok")
-    
-    def HighTempAlert(self):
-        messagebox.showerror("Warning", "The reactor will be hot after this step")
+        if not Destination=="" and not Source=="" and Volume>0.0:
+         self.Action=[Destination,Source,Cycles,Volume]
+         self.StatusLabel.config(text="Valid values")
+        else:
+         self.Action=[]
+         self.StatusLabel.config(text="---")   
     
     def MaxCharsInList(self,List):
      return max([len(List[i]) for i in range(len(List))])
@@ -422,13 +448,50 @@ def StartWizard(window):
         ActionsArray.append(Obj)
 
     def CheckProcedure():
+        ReactantsUsed=[]
+        VolumesOfReactantsUsed=[]
+        ApparatusUsed=[]
+        VolumesInApparatus=[]
+        OutputVolumes=[]
+        
         Sorted=GetYStack()
+        
+        def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
+            if Input in NamesArray:
+                VolumesArray[NamesArray.index(Input)]+=Quantity
+            else:
+                NamesArray.append(Input)
+                VolumesArray.append(Quantity)
         print(len(Sorted)," Actions")
         for Action in Sorted:
             Object=Action[1]
-            print(str(Object.__class__.__name__))
+            ObjType=str(Object.__class__.__name__)
+            print(ObjType)
             Object.CheckValues()
-            print(Object.GetAction())
+            Action=Object.GetAction()
+            if len(Action)==0:
+                messagebox.showerror("ERROR", "Invalid or unfinished settings are present")
+                break
+            if ObjType=="Pour":
+                AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
+                if "Reactant" in Input:
+                 UpdateVolumes(Input,float(Quantity),ReactantsUsed,VolumesOfReactantsUsed)
+                if "Apparatus" in Input:
+                 UpdateVolumes(Input[:-4],float(-Quantity),ApparatusUsed,VolumesInApparatus)
+                if "Apparatus" in Output:
+                 UpdateVolumes(Output[:-3],float(Quantity),ApparatusUsed,VolumesInApparatus)
+                 
+            if ObjType=="Wash":
+                Destination,Source,Cycles,Volume=Action
+                UpdateReagents(Source,float(Cycles)*float(Volume))                
+
+        if not len(ReactantsUsed)==0:
+         print(ReactantsUsed,VolumesOfReactantsUsed)
+        if not len(ApparatusUsed)==0:
+         print(ApparatusUsed,VolumesInApparatus)
+                        
+                
+                
 
     
     WizardWindow=tk.Toplevel(window)
