@@ -458,10 +458,20 @@ def StartWizard(window):
         
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
-                VolumesArray[NamesArray.index(Input)]+=Quantity
+                idx=NamesArray.index(Input)
+                VolumesArray[idx]+=Quantity
+                if VolumesArray[idx]<=0: VolumesArray[idx]=0
             else:
                 NamesArray.append(Input)
+                if Quantity<0: Quantity=0
                 VolumesArray.append(Quantity)
+
+        def ApparatusVolContent(name):
+            if name not in ApparatusUsed:
+                return 0.0
+            else:
+                return VolumesInApparatus[ApparatusUsed.index(name)]
+        
         print(len(Sorted)," Actions")
         for Action in Sorted:
             Object=Action[1]
@@ -474,21 +484,27 @@ def StartWizard(window):
                 break
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
+                Quantity=float(Quantity)
+                Amount=float(Amount)
+                Transfered=Quantity
                 if "Reactant" in Input:
-                 UpdateVolumes(Input,float(Quantity),ReactantsUsed,VolumesOfReactantsUsed)
+                 UpdateVolumes(Input,Quantity,ReactantsUsed,VolumesOfReactantsUsed)
                 if "Apparatus" in Input:
-                 UpdateVolumes(Input[:-4],float(-Quantity),ApparatusUsed,VolumesInApparatus)
+                 Input=Input[:-4] # remove OUT
+                 CurrentLiquid=ApparatusVolContent(Input) # check the actual content of reactor and transfer only this
+                 if Quantity>CurrentLiquid: Quantity=CurrentLiquid
+                 UpdateVolumes(Input,-Quantity,ApparatusUsed,VolumesInApparatus)
                 if "Apparatus" in Output:
-                 UpdateVolumes(Output[:-3],float(Quantity),ApparatusUsed,VolumesInApparatus)
+                 UpdateVolumes(Output[:-3],Quantity,ApparatusUsed,VolumesInApparatus)
                  
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume=Action
                 UpdateReagents(Source,float(Cycles)*float(Volume))                
 
         if not len(ReactantsUsed)==0:
-         print(ReactantsUsed,VolumesOfReactantsUsed)
+         print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
         if not len(ApparatusUsed)==0:
-         print(ApparatusUsed,VolumesInApparatus)
+         print("Residual in apparatus",ApparatusUsed,VolumesInApparatus)
                         
                 
                 
