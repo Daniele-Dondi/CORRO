@@ -386,7 +386,6 @@ def StartWizard(window):
         widget.place(x=x, y=y)
 
     def on_mouse_up(event):
-
         widget = event.widget
         x = widget.winfo_x() - widget._drag_start_x + event.x
         y = widget.winfo_y() - widget._drag_start_y + event.y
@@ -422,16 +421,16 @@ def StartWizard(window):
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
-    WizardWindow.geometry('1000x600+500+10')
+    WizardWindow.geometry('1000x600+200+10')
     WizardWindow.grab_set()
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
-    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=400)
+    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=500)
     frame2.pack()
 ##    swin = ScrolledWindow(frame2, width=1000, height=400)
 ##    swin.pack()
 ##    win = swin.window
-    frame3 = tk.Frame(WizardWindow,bg="cyan",width=1000,height=30)
+    frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
     frame3.pack(side="bottom")    
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
@@ -446,12 +445,3 @@ def StartWizard(window):
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
 
-
-
-
-##        global PourArray
-##        PourArray[0].CheckValues()
-##        print(PourArray[0].StatusLabel.cget("text"))
-
-
-            #ObjName=str(item.__class__.__name__)  
