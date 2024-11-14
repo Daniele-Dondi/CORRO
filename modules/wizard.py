@@ -207,6 +207,7 @@ class Heat(ttk.Frame):
         self.Label3=ttk.Label(self.Line1, text="°C for")
         self.Label3.pack(side="left")
         self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.insert(0,"0")
         self.Time.pack(side="left")
         self.Label4=tk.Label(self.Line1,text="min")
         self.Label4.pack(side="left")
@@ -215,12 +216,23 @@ class Heat(ttk.Frame):
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
         self.Checked=tk.IntVar()
-        self.Wait=tk.Checkbutton(self.Line2,text="wait for cooling",variable=self.Checked)
-        self.Wait.select()
-        self.Wait.pack(side="left")
+        self.Wait4Cooling=tk.Checkbutton(self.Line2,text="wait for cooling at ",variable=self.Checked,command=self.SetEndTemp)
+        self.Wait4Cooling.select()
+        self.Wait4Cooling.pack(side="left")
+        self.EndTemperature=tk.Entry(self.Line2,state="normal",width=10)
+        self.EndTemperature.insert(0,"25")
+        self.EndTemperature.pack(side="left")
+        self.Label4=ttk.Label(self.Line2, text="°C")
+        self.Label4.pack(side="left")
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
         self.HighTempAlertButton=tk.Button(self.Line2,text="Hot!",state="normal",bg="red",command=self.HighTempAlert)
+        
+    def SetEndTemp(self):
+        if self.Checked.get()==0:
+            self.EndTemperature.config(state="disabled")
+        else:
+            self.EndTemperature.config(state="normal")
       
     def DeleteMe(self):
         DeleteObjByIdentifier(self)
@@ -235,7 +247,7 @@ class Heat(ttk.Frame):
         Wait4Cooling=self.Checked.get()
         self.Action=[]        
         if Apparatus=="" or Temperature=="":
-            self.StatusLabel.config(text="Non valid values")
+            self.StatusLabel.config(text="Invalid values")
             return
         if Time=="": Time=0
         try:
@@ -243,7 +255,7 @@ class Heat(ttk.Frame):
             Time=float(Time)
             if Time<0: Time/=0
         except:
-            self.StatusLabel.config(text="Non valid values")
+            self.StatusLabel.config(text="Invalid values")
             return
         else:
             self.StatusLabel.config(text="Valid values")
