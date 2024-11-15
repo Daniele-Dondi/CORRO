@@ -513,7 +513,7 @@ def StartWizard(window):
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
-                UpdateVolumes(Destination[:-4],-1e10,ApparatusUsed,VolumesInApparatus)
+                UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
                 
             StepByStepOps.append([*VolumesOfReactantsUsed,"-",*VolumesInApparatus])
         print(StepByStepOps)
