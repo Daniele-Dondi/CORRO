@@ -507,6 +507,7 @@ def StartWizard(window):
                      CurrentLiquid=ApparatusVolContent(Output)
                      if Quantity+CurrentLiquid>MaxVol:
                          messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output+" in step n."+str(Step+1))
+                         Object.StatusLabel.config(text="ERROR")
                          return                     
                  UpdateVolumes(Output,Quantity,ApparatusUsed,VolumesInApparatus)
                  
@@ -517,6 +518,27 @@ def StartWizard(window):
                 
             StepByStepOps.append([*VolumesOfReactantsUsed,"-",*VolumesInApparatus])
         print(StepByStepOps)
+        StepByStepWindow=tk.Toplevel(window)
+        StepByStepWindow.title("CORRO WIZARD")
+        StepByStepWindow.geometry('100x60+200+10')
+        StepByStepWindow.grab_set()
+        StepByStepWindow.grid()
+        for row in range(len(StepByStepOps)):
+            CurrentStep=StepByStepOps[row]
+            Division=CurrentStep.index("-")
+            In=CurrentStep[:Division]
+            Out=CurrentStep[Division+1:]
+            ReactantsLen=len(ReactantsUsed)
+            for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
+                if column<ReactantsLen:
+                    if column<len(In):
+                        print(In[column])
+                    else:
+                        print(" ")
+                        
+                print(In,Out)
+        StepByStepWindow.mainloop()
+
         if not len(ReactantsUsed)==0:
          print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
         if not len(ApparatusUsed)==0:
