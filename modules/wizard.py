@@ -531,6 +531,7 @@ def StartWizard(window):
         StepByStepWindow.grab_set()
         StepByStepWindow.grid()
         GridColumn=0
+        GridColumn=WriteOnGrid(StepByStepWindow,"#",0,GridColumn)
         for reactant in ReactantsUsed:
             GridColumn=WriteOnGrid(StepByStepWindow,reactant,0,GridColumn)
         for apparatus in ApparatusUsed:
@@ -544,6 +545,7 @@ def StartWizard(window):
             ReactantsLen=len(ReactantsUsed)
             GridColumn=0
             GridRow+=1
+            GridColumn=WriteOnGrid(StepByStepWindow,str(row+1),GridRow,GridColumn)
             for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
                 if column<ReactantsLen:
                     if column<len(In):
