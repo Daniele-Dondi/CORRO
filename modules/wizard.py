@@ -3,7 +3,7 @@ from tkinter import *
 from tkinter.tix import *
 from modules.configurator import *
 
-class Pour(ttk.Frame):
+class Pour(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
@@ -16,7 +16,7 @@ class Pour(ttk.Frame):
         self.Line1.pack()
         self.Line2=tk.Frame(self)
         self.Line2.pack()        
-        self.Label1=ttk.Label(self.Line1, text="Put")
+        self.Label1=tk.Label(self.Line1, text="Put")
         self.Label1.pack(side="left")
         self.Amount=tk.Entry(self.Line1,state="normal",width=10)
         self.Amount.pack(side="left")
@@ -181,7 +181,7 @@ class Pour(ttk.Frame):
         if not self.Destination.get() in PossibleOutputs:
             self.Destination.set("")
 
-class Heat(ttk.Frame):
+class Heat(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.AvailableApparatus=GetAllHeatingApparatus()
@@ -196,7 +196,7 @@ class Heat(ttk.Frame):
         self.Line2.pack()
         self.Line3=tk.Frame(self)
         self.Line3.pack()        
-        self.Label1=ttk.Label(self.Line1, text="Heat")
+        self.Label1=tk.Label(self.Line1, text="Heat")
         self.Label1.pack(side="left")
         self.Source=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
         self.Source.pack(side="left")
@@ -204,7 +204,7 @@ class Heat(ttk.Frame):
         self.Label2.pack(side="left")
         self.Temperature=tk.Entry(self.Line1,state="normal",width=10)
         self.Temperature.pack(side="left")
-        self.Label3=ttk.Label(self.Line1, text="°C for")
+        self.Label3=tk.Label(self.Line1, text="°C for")
         self.Label3.pack(side="left")
         self.Time=tk.Entry(self.Line1,state="normal",width=10)
         self.Time.insert(0,"0")
@@ -222,7 +222,7 @@ class Heat(ttk.Frame):
         self.EndTemperature=tk.Entry(self.Line2,state="normal",width=10)
         self.EndTemperature.insert(0,"25")
         self.EndTemperature.pack(side="left")
-        self.Label4=ttk.Label(self.Line2, text="°C")
+        self.Label4=tk.Label(self.Line2, text="°C")
         self.Label4.pack(side="left")
         self.StatusLabel=tk.Label(self.Line3,text="---")
         self.StatusLabel.pack(side="left")
@@ -272,7 +272,7 @@ class Heat(ttk.Frame):
      return max([len(List[i]) for i in range(len(List))])
 
 
-class Wash(ttk.Frame):
+class Wash(tk.Frame):
     def __init__(self,container):
         AvailableOutputs=GetAllSyringeOutputs()
         AvailableOutputs=[AvailableOutputs[i][:-3] for i in range(len(AvailableOutputs))]
@@ -295,7 +295,7 @@ class Wash(ttk.Frame):
         self.Line2.pack()
         self.Line3=tk.Frame(self)
         self.Line3.pack()        
-        self.Label1=ttk.Label(self.Line1, text="Wash")
+        self.Label1=tk.Label(self.Line1, text="Wash")
         self.Label1.pack(side="left")
         self.Destination=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
         self.Destination.bind("<<ComboboxSelected>>", self.InputTypecallback)
@@ -304,15 +304,15 @@ class Wash(ttk.Frame):
         self.Label2.pack(side="left")
         self.Source=ttk.Combobox(self.Line1, values = [], state = 'disabled') 
         self.Source.pack(side="left")
-        self.Label3=ttk.Label(self.Line2, text="Washing volume:")
+        self.Label3=tk.Label(self.Line2, text="Washing volume:")
         self.Label3.pack(side="left")
         self.Volume=tk.Entry(self.Line2,width=7)
         self.Volume.pack(side="left")
-        self.Label4=ttk.Label(self.Line2, text="mL")
+        self.Label4=tk.Label(self.Line2, text="mL")
         self.Label4.pack(side="left")
         self.AllButton=tk.Button(self.Line2,text="ALL",state="disabled",command=self.AllVolume)
         self.AllButton.pack(side="left")
-        self.Label5=ttk.Label(self.Line2, text="  Number of cycles:")
+        self.Label5=tk.Label(self.Line2, text="  Number of cycles:")
         self.Label5.pack(side="left")
         self.Cycles=tk.Spinbox(self.Line2, from_=1, to=10, repeatdelay=500, repeatinterval=200);
         self.Cycles.pack(side="left")
@@ -561,8 +561,6 @@ def StartWizard(window):
         StepByStepWindow.mainloop()                        
                         
                 
-                
-
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
