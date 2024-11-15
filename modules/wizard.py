@@ -477,6 +477,12 @@ def StartWizard(window):
                 return 0.0
             else:
                 return VolumesInApparatus[ApparatusUsed.index(name)]
+
+        def WriteOnGrid(window,text,row,column):
+            text=str(text)
+            #E=Entry(window, width=len(text));  E.insert(0,text)
+            E=Label(window,text=text)
+            E.grid(row=row,column=column)
         
         print(len(Sorted)," Actions")
         for Step,Action in enumerate(Sorted):
@@ -520,29 +526,57 @@ def StartWizard(window):
         print(StepByStepOps)
         StepByStepWindow=tk.Toplevel(window)
         StepByStepWindow.title("CORRO WIZARD")
-        StepByStepWindow.geometry('100x60+200+10')
+        StepByStepWindow.geometry('700x400+200+10')
         StepByStepWindow.grab_set()
         StepByStepWindow.grid()
+        entries={}
+        counter=0
+        gcolumn=0
+        for reactant in ReactantsUsed:
+            #print(reactant,end=" ")
+            WriteOnGrid(StepByStepWindow,reactant,0,gcolumn)
+            gcolumn+=1
+        for apparatus in ApparatusUsed:
+            #print(apparatus,end="")
+            WriteOnGrid(StepByStepWindow,apparatus,0,gcolumn)
+            gcolumn+=1
+        #print()
+        grow=0
         for row in range(len(StepByStepOps)):
             CurrentStep=StepByStepOps[row]
             Division=CurrentStep.index("-")
             In=CurrentStep[:Division]
             Out=CurrentStep[Division+1:]
             ReactantsLen=len(ReactantsUsed)
+            gcolumn=0
+            grow+=1
+            #print(row+1,end=" ")
             for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
                 if column<ReactantsLen:
                     if column<len(In):
-                        print(In[column])
+                        #print(In[column],end=" ")
+                        WriteOnGrid(StepByStepWindow,In[column],grow,gcolumn)
+                        gcolumn+=1
                     else:
-                        print(" ")
+                        #print(" ",end=" ")
+                        WriteOnGrid(StepByStepWindow," ",grow,gcolumn)
+                        gcolumn+=1
+                else:
+                    #print("A",end=" ")
+                    if (column-ReactantsLen)<len(Out):
+                        #print(Out[column-ReactantsLen],end=" ")
+                        WriteOnGrid(StepByStepWindow,Out[column-ReactantsLen],grow,gcolumn)
+                        gcolumn+=1
+                    #else:
+                        #print(" ",end=" ")
+            #print()
+            
                         
-                print(In,Out)
-        StepByStepWindow.mainloop()
-
-        if not len(ReactantsUsed)==0:
-         print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
-        if not len(ApparatusUsed)==0:
-         print("Residual in apparatus",ApparatusUsed,VolumesInApparatus)
+##        if not len(ReactantsUsed)==0:
+##         print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
+##        if not len(ApparatusUsed)==0:
+##         print("Residual in apparatus",ApparatusUsed,VolumesInApparatus)
+        StepByStepWindow.mainloop()                        
                         
                 
                 
