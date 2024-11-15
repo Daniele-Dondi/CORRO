@@ -483,6 +483,7 @@ def StartWizard(window):
             #E=Entry(window, width=len(text));  E.insert(0,text)
             E=Label(window,text=text)
             E.grid(row=row,column=column)
+            return column+1
         
         print(len(Sorted)," Actions")
         for Step,Action in enumerate(Sorted):
@@ -529,48 +530,29 @@ def StartWizard(window):
         StepByStepWindow.geometry('700x400+200+10')
         StepByStepWindow.grab_set()
         StepByStepWindow.grid()
-        entries={}
-        counter=0
-        gcolumn=0
+        GridColumn=0
         for reactant in ReactantsUsed:
-            #print(reactant,end=" ")
-            WriteOnGrid(StepByStepWindow,reactant,0,gcolumn)
-            gcolumn+=1
+            GridColumn=WriteOnGrid(StepByStepWindow,reactant,0,GridColumn)
         for apparatus in ApparatusUsed:
-            #print(apparatus,end="")
-            WriteOnGrid(StepByStepWindow,apparatus,0,gcolumn)
-            gcolumn+=1
-        #print()
-        grow=0
+            GridColumn=WriteOnGrid(StepByStepWindow,apparatus,0,GridColumn)
+        GridRow=0
         for row in range(len(StepByStepOps)):
             CurrentStep=StepByStepOps[row]
             Division=CurrentStep.index("-")
             In=CurrentStep[:Division]
             Out=CurrentStep[Division+1:]
             ReactantsLen=len(ReactantsUsed)
-            gcolumn=0
-            grow+=1
-            #print(row+1,end=" ")
+            GridColumn=0
+            GridRow+=1
             for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
                 if column<ReactantsLen:
                     if column<len(In):
-                        #print(In[column],end=" ")
-                        WriteOnGrid(StepByStepWindow,In[column],grow,gcolumn)
-                        gcolumn+=1
+                        GridColumn=WriteOnGrid(StepByStepWindow,In[column],GridRow,GridColumn)
                     else:
-                        #print(" ",end=" ")
-                        WriteOnGrid(StepByStepWindow," ",grow,gcolumn)
-                        gcolumn+=1
+                        GridColumn=WriteOnGrid(StepByStepWindow," ",GridRow,GridColumn)
                 else:
-                    #print("A",end=" ")
                     if (column-ReactantsLen)<len(Out):
-                        #print(Out[column-ReactantsLen],end=" ")
-                        WriteOnGrid(StepByStepWindow,Out[column-ReactantsLen],grow,gcolumn)
-                        gcolumn+=1
-                    #else:
-                        #print(" ",end=" ")
-            #print()
-            
+                        GridColumn=WriteOnGrid(StepByStepWindow,Out[column-ReactantsLen],GridRow,GridColumn)
                         
 ##        if not len(ReactantsUsed)==0:
 ##         print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
