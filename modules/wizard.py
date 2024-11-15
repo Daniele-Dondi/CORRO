@@ -274,9 +274,14 @@ class Heat(ttk.Frame):
 
 class Wash(ttk.Frame):
     def __init__(self,container):
-        #self.AvailableApparatus=GetAllVesselApparatus()
-        self.AvailableApparatus=GetAllSyringeOutputs()
-        self.AvailableInputs=GetAllSyringeInputs()
+        AvailableOutputs=GetAllSyringeOutputs()
+        AvailableOutputs=[AvailableOutputs[i][:-3] for i in range(len(AvailableOutputs))]
+        AvailableInputs=GetAllSyringeInputs()
+        AvailableInputs=[AvailableInputs[i][:-4] for i in range(len(AvailableInputs))]
+        self.AvailableApparatus=[]
+        for Apparatus in AvailableOutputs:
+            if Apparatus in AvailableInputs:
+                self.AvailableApparatus.append(Apparatus)
         self.Action=[]
         self.Height=75
         self.MaxVol=0
@@ -322,16 +327,17 @@ class Wash(ttk.Frame):
         self.Volume.delete(0,tk.END)
         self.Volume.insert(0,str(self.MaxVol))
 
-    def InputTypecallback(self,event):
+    def InputTypecallback(self,event):  
         Vessel=self.Destination.get()
-        SyrNums=WhichSiringeIsConnectedTo(Vessel)
+        SyrInputs=WhichSiringeIsConnectedTo(Vessel+" IN")
+        self.SyrOutputs=WhichSiringeIsConnectedTo(Vessel+" OUT")
         InputsList=[]
-        for SyringeNum in SyrNums:
+        for SyringeNum in SyrInputs:
             AvailableInputs=GetAllInputsOfSyringe(int(SyringeNum))
             for Input in AvailableInputs:
                 if Input not in InputsList:
                     InputsList.append(Input)
-        self.MaxVol=GetMaxVolumeApparatus(Vessel)
+        self.MaxVol=GetMaxVolumeApparatus(Vessel+" IN")
         self.AllButton.config(state="normal")
         try:
           vol=float(self.Volume.get())  
@@ -356,6 +362,7 @@ class Wash(ttk.Frame):
         Source=self.Source.get()
         Cycles=self.Cycles.get()
         Volume=self.Volume.get()
+        SyrInputs=WhichSiringeIsConnectedTo(Source)
         try:
             Volume=float(Volume)
         except:
@@ -363,7 +370,7 @@ class Wash(ttk.Frame):
         self.Action=[]
         self.StatusLabel.config(text="---")
         if not Destination=="" and not Source=="" and Volume>0.0:
-         self.Action=[Destination,Source,Cycles,Volume]
+         self.Action=[Destination,Source,Cycles,Volume,SyrInputs,self.SyrOutputs]
          self.StatusLabel.config(text="Valid values")
         else:
          self.Action=[]
@@ -452,8 +459,7 @@ def StartWizard(window):
         VolumesOfReactantsUsed=[]
         ApparatusUsed=[]
         VolumesInApparatus=[]
-        OutputVolumes=[]
-        
+        StepByStepOps=[]
         Sorted=GetYStack()
         
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
@@ -473,7 +479,7 @@ def StartWizard(window):
                 return VolumesInApparatus[ApparatusUsed.index(name)]
         
         print(len(Sorted)," Actions")
-        for Action in Sorted:
+        for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
             print(ObjType)
@@ -481,7 +487,7 @@ def StartWizard(window):
             Action=Object.GetAction()
             if len(Action)==0:
                 messagebox.showerror("ERROR", "Invalid or unfinished settings are present")
-                break
+                return
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
                 Quantity=float(Quantity)
@@ -495,12 +501,22 @@ def StartWizard(window):
                  if Quantity>CurrentLiquid: Quantity=CurrentLiquid
                  UpdateVolumes(Input,-Quantity,ApparatusUsed,VolumesInApparatus)
                 if "Apparatus" in Output:
-                 UpdateVolumes(Output[:-3],Quantity,ApparatusUsed,VolumesInApparatus)
+                 MaxVol=GetMaxVolumeApparatus(Output)
+                 Output=Output[:-3]   #remove IN                 
+                 if MaxVol>0:
+                     CurrentLiquid=ApparatusVolContent(Output)
+                     if Quantity+CurrentLiquid>MaxVol:
+                         messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output+" in step n."+str(Step+1))
+                         return                     
+                 UpdateVolumes(Output,Quantity,ApparatusUsed,VolumesInApparatus)
                  
             if ObjType=="Wash":
-                Destination,Source,Cycles,Volume=Action
-                UpdateReagents(Source,float(Cycles)*float(Volume))                
-
+                Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
+                UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
+                UpdateVolumes(Destination[:-4],-1e10,ApparatusUsed,VolumesInApparatus)
+                
+            StepByStepOps.append([*VolumesOfReactantsUsed,"-",*VolumesInApparatus])
+        print(StepByStepOps)
         if not len(ReactantsUsed)==0:
          print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
         if not len(ApparatusUsed)==0:
