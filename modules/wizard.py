@@ -390,23 +390,49 @@ class Grid(tk.Toplevel):
         self.RowWidth=0
         self.Row=0
         self.Column=0
+        self.Data=[]
+        self.Line=""
+        self.menubar = Menu(self)
+        self.file_menu = Menu(self.menubar,tearoff=0)
+        self.file_menu.add_command(label='Save',command=self.SaveData)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label='Exit')
+        self.config(menu=self.menubar)
+        self.menubar.add_cascade(label="File",menu=self.file_menu)
+
+    def SaveData(self):
+     filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
+     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     if filename=="": return
+     if not ".csv" in filename: filename+=".csv"
+     fout=open(filename, 'w')
+     fout.writelines(self.Data)
+     fout.close()
+        
+        
     def WriteOnHeader(self,Item):
         text=str(Item)
         E=tk.Label(self,text=text)
         E.grid(row=0,column=self.Column)
         #self.RowWidth+=E.winfo_width() #does not work?!
+        self.Line+=text+", "
         self.RowWidth+=len(text)*7
         self.Column+=1
         self.Row=1
     def CloseHeader(self):
         self.geometry(str(self.RowWidth)+'x400+200+10')
         self.Column=0
+        self.Data.append(self.Line+"\n")
+        self.Line=""
     def AddItemToRow(self,Item):
         text=str(Item)
         E=tk.Label(self,text=text)
         E.grid(row=self.Row,column=self.Column)
+        self.Line+=text+", "
         self.Column+=1
     def NextRow(self):
+        self.Data.append(self.Line+"\n")
+        self.Line=""        
         self.Column=0
         self.Row+=1
         

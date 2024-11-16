@@ -238,6 +238,15 @@ def StartConfigurator(window):
 
 
     def on_tab_selected(event):
+        if NotSavedDataTab1():
+            messagebox.showinfo(message="Unsaved data in Reactants tab")
+            tabControl.select(0)
+        if NotSavedDataTab2():
+            messagebox.showinfo(message="Unsaved data in Apparatus tab")
+            tabControl.select(1)
+        if NotSavedDataTab3():
+            messagebox.showinfo(message="Unsaved data in Syringe tab")
+            tabControl.select(2)
         selected_tab = event.widget.select()
         tab_text = event.widget.tab(selected_tab, "text")
         if tab_text == "Syringes":
