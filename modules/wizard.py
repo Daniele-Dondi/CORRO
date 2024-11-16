@@ -379,6 +379,37 @@ class Wash(tk.Frame):
     def MaxCharsInList(self,List):
      return max([len(List[i]) for i in range(len(List))])
 
+class Grid(tk.Toplevel):
+    def __init__(self,container):
+        super().__init__(container)        
+        #StepByStepWindow=tk.Toplevel(window) 
+        self.title("WIZARD Results")
+        self.geometry('700x400+200+10')
+        self.grab_set()
+        self.grid()
+        self.RowWidth=0
+        self.Row=0
+        self.Column=0
+    def WriteOnHeader(self,Item):
+        text=str(Item)
+        E=tk.Label(self,text=text)
+        E.grid(row=0,column=self.Column)
+        #self.RowWidth+=E.winfo_width() #does not work?!
+        self.RowWidth+=len(text)*7
+        self.Column+=1
+        self.Row=1
+    def CloseHeader(self):
+        self.geometry(str(self.RowWidth)+'x400+200+10')
+        self.Column=0
+    def AddItemToRow(self,Item):
+        text=str(Item)
+        E=tk.Label(self,text=text)
+        E.grid(row=self.Row,column=self.Column)
+        self.Column+=1
+    def NextRow(self):
+        self.Column=0
+        self.Row+=1
+        
     
 
 ###################### end of classes ######################
@@ -412,6 +443,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
 def StartWizard(window):
     
     LoadConnFile('test.conn')
+    
 
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -477,14 +509,7 @@ def StartWizard(window):
                 return 0.0
             else:
                 return VolumesInApparatus[ApparatusUsed.index(name)]
-
-        def WriteOnGrid(window,text,row,column):
-            text=str(text)
-            #E=Entry(window, width=len(text));  E.insert(0,text)
-            E=Label(window,text=text)
-            E.grid(row=row,column=column)
-            return column+1
-        
+       
         print(len(Sorted)," Actions")
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
@@ -525,42 +550,31 @@ def StartWizard(window):
                 
             StepByStepOps.append([*VolumesOfReactantsUsed,"-",*VolumesInApparatus])
         print(StepByStepOps)
-        StepByStepWindow=tk.Toplevel(window)
-        StepByStepWindow.title("CORRO WIZARD")
-        StepByStepWindow.geometry('700x400+200+10')
-        StepByStepWindow.grab_set()
-        StepByStepWindow.grid()
-        GridColumn=0
-        GridColumn=WriteOnGrid(StepByStepWindow,"#",0,GridColumn)
+        StepByStepWindow=Grid(window)
+        StepByStepWindow.WriteOnHeader("#")
         for reactant in ReactantsUsed:
-            GridColumn=WriteOnGrid(StepByStepWindow,reactant,0,GridColumn)
+            StepByStepWindow.WriteOnHeader(reactant)
         for apparatus in ApparatusUsed:
-            GridColumn=WriteOnGrid(StepByStepWindow,apparatus,0,GridColumn)
-        GridRow=0
+            StepByStepWindow.WriteOnHeader(apparatus)
+        StepByStepWindow.CloseHeader()
         for row in range(len(StepByStepOps)):
             CurrentStep=StepByStepOps[row]
             Division=CurrentStep.index("-")
             In=CurrentStep[:Division]
             Out=CurrentStep[Division+1:]
             ReactantsLen=len(ReactantsUsed)
-            GridColumn=0
-            GridRow+=1
-            GridColumn=WriteOnGrid(StepByStepWindow,str(row+1),GridRow,GridColumn)
+            StepByStepWindow.AddItemToRow(str(row+1))
             for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
                 if column<ReactantsLen:
                     if column<len(In):
-                        GridColumn=WriteOnGrid(StepByStepWindow,In[column],GridRow,GridColumn)
+                        StepByStepWindow.AddItemToRow(In[column])
                     else:
-                        GridColumn=WriteOnGrid(StepByStepWindow," ",GridRow,GridColumn)
+                        StepByStepWindow.AddItemToRow(" ")
                 else:
                     if (column-ReactantsLen)<len(Out):
-                        GridColumn=WriteOnGrid(StepByStepWindow,Out[column-ReactantsLen],GridRow,GridColumn)
-                        
-##        if not len(ReactantsUsed)==0:
-##         print("Consumed reactants",ReactantsUsed,VolumesOfReactantsUsed)
-##        if not len(ApparatusUsed)==0:
-##         print("Residual in apparatus",ApparatusUsed,VolumesInApparatus)
-        StepByStepWindow.mainloop()                        
+                        StepByStepWindow.AddItemToRow(Out[column-ReactantsLen])
+            StepByStepWindow.NextRow()
+        #StepByStepWindow.mainloop()                        
                         
                 
     
@@ -568,6 +582,17 @@ def StartWizard(window):
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x600+200+10')
     WizardWindow.grab_set()
+    menubar = Menu(WizardWindow)
+    file_menu = Menu(menubar,tearoff=0)
+    file_menu.add_command(label='Open')
+    file_menu.add_command(label='Save')
+    file_menu.add_separator()
+    file_menu.add_command(label='Clear all data')
+    file_menu.add_separator()    
+    file_menu.add_command(label='Exit')
+    WizardWindow.config(menu=menubar)
+    menubar.add_cascade(label="File",menu=file_menu)
+    
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
     frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=500)
