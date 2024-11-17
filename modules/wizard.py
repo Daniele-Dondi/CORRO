@@ -440,7 +440,7 @@ class IF(tk.Frame):
         self.Line1=tk.Frame(self,height=75,width=500,bg="orange")
         self.Line1.pack_propagate(False)
         self.Line1.pack()
-        self.Line2=tk.Frame(self,bg="orange")
+        self.Line2=tk.Frame(self)
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="IF")
         self.Label1.pack(side="left")
@@ -456,6 +456,7 @@ class IF(tk.Frame):
         self.StatusLabel.pack(side="left")
         
     def DeleteMe(self):
+        for Item in self.Content: DeleteObjByIdentifier(Item)            
         DeleteObjByIdentifier(self)
 
     def GetAction(self):
@@ -468,14 +469,13 @@ class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=50
-        self.Container=False ##
-        self.Content=[]     ##
+        self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()
 
     def create_widgets(self):
         self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
-        self.Line1.pack_propagate(False)        
+        #self.Line1.pack_propagate(False)        
         self.Line1.pack()
         self.Label1=tk.Label(self.Line1, text="ELSE")
         self.Label1.pack(side="left")
@@ -491,8 +491,7 @@ class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=50
-        self.Container=False ##
-        self.Content=[]     ##
+        self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()
 
@@ -509,7 +508,70 @@ class ENDIF(tk.Frame):
     def CheckValues(self):
         return
 
-   
+class LOOP(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=100
+        self.Container=True ##
+        self.Content=[]     ##
+        self.MustBeBefore=0     ##
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=75,width=500,bg="orange")
+        self.Line1.pack_propagate(False)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="LOOP")
+        self.Label1.pack(side="left")
+        self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.pack(side="left")
+        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
+        self.Units.pack(side="left")
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        for Item in self.Content: DeleteObjByIdentifier(Item)        
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
+
+    def CheckValues(self):
+        self.Action="OK"        
+
+class ENDLOOP(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=75
+        self.Container=True ##
+        self.MustBeAfter=0     ##
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1.pack_propagate(False)        
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="ENDLOOP")
+        self.Label1.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")        
+        
+    def GetAction(self):
+        return "OK"
+
+    def CheckValues(self):
+        return   
 
 class Grid(tk.Toplevel):
     def __init__(self,container):
@@ -589,17 +651,17 @@ def GetYStack():
     Result.sort() #now we have the array of objects ordered w. respect to Y pos            
     return Result
 
+def DeleteObjByIdentifier(ObjIdentifier):
+    global ActionsArray
+    num=ActionsArray.index(ObjIdentifier)
+    ActionsArray.pop(num)
+    ObjIdentifier.destroy()
+    ReorderObjects()
+
 
 def StartWizard(window):
     
     LoadConnFile('test.conn')
-
-    def DeleteObjByIdentifier(ObjIdentifier):
-        global ActionsArray
-        num=ActionsArray.index(ObjIdentifier)
-        ActionsArray.pop(num)
-        ObjIdentifier.destroy()
-        ReorderObjects()
 
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -618,10 +680,29 @@ def StartWizard(window):
         y = widget.winfo_y() - widget._drag_start_y + event.y
         widget.place(x=x, y=y)
 
-    def on_mouse_up(event):
+    def on_mouse_up(event): #stop dragging
         widget = event.widget
         x = widget.winfo_x() - widget._drag_start_x + event.x
         y = widget.winfo_y() - widget._drag_start_y + event.y
+        try:
+            if widget.Container:
+                try:
+                    ybefore=widget.MustBeBefore.winfo_y()
+                    if y>ybefore:
+                        y=ybefore-2
+                except:
+                    pass
+                try:
+                    yafter=widget.MustBeAfter.winfo_y()
+                    if y<yafter:
+                        y=yafter+2
+                except:
+                    pass
+        except:
+            pass
+            
+        widget.place(x=x, y=y)
+        widget.update()
         ReorderObjects()
 
     def CreateNewObject(ObjType):
@@ -639,13 +720,28 @@ def StartWizard(window):
         elif ObjType=="ELSE":
             Obj=ELSE(frame2)
         elif ObjType=="ENDIF":
-            Obj=ENDIF(frame2)             
+            Obj=ENDIF(frame2)
+        elif ObjType=="LOOP":
+            Obj=LOOP(frame2)
+        elif ObjType=="ENDLOOP":
+            Obj=ENDLOOP(frame2)                         
         elif ObjType=="IF Block":
             Obj1=CreateNewObject("IF")
             Obj2=CreateNewObject("ELSE")            
             Obj3=CreateNewObject("ENDIF")
             Obj1.Content.append(Obj2)
             Obj1.Content.append(Obj3)
+            Obj1.MustBeBefore=Obj2
+            Obj2.MustBeBefore=Obj3
+            Obj2.MustBeAfter=Obj1            
+            Obj3.MustBeAfter=Obj2            
+            return
+        elif ObjType=="LOOP Block":
+            Obj1=CreateNewObject("LOOP")
+            Obj2=CreateNewObject("ENDLOOP")
+            Obj1.Content.append(Obj2)
+            Obj1.MustBeBefore=Obj2
+            Obj2.MustBeAfter=Obj1            
             return
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
@@ -778,7 +874,8 @@ def StartWizard(window):
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
     tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")
-    tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")      
+    tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")
+    tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")      
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
