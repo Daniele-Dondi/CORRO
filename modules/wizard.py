@@ -432,11 +432,12 @@ class Grid(tk.Toplevel):
     def __init__(self,container):
         super().__init__(container)        
         #StepByStepWindow=tk.Toplevel(window) 
-        self.title("WIZARD Results")
+        self.title("WIZARD SUMMARY")
         self.geometry('700x400+200+10')
         self.grab_set()
         self.grid()
         self.RowWidth=0
+        self.ItemHeight=0
         self.Row=0
         self.Column=0
         self.Data=[]
@@ -463,15 +464,15 @@ class Grid(tk.Toplevel):
         text=str(Item)
         E=tk.Label(self,text=text)
         E.grid(row=0,column=self.Column)
-        #self.RowWidth+=E.winfo_width() #does not work?!
+        self.update()
+        self.RowWidth+=E.winfo_width()
+        self.ItemHeight=E.winfo_height()
         self.Line+=text+", "
-        self.RowWidth+=len(text)*7
         self.Column+=1
         self.Row=1
     def CloseHeader(self):
-        self.geometry(str(self.RowWidth)+'x400+200+10')
         self.Column=0
-        self.Data.append(self.Line+"\n")
+        self.Data.append(self.Line[:-2]+"\n")
         self.Line=""
     def AddItemToRow(self,Item):
         text=str(Item)
@@ -480,7 +481,8 @@ class Grid(tk.Toplevel):
         self.Line+=text+", "
         self.Column+=1
     def NextRow(self):
-        self.Data.append(self.Line+"\n")
+        self.geometry(str(self.RowWidth)+'x'+str(self.ItemHeight*(len(self.Data)+1))+'+400+100')
+        self.Data.append(self.Line[:-2]+"\n")
         self.Line=""        
         self.Column=0
         self.Row+=1
@@ -655,7 +657,7 @@ def StartWizard(window):
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
-    WizardWindow.geometry('1000x600+200+10')
+    WizardWindow.geometry('1000x800+200+10')
     WizardWindow.grab_set()
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
@@ -670,7 +672,7 @@ def StartWizard(window):
     
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
-    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=500)
+    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=700)
     frame2.pack()
 ##    swin = ScrolledWindow(frame2, width=1000, height=400)
 ##    swin.pack()
