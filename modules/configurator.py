@@ -150,7 +150,10 @@ def StartConfigurator(window):
     ConfiguratorWindow.grab_set()
     
     def Close():
-      MsgBox = tk.messagebox.askquestion ('Exit Configurator','Are you sure you want to exit configurator?',icon = 'warning')
+      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():  
+       MsgBox = tk.messagebox.askquestion ('Exit Configurator','Are you sure you want to exit configurator? Unsaved data are present',icon = 'warning')
+      else:
+       MsgBox="yes"
       if MsgBox == 'yes':  
        ConfiguratorWindow.destroy()
        
@@ -179,7 +182,10 @@ def StartConfigurator(window):
         
     def LoadAllData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
-     MsgBox = tk.messagebox.askquestion ('Load Data','By loading data from file current data will be overwritten. Proceed?',icon = 'warning')
+     if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():
+         MsgBox = tk.messagebox.askquestion ('Load Data','By loading data from file current data will be overwritten. Proceed?',icon = 'warning')
+     else:
+         MsgBox="yes"
      if MsgBox == 'yes':  
          filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
          filename = filedialog.askopenfilename(filetypes=filetypes)
@@ -238,18 +244,17 @@ def StartConfigurator(window):
 
 
     def on_tab_selected(event):
-        if NotSavedDataTab1():
+        SelectedTabNum=event.widget.index(event.widget.select())
+        if NotSavedDataTab1() and not SelectedTabNum==0:
             messagebox.showinfo(message="Unsaved data in Reactants tab")
             tabControl.select(0)
-        if NotSavedDataTab2():
+        if NotSavedDataTab2() and not SelectedTabNum==1:
             messagebox.showinfo(message="Unsaved data in Apparatus tab")
             tabControl.select(1)
-        if NotSavedDataTab3():
+        if NotSavedDataTab3() and not SelectedTabNum==2:
             messagebox.showinfo(message="Unsaved data in Syringe tab")
             tabControl.select(2)
-        selected_tab = event.widget.select()
-        tab_text = event.widget.tab(selected_tab, "text")
-        if tab_text == "Syringes":
+        if SelectedTabNum==2: #Syringes tab
             SetSyringeOptions()
       
 
