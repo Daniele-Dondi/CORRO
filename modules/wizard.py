@@ -426,6 +426,89 @@ class Wait(tk.Frame):
             if Units=="d": Time*=86400
             self.StatusLabel.config(text="Valid values")
             self.Action=[Time]
+
+class IF(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=100
+        self.Container=True ##
+        self.Content=[]     ##
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=75,width=500,bg="orange")
+        self.Line1.pack_propagate(False)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self,bg="orange")
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="IF")
+        self.Label1.pack(side="left")
+        self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.pack(side="left")
+        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
+        self.Units.pack(side="left")
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
+
+    def CheckValues(self):
+        self.Action="OK"        
+
+class ELSE(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=50
+        self.Container=False ##
+        self.Content=[]     ##
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1.pack_propagate(False)        
+        self.Line1.pack()
+        self.Label1=tk.Label(self.Line1, text="ELSE")
+        self.Label1.pack(side="left")
+        
+    def GetAction(self):
+        return "OK"
+
+    def CheckValues(self):
+        return
+
+
+class ENDIF(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=50
+        self.Container=False ##
+        self.Content=[]     ##
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1.pack_propagate(False)        
+        self.Line1.pack()
+        self.Label1=tk.Label(self.Line1, text="ENDIF")
+        self.Label1.pack(side="left")
+        
+    def GetAction(self):
+        return "OK"
+
+    def CheckValues(self):
+        return
+
    
 
 class Grid(tk.Toplevel):
@@ -448,7 +531,6 @@ class Grid(tk.Toplevel):
         self.file_menu.add_command(label='Exit')
         self.config(menu=self.menubar)
         self.menubar.add_cascade(label="File",menu=self.file_menu)
-
     def SaveData(self):
      filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
      filename=filedialog.asksaveasfilename(filetypes=filetypes)
@@ -457,8 +539,6 @@ class Grid(tk.Toplevel):
      fout=open(filename, 'w')
      fout.writelines(self.Data)
      fout.close()
-        
-        
     def WriteOnHeader(self,Item):
         text=str(Item)
         E=tk.Label(self,text=text)
@@ -509,17 +589,17 @@ def GetYStack():
     Result.sort() #now we have the array of objects ordered w. respect to Y pos            
     return Result
 
-def DeleteObjByIdentifier(ObjIdentifier):
-    global ActionsArray
-    num=ActionsArray.index(ObjIdentifier)
-    ActionsArray.pop(num)
-    ObjIdentifier.destroy()
-    ReorderObjects()
 
 def StartWizard(window):
     
     LoadConnFile('test.conn')
-    
+
+    def DeleteObjByIdentifier(ObjIdentifier):
+        global ActionsArray
+        num=ActionsArray.index(ObjIdentifier)
+        ActionsArray.pop(num)
+        ObjIdentifier.destroy()
+        ReorderObjects()
 
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -544,7 +624,6 @@ def StartWizard(window):
         y = widget.winfo_y() - widget._drag_start_y + event.y
         ReorderObjects()
 
-
     def CreateNewObject(ObjType):
         global ActionsArray,CurrentY
         if ObjType=="Pour":
@@ -555,6 +634,19 @@ def StartWizard(window):
             Obj=Wash(frame2)
         elif ObjType=="Wait":
             Obj=Wait(frame2)
+        elif ObjType=="IF":
+            Obj=IF(frame2)
+        elif ObjType=="ELSE":
+            Obj=ELSE(frame2)
+        elif ObjType=="ENDIF":
+            Obj=ENDIF(frame2)             
+        elif ObjType=="IF Block":
+            Obj1=CreateNewObject("IF")
+            Obj2=CreateNewObject("ELSE")            
+            Obj3=CreateNewObject("ENDIF")
+            Obj1.Content.append(Obj2)
+            Obj1.Content.append(Obj3)
+            return
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
@@ -563,7 +655,8 @@ def StartWizard(window):
         CurrentY+=YSize
         make_draggable(Obj)
         ActionsArray.append(Obj)
-
+        return Obj
+    
     def CheckProcedure():
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
@@ -586,7 +679,9 @@ def StartWizard(window):
         VolumesInApparatus=[]
         StepByStepOps=[]
         Sorted=GetYStack()
-        print(len(Sorted)," Actions")
+        NumActions=len(Sorted)
+        if NumActions==0: return
+        print(NumActions," Actions")
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
@@ -682,7 +777,8 @@ def StartWizard(window):
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
-    tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")    
+    tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")
+    tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")      
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    

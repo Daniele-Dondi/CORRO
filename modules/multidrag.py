@@ -1,46 +1,43 @@
 import tkinter as tk
 
-class DragManager:
-    def __init__(self, canvas):
-        self.canvas = canvas
-        self._drag_data = {"x": 0, "y": 0, "item": None}
+root=tk.Tk()
+PAB=tk.Canvas(width=400, height=400, bg="gray")
 
-        # Bind mouse events to the canvas
-        self.canvas.tag_bind("movable", "<ButtonPress-1>", self.on_drag_start)
-        self.canvas.tag_bind("movable", "<B1-Motion>", self.on_drag_move)
-        self.canvas.tag_bind("movable", "<ButtonRelease-1>", self.on_drag_stop)
+class Rect:
+    def __init__(self, x1, y1, name):
 
-    def on_drag_start(self, event):
-        # Record the item and its location
-        self._drag_data["item"] = self.canvas.find_withtag("current")[0]
-        self._drag_data["x"] = event.x
-        self._drag_data["y"] = event.y
+        tag = f"movable{id(self)}"
+        rec = PAB.create_rectangle(x1,y1,x1+40,y1+40, fill='#c0c0c0', tag=(tag, ))
+        text = PAB.create_text(x1+20,y1+20, text=name, tag=(tag,))
 
-    def on_drag_move(self, event):
-        # Compute how much the mouse has moved
-        delta_x = event.x - self._drag_data["x"]
-        delta_y = event.y - self._drag_data["y"]
+def in_bbox(event, item):  # checks if the mouse click is inside the item
+    bbox = PAB.bbox(item)
 
-        # Move the object by the same amount
-        self.canvas.move(self._drag_data["item"], delta_x, delta_y)
+    return bbox[0] < event.x < bbox[2] and bbox[1] < event.y < bbox[3]
+    
+#mouse click find object to move
+def get_it(event):
+    delta=5
+    global cur_rec
+    cur_rec = PAB.find_closest(event.x, event.y)  # returns the closest object
 
-        # Update the drag data
-        self._drag_data["x"] = event.x
-        self._drag_data["y"] = event.y
+    if not in_bbox(event, cur_rec):  # if its not in bbox then sets current_rec as None
+        cur_rec = None
 
-    def on_drag_stop(self, event):
-        # Reset the drag data
-        self._drag_data = {"x": 0, "y": 0, "item": None}
+#mouse movement moves object
+def move_it(event):
+    if cur_rec:
+        xPos, yPos = event.x, event.y
+        xObject, yObject = PAB.coords(cur_rec)[0],PAB.coords(cur_rec)[1]
+                
+        PAB.move(PAB.gettags(cur_rec)[0], xPos-xObject, yPos-yObject) 
 
-root = tk.Tk()
-canvas = tk.Canvas(root, width=400, height=400)
-canvas.pack()
+PAB.bind('<Button-1>', get_it)
+PAB.bind('<B1-Motion>', move_it)
+#test rects
+bob = Rect(20,20,'Bob')
+rob = Rect(80,80,'Rob')
+different_bob = Rect(160,160,'Bob')
 
-# Create two rectangles with the same tag
-rect1 = canvas.create_rectangle(50, 50, 100, 100, fill="blue", tags="movable")
-rect2 = canvas.create_rectangle(150, 150, 200, 200, fill="red", tags="movable")
-
-# Initialize the drag manager
-drag_manager = DragManager(canvas)
-
+PAB.pack()
 root.mainloop()
