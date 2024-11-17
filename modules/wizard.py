@@ -379,6 +379,55 @@ class Wash(tk.Frame):
     def MaxCharsInList(self,List):
      return max([len(List[i]) for i in range(len(List))])
 
+class Wait(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=50
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="Wait")
+        self.Label1.pack(side="left")
+        self.Time=tk.Entry(self.Line1,state="normal",width=10)
+        self.Time.pack(side="left")
+        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
+        self.Units.pack(side="left")
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
+
+    def CheckValues(self):
+        Time=self.Time.get()
+        Units=self.Units.get()
+        self.Action=[]        
+        try:
+            Time=float(Time)
+            if Time<=0: Time/=0
+        except:
+            self.StatusLabel.config(text="Invalid values")
+            return
+        else:
+            if Units=="m": Time*=60
+            if Units=="h": Time*=3600
+            if Units=="d": Time*=86400
+            self.StatusLabel.config(text="Valid values")
+            self.Action=[Time]
+   
+
 class Grid(tk.Toplevel):
     def __init__(self,container):
         super().__init__(container)        
@@ -503,6 +552,8 @@ def StartWizard(window):
             Obj=Heat(frame2)
         elif ObjType=="Wash":
             Obj=Wash(frame2)
+        elif ObjType=="Wait":
+            Obj=Wait(frame2)
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
@@ -513,13 +564,6 @@ def StartWizard(window):
         ActionsArray.append(Obj)
 
     def CheckProcedure():
-        ReactantsUsed=[]
-        VolumesOfReactantsUsed=[]
-        ApparatusUsed=[]
-        VolumesInApparatus=[]
-        StepByStepOps=[]
-        Sorted=GetYStack()
-        
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
                 idx=NamesArray.index(Input)
@@ -534,8 +578,13 @@ def StartWizard(window):
             if name not in ApparatusUsed:
                 return 0.0
             else:
-                return VolumesInApparatus[ApparatusUsed.index(name)]
-       
+                return VolumesInApparatus[ApparatusUsed.index(name)]        
+        ReactantsUsed=[]
+        VolumesOfReactantsUsed=[]
+        ApparatusUsed=[]
+        VolumesInApparatus=[]
+        StepByStepOps=[]
+        Sorted=GetYStack()
         print(len(Sorted)," Actions")
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
@@ -631,6 +680,7 @@ def StartWizard(window):
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
+    tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")    
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
