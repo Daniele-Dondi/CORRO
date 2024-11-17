@@ -431,9 +431,8 @@ class Wait(tk.Frame):
 class Grid(tk.Toplevel):
     def __init__(self,container):
         super().__init__(container)        
-        #StepByStepWindow=tk.Toplevel(window) 
         self.title("WIZARD SUMMARY")
-        self.geometry('700x400+200+10')
+        #self.geometry('700x400+200+10')
         self.grab_set()
         self.grid()
         self.RowWidth=0
@@ -625,10 +624,11 @@ def StartWizard(window):
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
                 
-            StepByStepOps.append([*VolumesOfReactantsUsed,"-",*VolumesInApparatus])
+            StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         print(StepByStepOps)
         StepByStepWindow=Grid(window)
         StepByStepWindow.WriteOnHeader("#")
+        StepByStepWindow.WriteOnHeader("Action")
         for reactant in ReactantsUsed:
             StepByStepWindow.WriteOnHeader(reactant)
         for apparatus in ApparatusUsed:
@@ -636,11 +636,11 @@ def StartWizard(window):
         StepByStepWindow.CloseHeader()
         for row in range(len(StepByStepOps)):
             CurrentStep=StepByStepOps[row]
-            Division=CurrentStep.index("-")
-            In=CurrentStep[:Division]
-            Out=CurrentStep[Division+1:]
+            In=CurrentStep[0]
+            Out=CurrentStep[1]
             ReactantsLen=len(ReactantsUsed)
             StepByStepWindow.AddItemToRow(str(row+1))
+            StepByStepWindow.AddItemToRow(CurrentStep[2])
             for column in range(len(ReactantsUsed)+len(ApparatusUsed)):
                 if column<ReactantsLen:
                     if column<len(In):
