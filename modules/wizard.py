@@ -468,17 +468,22 @@ class IF(tk.Frame):
 class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=50
+        self.Height=75
         self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()
 
     def create_widgets(self):
         self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
-        #self.Line1.pack_propagate(False)        
+        self.Line1.pack_propagate(False)        
         self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="ELSE")
         self.Label1.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")        
+       
         
     def GetAction(self):
         return "OK"
@@ -490,7 +495,7 @@ class ELSE(tk.Frame):
 class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=50
+        self.Height=75
         self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()
@@ -499,8 +504,13 @@ class ENDIF(tk.Frame):
         self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
         self.Line1.pack_propagate(False)        
         self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="ENDIF")
         self.Label1.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")        
+        
         
     def GetAction(self):
         return "OK"
@@ -577,7 +587,6 @@ class Grid(tk.Toplevel):
     def __init__(self,container):
         super().__init__(container)        
         self.title("WIZARD SUMMARY")
-        #self.geometry('700x400+200+10')
         self.grab_set()
         self.grid()
         self.RowWidth=0
