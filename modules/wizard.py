@@ -483,6 +483,7 @@ class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=75
+        self.Container=True ##
         self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()
@@ -510,6 +511,7 @@ class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=75
+        self.Container=True ##
         self.MustBeAfter=0     ##
         super().__init__(container)
         self.create_widgets()

@@ -8,6 +8,8 @@ SyringesOptions=["Not in use","Air/Waste"]
 CurrentSyringe=1
 TotalNumberOfSyringes=6
 SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
+SyringeVolumes=[60,10,60,10,60,10]
+SyringePrimeVolumes=[10,10,10,10,10,10]
 ApparatusArray=[]
 CurrentApparatus=1
 PIDList=["None","Heater 1","Heater 2"]
@@ -111,7 +113,15 @@ def GetAllInputsOfSyringe(num):
     for Exit,connection in enumerate(SyringesArray[num]):
       if ("Reactant" in connection) and not connection in value:
         value.append([connection]) #value.append([str(Exit),connection])
-    return value    
+    return value
+
+def GetSyringeVolume(num):
+    if num<TotalNumberOfSyringes:
+        return SyringeVolumes[num]
+
+def GetSyringePrimeVolume(num):
+    if num<TotalNumberOfSyringes:
+        return SyringePrimeVolumes[num]    
 
 def GetReactantsNames():
     value=[]
@@ -857,6 +867,8 @@ def StartConfigurator(window):
         return [exit1type.get(), exit2type.get(), exit3type.get(), exit4type.get(), exit5type.get()]  
 
     def SetTab3Variables(parms):
+        maxvolsyr.delete(0,tk.END); maxvolsyr.insert(0,str(SyringeVolumes[CurrentSyringe-1]))
+        primevol.delete(0,tk.END); primevol.insert(0,str(SyringePrimeVolumes[CurrentSyringe-1]))
         exit1type.set(parms[0])
         exit2type.set(parms[1])
         exit3type.set(parms[2])
@@ -910,11 +922,16 @@ def StartConfigurator(window):
         HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
         SetTab3Variables(SyringesArray[CurrentSyringe-1])
         SetStatusNextPrevButtonsT3()
-
+        
+    
     F1T3 = ttk.Frame(tab3); F1T3.pack()
     PrevT3Button=ttk.Button(F1T3, text="Prev", command=PrevT3,state='enabled'); PrevT3Button.pack(side="left")
     NextT3Button=ttk.Button(F1T3, text="Next", command=NextT3,state='enabled'); NextT3Button.pack(side="left")
     HeaderLabelT3=ttk.Label(tab3,text ="Syringe n. 1 of 6",font=("Arial", 12)); HeaderLabelT3.pack(pady="10");
+    #ttk.Label(tab3,text ="Type").pack(); pumptype=ttk.Combobox(tab3, values = ("Syringe","Peristaltic"), state = 'readonly',width=25); pumptype.current(0); pumptype.pack()     
+    ttk.Label(tab3,text ="Max. volume (mL)").pack(); maxvolsyr=ttk.Entry(tab3); maxvolsyr.pack(); maxvolsyr.delete(0,tk.END); maxvolsyr.insert(0,str(SyringeVolumes[CurrentSyringe-1]))
+    ttk.Label(tab3,text ="Priming volume (mL)").pack(); primevol=ttk.Entry(tab3); primevol.pack(); primevol.delete(0,tk.END); primevol.insert(0,str(SyringePrimeVolumes[CurrentSyringe-1]))
+    #ttk.Label(tab3,text ="Max. speed (mL/min)").pack(); maxspeed=ttk.Entry(tab3); maxspeed.pack()
     ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit1type.current(1); exit1type.pack() 
     ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit2type.current(0); exit2type.pack()
     ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit3type.current(0); exit3type.pack()
