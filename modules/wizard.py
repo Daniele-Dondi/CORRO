@@ -49,6 +49,8 @@ class Pour(tk.Frame):
         return self.Action
         
     def CheckValues(self):
+        self.CheckInput()
+        self.CheckUnit()
         Input=self.Source.get()
         Output=self.Destination.get()
         Quantity=self.Amount.get()
@@ -126,8 +128,8 @@ class Pour(tk.Frame):
 
     def WasteVolumeAlert(self):
         messagebox.showerror("Warning", "Liquid poured into waste exit")
-    
-    def UnitTypecallback(self,event):
+
+    def CheckUnit(self):
         Unit=self.Units.get()
         if Unit=="ALL":
             MaxVol=GetMaxVolumeApparatus(self.Source.get())
@@ -138,10 +140,14 @@ class Pour(tk.Frame):
             else:
                 self.Units.set("")
 
+    
+    def UnitTypecallback(self,event):
+        self.CheckUnit()
+
     def MaxCharsInList(self,List):
      return max([len(List[i]) for i in range(len(List))])
-    
-    def InputTypecallback(self,event):
+
+    def CheckInput(self):
         Input=self.Source.get()
         PossibleUnits=["mL","L"]
         if "Reactant" in Input:
@@ -179,7 +185,11 @@ class Pour(tk.Frame):
         PossibleOutputs.sort()
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
         if not self.Destination.get() in PossibleOutputs:
-            self.Destination.set("")
+            self.Destination.set("")        
+    
+    def InputTypecallback(self,event):
+        self.CheckInput()
+
 
 class Heat(tk.Frame):
     def __init__(self,container):
