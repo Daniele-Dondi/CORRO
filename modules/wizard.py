@@ -176,6 +176,10 @@ class Pour(tk.Frame):
             self.Label3.config(text="in")        
         SyrNums=WhichSiringeIsConnectedTo(Input)
         OutputsList=[]
+        if len(SyrNums)==0: #database has changed meanwhile
+            self.Source.set("")
+            self.Destination.set("")
+            return
         for SyringeNum in SyrNums:
             AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
             for Output in AvailableOutputs:
