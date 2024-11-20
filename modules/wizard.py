@@ -444,14 +444,15 @@ class Wait(tk.Frame):
 class IF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=100
+        self.Height=65
+        self.BeginBlock=True
         self.Container=True ##
         self.Content=[]     ##
         super().__init__(container)
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=75,width=500,bg="lightgreen")
+        self.Line1=tk.Frame(self,height=40,width=500,bg="lightgreen")
         self.Line1.pack_propagate(False)
         self.Line1.pack()
         self.Line2=tk.Frame(self)
@@ -482,7 +483,9 @@ class IF(tk.Frame):
 class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=75
+        self.Height=65
+        self.BeginBlock=True        
+        self.EndBlock=True        
         self.Container=True ##
         self.MustBeAfter=0     ##
         super().__init__(container)
@@ -510,7 +513,8 @@ class ELSE(tk.Frame):
 class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=75
+        self.Height=65
+        self.EndBlock=True
         self.Container=True ##
         self.MustBeAfter=0     ##
         super().__init__(container)
@@ -537,7 +541,8 @@ class ENDIF(tk.Frame):
 class LOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=100
+        self.Height=65
+        self.BeginBlock=True
         self.Container=True ##
         self.Content=[]     ##
         self.MustBeBefore=0     ##
@@ -545,7 +550,7 @@ class LOOP(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=75,width=500,bg="orange")
+        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
         self.Line1.pack_propagate(False)
         self.Line1.pack()
         self.Line2=tk.Frame(self)
@@ -576,7 +581,8 @@ class LOOP(tk.Frame):
 class ENDLOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=75
+        self.Height=65
+        self.EndBlock=True
         self.Container=True ##
         self.MustBeAfter=0     ##
         super().__init__(container)
@@ -663,9 +669,18 @@ def ReorderObjects():
     global CurrentY
     CurrentY=2
     Sorted=GetYStack()
+    x=10    
     for element in Sorted:
         Item=element[1]
-        Item.place(x=10, y=CurrentY)
+        try:
+            if Item.EndBlock: x-=20            
+        except:
+            pass
+        Item.place(x=x, y=CurrentY)
+        try:
+            if Item.BeginBlock: x+=20
+        except:
+            pass
         CurrentY+=int(Item.Height)
             
 def GetYStack():
