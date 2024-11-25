@@ -1,6 +1,7 @@
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
+from modules.listserialports import *
 
 ReactantsArray=[]
 CurrentReactant=1
@@ -12,6 +13,8 @@ SyringeVolumes=[60,10,60,10,60,10]
 SyringePrimeVolumes=[10,10,10,10,10,10]
 ApparatusArray=[]
 CurrentApparatus=1
+DevicesArray=[]
+CurrentDevice=1
 PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
@@ -273,10 +276,12 @@ def StartConfigurator(window):
     tab1 = ttk.Frame(tabControl)
     tab2 = ttk.Frame(tabControl)
     tab3 = ttk.Frame(tabControl)
+    tab4 = ttk.Frame(tabControl)
       
     tabControl.add(tab1, text ='Reactants') 
     tabControl.add(tab2, text ='Apparatus')
-    tabControl.add(tab3, text ='Syringes') 
+    tabControl.add(tab3, text ='Syringes')
+    tabControl.add(tab4, text ='USB devices') 
     tabControl.pack(expand = 1, fill ="both")
 
 
@@ -938,8 +943,141 @@ def StartConfigurator(window):
     ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit4type.current(0); exit4type.pack()
     ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit5type.current(0); exit5type.pack()
 
-    ttk.Button(tab3, text="Save changes", command=SaveSyringeParameters).pack(pady="10")
-    ttk.Button(tab3, text="Ignore changes", command=LoadSyringeParameters).pack()
+    def GetTab4Variables():
+        return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled, NumVariables.get(), VarNames.get()]
+
+    def SetTab4Variables(parms):
+        DeviceName.delete(0,tk.END); DeviceName.insert(0,str(parms[0]))
+        DeviceType.set(parms[1])
+        DeviceUSB.set(parms[2])
+        USBBaudRate.set(parms[3])
+        Protocol.set(parms[4])
+        SensorEnabled=parms[5] #not working
+        NumVariables.delete(0,tk.END); NumVariables.insert(0,str(parms[6]))
+        VarNames.delete(0,tk.END); VarNames.insert(0,str(parms[7]))
+
+    def SaveDeviceParameters():
+        return
+    def LoadDeviceParameters():
+        return
+    def CheckDeviceParameters():
+        return
+    def SaveDeviceParameters():
+        global CurrentDevice
+        if CheckDeviceParameters(CurrentDevice):
+          newvalues=GetTab4Variables()
+          if len(DevicesArray)==CurrentDevice-1:  
+           DevicesArray.append(newvalues)
+          elif NotSavedDataTab2():
+           answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Device?")
+           if answer:
+            DevicesArray[CurrentDevice-1]=newvalues
+
+    def AskLoadDeviceParameters():
+        return
+    def ClearDeviceParameters():
+        return
+    def ClearAllValuesT4():
+        return
+    def NotSavedDataTab4():
+        return
+    def AddDevice():
+        global CurrentDevice 
+        if len(DevicesArray)==CurrentDevice-1:
+            messagebox.showinfo(message="Finish first to edit the current Device")
+            return
+        if NotSavedDataTab4():
+            messagebox.showinfo(message="Unsaved data for the current Device")
+            return
+        CurrentDevice=len(DevicesArray)+1
+        HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
+        ClearAllValuesT4()
+        SetStatusNextPrevButtonsT4()
+
+    def DeleteCurrentDevice():
+        return
+
+    def NotSavedDataTab4():
+        return
+
+    def CheckDeviceParameters(parms):
+        return True
+
+    def DeviceTypecallback(eventObject):
+        if DeviceType.get()=="Sensor":
+            NumVariables.config(state="normal")
+            VarNames.config(state="normal")
+        else:
+            NumVariables.config(state="disabled")
+            VarNames.config(state="disabled")
+            
+    def SetStatusNextPrevButtonsT4():
+        global CurrentDevice
+        if CurrentDevice-1>0:
+            PrevT4Button.configure(state='enabled')
+        else:
+            PrevT4Button.configure(state='disabled')
+        if CurrentDevice<len(DevicesArray):
+            NextT4Button.configure(state='enabled')
+        else:
+            NextT4Button.configure(state='disabled')        
+
+    def NextT4():
+        global CurrentDevice
+        if NotSavedDataTab4():
+         messagebox.showinfo(message="Finish first to edit the current device")
+         return
+        CurrentDevice+=1
+        HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(len(DevicesArray)))
+        SetTab4Variables(DevicesArray[CurrentDevice-1])
+        SetStatusNextPrevButtonsT4()
+        
+    def PrevT4():
+        global CurrentDevice
+        if NotSavedDataTab4():
+         messagebox.showinfo(message="Finish first to edit the current device")
+         return
+        CurrentDevice-=1
+        HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(len(DevicesArray)))
+        SetTab4Variables(DevicesArray[CurrentDevice-1])
+        SetStatusNextPrevButtonsT4()
+
+
+    F1T4 = ttk.Frame(tab4); F1T4.pack()    
+    PrevT4Button=ttk.Button(F1T4, text="Prev", command=PrevT4,state='disabled'); PrevT4Button.pack(side="left")
+    NextT4Button=ttk.Button(F1T4, text="Next", command=NextT4,state='disabled'); NextT4Button.pack(side="left")
+    HeaderLabelT4=ttk.Label(tab4,text ="USB device n. 1 of 1",font=("Arial", 12)); HeaderLabelT4.pack(pady="10");
+    ttk.Label(tab4,text ="Device Name").pack(); DeviceName=ttk.Entry(tab4); DeviceName.pack();
+    ttk.Label(tab4,text ="Device type").pack(); DeviceType=ttk.Combobox(tab4, values = ("SyringeBOT","Sensor","Robot"), state = 'readonly'); DeviceType.pack(); DeviceType.bind("<<ComboboxSelected>>", DeviceTypecallback)
+    ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts(), state = 'readonly'); DeviceUSB.pack(); DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
+    ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
+    protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","G-Code"),state="readonly"); Protocol.pack()
+    SensorEnabled=tk.IntVar()
+    SensorEnabled=1
+    DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled)
+    DevEnabled.select()
+    DevEnabled.pack()
+    ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=1, to=100000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
+    ttk.Label(tab4,text ="Variable names (base name or comma separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
+##    ttk.Label(tab4,text ="Concentration units (numerator)").pack(); ConcNumType4=ttk.Combobox(tab4, values = ('g', 'mg', 'mol', 'mmol'), state = 'readonly'); ConcNumType4.pack(); ConcNumType4.bind("<<ComboboxSelected>>", ConcNumTypecallback)
+##    ttk.Label(tab4,text ="Concentration units (denominator)").pack(); ConcDenType4=ttk.Combobox(tab4, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType4.pack(); ConcDenType4.bind("<<ComboboxSelected>>", ConcDenTypecallback)
+##    ttk.Label(tab4,text ="Density (g/mL)").pack(); density4=ttk.Entry(tab4); density4.insert(0, '1'); density4.pack(); 
+    USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
+    F2T4 = ttk.Frame(tab4); F2T4.pack(pady="10")
+    F3T4 = ttk.Frame(tab4); F3T4.pack()
+    ttk.Button(F2T4, text="TEST", command=CheckDeviceParameters).pack(side="left")
+    ttk.Button(F2T4, text="Save changes", command=SaveDeviceParameters).pack(side="left")
+    ttk.Button(F2T4, text="Ignore changes", command=AskLoadDeviceParameters).pack(side="left")
+    ttk.Button(F2T4, text="Clear all values", command=ClearDeviceParameters).pack(side="left")
+    ttk.Button(F3T4, text="Add new Device", command=AddDevice).pack(side="left")
+    ttk.Button(F3T4, text="Remove Device", command=DeleteCurrentDevice).pack(side="left")
+
+
+
+
+
+
+    
     InitAllData()
       
     #ConfiguratorWindow.mainloop()
