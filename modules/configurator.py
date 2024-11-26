@@ -15,6 +15,7 @@ ApparatusArray=[]
 CurrentApparatus=1
 DevicesArray=[]
 CurrentDevice=1
+DefaultDeviceParameters=["","","","","",True,"",""]
 PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
@@ -943,6 +944,7 @@ def StartConfigurator(window):
     ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit4type.current(0); exit4type.pack()
     ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit5type.current(0); exit5type.pack()
 
+   
     def GetTab4Variables():
         return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled, NumVariables.get(), VarNames.get()]
 
@@ -952,35 +954,36 @@ def StartConfigurator(window):
         DeviceUSB.set(parms[2])
         USBBaudRate.set(parms[3])
         Protocol.set(parms[4])
-        SensorEnabled=parms[5] #not working
+        SensorEnabled=parms[5]
+        DevEnabled.select()
         NumVariables.delete(0,tk.END); NumVariables.insert(0,str(parms[6]))
         VarNames.delete(0,tk.END); VarNames.insert(0,str(parms[7]))
 
-    def SaveDeviceParameters():
-        return
     def LoadDeviceParameters():
-        return
-    def CheckDeviceParameters():
-        return
+         if not(len(DevicesArray)>CurrentDevice-1): return
+         SetTab4Variables(DevicesArray[CurrentDevice-1])
+
     def SaveDeviceParameters():
         global CurrentDevice
         if CheckDeviceParameters(CurrentDevice):
           newvalues=GetTab4Variables()
           if len(DevicesArray)==CurrentDevice-1:  
            DevicesArray.append(newvalues)
-          elif NotSavedDataTab2():
+          elif NotSavedDataTab4():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Device?")
            if answer:
             DevicesArray[CurrentDevice-1]=newvalues
 
     def AskLoadDeviceParameters():
-        return
+        global CurrentDevice
+        answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
+        if answer:
+            LoadDeviceParameters()        
+    
     def ClearDeviceParameters():
-        return
-    def ClearAllValuesT4():
-        return
-    def NotSavedDataTab4():
-        return
+        global DefaultDeviceParameters
+        SetTab4Variables(DefaultDeviceParameters)
+
     def AddDevice():
         global CurrentDevice 
         if len(DevicesArray)==CurrentDevice-1:
@@ -991,14 +994,39 @@ def StartConfigurator(window):
             return
         CurrentDevice=len(DevicesArray)+1
         HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
-        ClearAllValuesT4()
+        ClearDeviceParameters()
         SetStatusNextPrevButtonsT4()
 
-    def DeleteCurrentDevice():
-        return
+    def DeleteCurrentDevice(): 
+        global CurrentDevice
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Device?")
+        if answer:
+         ClearDeviceParameters()
+         if CurrentDevice>len(DevicesArray): #we have the number but still it is not saved in the array. So the array is shorter
+             if CurrentDevice==1:
+                 return
+             else:
+                 CurrentDevice-=1
+                 HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
+                 SetTab2Variables(DevicesArray[CurrentDevice-1])
+         else:
+             UpdateEntryFromSyringesArray(DevicesArray[CurrentDevice-1][0],CurrentDevice,"Not in use","Device")
+             del DevicesArray[CurrentDevice-1]
+             if CurrentDevice>len(DevicesArray): #we deleted the first and only Device
+                 HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
+             else:    
+                 HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(len(DevicesArray)))
+                 SetTab2Variables(DevicesArray[CurrentDevice-1])
+         SetStatusNextPrevButtonsT4()
 
     def NotSavedDataTab4():
-        return
+        global CurrentDevice,DefaultDeviceParameters
+        if len(DevicesArray)==CurrentDevice-1:
+         if GetTab4Variables()==DefaultDeviceParameters:
+               #print(GetTab4Variables(),DefaultDeviceParameters)
+               return False
+         else: return True
+        return not(GetTab4Variables()==DevicesArray[CurrentDevice-1])        
 
     def CheckDeviceParameters(parms):
         return True
@@ -1049,11 +1077,11 @@ def StartConfigurator(window):
     HeaderLabelT4=ttk.Label(tab4,text ="USB device n. 1 of 1",font=("Arial", 12)); HeaderLabelT4.pack(pady="10");
     ttk.Label(tab4,text ="Device Name").pack(); DeviceName=ttk.Entry(tab4); DeviceName.pack();
     ttk.Label(tab4,text ="Device type").pack(); DeviceType=ttk.Combobox(tab4, values = ("SyringeBOT","Sensor","Robot"), state = 'readonly'); DeviceType.pack(); DeviceType.bind("<<ComboboxSelected>>", DeviceTypecallback)
-    ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts(), state = 'readonly'); DeviceUSB.pack(); DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
+    ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts(), state = 'readonly'); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
     ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
     protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","G-Code"),state="readonly"); Protocol.pack()
-    SensorEnabled=tk.IntVar()
-    SensorEnabled=1
+    SensorEnabled=tk.BooleanVar()
+    SensorEnabled=True
     DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled)
     DevEnabled.select()
     DevEnabled.pack()
