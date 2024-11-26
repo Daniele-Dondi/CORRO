@@ -1008,22 +1008,21 @@ def StartConfigurator(window):
              else:
                  CurrentDevice-=1
                  HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
-                 SetTab2Variables(DevicesArray[CurrentDevice-1])
+                 SetTab4Variables(DevicesArray[CurrentDevice-1])
          else:
-             UpdateEntryFromSyringesArray(DevicesArray[CurrentDevice-1][0],CurrentDevice,"Not in use","Device")
              del DevicesArray[CurrentDevice-1]
              if CurrentDevice>len(DevicesArray): #we deleted the first and only Device
                  HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
              else:    
                  HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(len(DevicesArray)))
-                 SetTab2Variables(DevicesArray[CurrentDevice-1])
+                 SetTab4Variables(DevicesArray[CurrentDevice-1])
          SetStatusNextPrevButtonsT4()
 
     def NotSavedDataTab4():
         global CurrentDevice,DefaultDeviceParameters
+        #print(len(DevicesArray),CurrentDevice,DefaultDeviceParameters,GetTab4Variables(),DevicesArray[CurrentDevice-1])
         if len(DevicesArray)==CurrentDevice-1:
          if GetTab4Variables()==DefaultDeviceParameters:
-               #print(GetTab4Variables(),DefaultDeviceParameters)
                return False
          else: return True
         return not(GetTab4Variables()==DevicesArray[CurrentDevice-1])        
