@@ -14,6 +14,7 @@ for scan in range(1,254):
         client_socket=socket.socket()
         client_socket.settimeout(0.1)
         client_socket.connect((Host,Port))
+        client_socket.close()         
     except:
         pass
     else:
@@ -37,4 +38,4 @@ for scan in range(1,254):
 ##
 ##    message = input(" -> ")  # again take input
 
-client_socket.close()  # close the connection
+ # close the connection
