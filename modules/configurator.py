@@ -1,6 +1,8 @@
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
+import serial
+import time
 from modules.listserialports import *
 
 ReactantsArray=[]
@@ -1090,8 +1092,23 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT4()
 
     def Try2Connect():
-        return
+        data_str=""
+        try:
+            parms=GetTab4Variables()
+            if parms[2]=="" or parms[3]=="": return
+            Test=serial.Serial(parms[2],parms[3])
+            time.sleep(1)
+            while (Test.inWaiting() > 0):
+              data_str = Test.read(Test.inWaiting()).decode('ascii') 
+              print(data_str, end='')          
+            Test.close()
+        except:
+            messagebox.showerror("ERROR", "Could not connect")
+        else:
+            messagebox.showinfo('info',"Connection completed. "+str(len(data_str))+" data received:\n "+data_str)
 
+    def RefreshUSB():
+        DeviceUSB.config(values=AvailableSerialPorts())
 
     F1T4 = ttk.Frame(tab4); F1T4.pack()    
     PrevT4Button=ttk.Button(F1T4, text="Prev", command=PrevT4,state='disabled'); PrevT4Button.pack(side="left")
@@ -1113,14 +1130,16 @@ def StartConfigurator(window):
 ##    ttk.Label(tab4,text ="Concentration units (denominator)").pack(); ConcDenType4=ttk.Combobox(tab4, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType4.pack(); ConcDenType4.bind("<<ComboboxSelected>>", ConcDenTypecallback)
 ##    ttk.Label(tab4,text ="Density (g/mL)").pack(); density4=ttk.Entry(tab4); density4.insert(0, '1'); density4.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
-    F2T4 = ttk.Frame(tab4); F2T4.pack(pady="10")
+    F2T4 = ttk.Frame(tab4); F2T4.pack()
     F3T4 = ttk.Frame(tab4); F3T4.pack()
-    ttk.Button(F2T4, text="TEST", command=Try2Connect).pack(side="left")
+    F4T4 = ttk.Frame(tab4); F4T4.pack(pady="10")
     ttk.Button(F2T4, text="Save changes", command=SaveDeviceParameters).pack(side="left")
     ttk.Button(F2T4, text="Ignore changes", command=AskLoadDeviceParameters).pack(side="left")
     ttk.Button(F2T4, text="Clear all values", command=ClearDeviceParameters).pack(side="left")
-    ttk.Button(F3T4, text="Add new Device", command=AddDevice).pack(side="left")
-    ttk.Button(F3T4, text="Remove Device", command=DeleteCurrentDevice).pack(side="left")
+    ttk.Button(F3T4, text="TEST", command=Try2Connect).pack(side="left")
+    ttk.Button(F3T4, text="Rescan USB", command=RefreshUSB).pack(side="left")
+    ttk.Button(F4T4, text="Add new Device", command=AddDevice).pack(side="left")
+    ttk.Button(F4T4, text="Remove Device", command=DeleteCurrentDevice).pack(side="left")
 
 
 
