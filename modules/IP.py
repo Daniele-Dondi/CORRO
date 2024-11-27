@@ -7,7 +7,7 @@ s.close()
 tmp=BaseAddress.rfind(".")
 BaseAddress=BaseAddress[:tmp+1]
 Port=80
-for scan in range(1,254):
+for scan in range(2,254):
     Host=BaseAddress+str(scan)
     print(".",end="")
     try:

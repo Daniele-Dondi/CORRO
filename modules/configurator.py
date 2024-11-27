@@ -15,7 +15,7 @@ ApparatusArray=[]
 CurrentApparatus=1
 DevicesArray=[]
 CurrentDevice=1
-DefaultDeviceParameters=["","","","","",True,"",""]
+DefaultDeviceParameters=["","","","","",True,"1",""]
 PIDList=["None","Heater 1","Heater 2"]
 ThermoList=["None","Thermocouple 1","Thermocouple 2"]
 PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
@@ -965,7 +965,7 @@ def StartConfigurator(window):
 
     def SaveDeviceParameters():
         global CurrentDevice
-        if CheckDeviceParameters(CurrentDevice):
+        if CheckDeviceParameters():
           newvalues=GetTab4Variables()
           if len(DevicesArray)==CurrentDevice-1:  
            DevicesArray.append(newvalues)
@@ -1020,14 +1020,34 @@ def StartConfigurator(window):
 
     def NotSavedDataTab4():
         global CurrentDevice,DefaultDeviceParameters
-        #print(len(DevicesArray),CurrentDevice,DefaultDeviceParameters,GetTab4Variables(),DevicesArray[CurrentDevice-1])
+        #print(len(DevicesArray),CurrentDevice,DefaultDeviceParameters,GetTab4Variables());  if CurrentDevice<len(DevicesArray): print(DevicesArray[CurrentDevice-1])
         if len(DevicesArray)==CurrentDevice-1:
          if GetTab4Variables()==DefaultDeviceParameters:
                return False
          else: return True
         return not(GetTab4Variables()==DevicesArray[CurrentDevice-1])        
 
-    def CheckDeviceParameters(parms):
+    def CheckDeviceParameters():
+        global CurrentDevice
+        parms=GetTab4Variables()
+        #print(parms)
+        if parms[0]=="":
+            messagebox.showerror("ERROR", "Device name cannot be empty. Insert a valid name and retry.")
+            return False
+        if parms[1]=="" or parms[2]=="" or parms[3]=="" or parms[4]=="":
+            messagebox.showerror("ERROR", "Device connection parameters cannot be empty.")
+            return False
+        if parms[1]=="Sensor" and (parms[6]==0 or parms[7]==""):
+            messagebox.showerror("ERROR", "Number of variables to read or variable name cannot be empty")
+            return False
+        for i,element in enumerate(DevicesArray):
+            if  not i==CurrentDevice-1:
+                if parms[0] in element:
+                    messagebox.showerror("ERROR", "Name already in use")
+                    return False
+                if parms[2] in element:
+                    messagebox.showerror("ERROR", "Port "+str(parms[2])+" already in use")
+                    return False
         return True
 
     def DeviceTypecallback(eventObject):
@@ -1069,6 +1089,9 @@ def StartConfigurator(window):
         SetTab4Variables(DevicesArray[CurrentDevice-1])
         SetStatusNextPrevButtonsT4()
 
+    def Try2Connect():
+        return
+
 
     F1T4 = ttk.Frame(tab4); F1T4.pack()    
     PrevT4Button=ttk.Button(F1T4, text="Prev", command=PrevT4,state='disabled'); PrevT4Button.pack(side="left")
@@ -1092,7 +1115,7 @@ def StartConfigurator(window):
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
     F2T4 = ttk.Frame(tab4); F2T4.pack(pady="10")
     F3T4 = ttk.Frame(tab4); F3T4.pack()
-    ttk.Button(F2T4, text="TEST", command=CheckDeviceParameters).pack(side="left")
+    ttk.Button(F2T4, text="TEST", command=Try2Connect).pack(side="left")
     ttk.Button(F2T4, text="Save changes", command=SaveDeviceParameters).pack(side="left")
     ttk.Button(F2T4, text="Ignore changes", command=AskLoadDeviceParameters).pack(side="left")
     ttk.Button(F2T4, text="Clear all values", command=ClearDeviceParameters).pack(side="left")
