@@ -1104,7 +1104,7 @@ def StartConfigurator(window):
             time.sleep(1)
             while (Test.inWaiting() > 0):
               data_str = Test.read(Test.inWaiting()).decode('ascii') 
-              print(data_str, end='')          
+              #print(data_str, end='')          
             Test.close()
         except:
             messagebox.showerror("ERROR", "Could not connect")
