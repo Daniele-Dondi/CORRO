@@ -48,7 +48,20 @@ class Pour(tk.Frame):
 
     def GetAction(self):
         return self.Action
-        
+
+    def GetValues(self):
+        return [self.Label1.cget("text"), self.Label2.cget("text"), self.Label3.cget("text"),  self.Amount.get(), self.Units.get(), self.Source.get(), self.Destination.get(), self.StatusLabel.cget("text")]
+
+    def SetValues(self,parms):
+        self.Label1.config(text=parms[0])
+        self.Label2.config(text=parms[1])
+        self.Label3.config(text=parms[2])
+        self.Amount.set(parms[3])
+        self.Units.set(parms[4])
+        self.Source.set(parms[5])
+        self.Destination.set(parms[6])
+        self.StatusLabel.config(text=parms[7])
+    
     def CheckValues(self):
         self.CheckInput()
         self.CheckUnit()
@@ -255,6 +268,15 @@ class Heat(tk.Frame):
     def GetAction(self):
         return self.Action
 
+    def GetValues(self):
+        return [self.Source.get(), self.Temperature.get(), self.Time.get(),  self.Checked.get()]
+
+    def SetValues(self,parms):
+        self.Source.set(parms[0])
+        self.Temperature.set(parms[1])
+        self.Time.set(parms[2])
+        self.Checked.set(parms[3])
+
     def CheckValues(self):
         Apparatus=self.Source.get()
         Temperature=self.Temperature.get()
@@ -370,7 +392,16 @@ class Wash(tk.Frame):
         DeleteObjByIdentifier(self)
 
     def GetAction(self):
-        return self.Action        
+        return self.Action
+
+    def GetValues(self):
+        return [self.Source.get(), self.Destination.get(), self.Cycles.get(), self.Volume.get()]
+
+    def SetValues(self,parms):
+        self.Source.set(parms[0])
+        self.Destination.set(parms[1])
+        self.Cycles.set(parms[2])
+        self.Volume.set(parms[3])
 
     def CheckValues(self):
         Destination=self.Destination.get()
@@ -425,6 +456,13 @@ class Wait(tk.Frame):
     def GetAction(self):
         return self.Action
 
+    def GetValues(self):
+        return [self.Time.get(), self.Units.get()]
+
+    def SetValues(self,parms):
+        self.Time.set(parms[0])
+        self.Units.set(parms[1])
+
     def CheckValues(self):
         Time=self.Time.get()
         Units=self.Units.get()
@@ -449,6 +487,8 @@ class IF(tk.Frame):
         self.BeginBlock=True
         self.Container=True ##
         self.Content=[]     ##
+        self.MustBeAfter=0
+        self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
 
@@ -478,6 +518,16 @@ class IF(tk.Frame):
     def GetAction(self):
         return self.Action
 
+    def GetValues(self):
+        return [self.Time.get(), self.Units.get(), self.Content, self.MustBeAfter, self.MustBeBefore]
+
+    def SetValues(self,parms):
+        self.Time.set(parms[0])  #####
+        self.Units.set(parms[1])
+        self.Content=parms[2]
+        self.MustBeAfter=parms[3]
+        self.MustBeBefore=parms[4]
+
     def CheckValues(self):
         self.Action="OK"        
 
@@ -489,6 +539,7 @@ class ELSE(tk.Frame):
         self.EndBlock=True        
         self.Container=True ##
         self.MustBeAfter=0     ##
+        self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
 
@@ -502,10 +553,16 @@ class ELSE(tk.Frame):
         self.Label1.pack(side="left")
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")        
-       
         
     def GetAction(self):
         return "OK"
+
+    def GetValues(self):
+        return [self.MustBeAfter, self.MustBeBefore]
+
+    def SetValues(self,parms):
+        self.MustBeAfter=parms[0]
+        self.MustBeBefore=parms[1]
 
     def CheckValues(self):
         return
@@ -518,6 +575,7 @@ class ENDIF(tk.Frame):
         self.EndBlock=True
         self.Container=True ##
         self.MustBeAfter=0     ##
+        self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
 
@@ -532,9 +590,14 @@ class ENDIF(tk.Frame):
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")        
         
-        
     def GetAction(self):
         return "OK"
+
+    def GetValues(self):
+        return [self.MustBeAfter, self.MustBeBefore]
+
+    def SetValues(self,parms):
+        return
 
     def CheckValues(self):
         return
@@ -546,6 +609,7 @@ class LOOP(tk.Frame):
         self.BeginBlock=True
         self.Container=True ##
         self.Content=[]     ##
+        self.MustBeAfter=0
         self.MustBeBefore=0     ##
         super().__init__(container)
         self.create_widgets()
@@ -576,6 +640,14 @@ class LOOP(tk.Frame):
     def GetAction(self):
         return self.Action
 
+    def GetValues(self): #######
+        return [self.Content, self.MustBeAfter, self.MustBeBefore]
+
+    def SetValues(self,parms): #######
+        self.Content=parms[0]
+        self.MustBeAfter=parms[1]
+        self.MustBeBefore=parms[2]
+
     def CheckValues(self):
         self.Action="OK"        
 
@@ -586,6 +658,7 @@ class ENDLOOP(tk.Frame):
         self.EndBlock=True
         self.Container=True ##
         self.MustBeAfter=0     ##
+        self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
 
@@ -603,6 +676,13 @@ class ENDLOOP(tk.Frame):
     def GetAction(self):
         return "OK"
 
+    def GetValues(self):
+        return [self.MustBeAfter, self.MustBeBefore]
+
+    def SetValues(self,parms):
+        self.MustBeAfter=parms[1]
+        self.MustBeBefore=parms[2]
+
     def CheckValues(self):
         return   
 
@@ -611,7 +691,7 @@ class Grid(tk.Toplevel):
         super().__init__(container)        
         self.title("WIZARD SUMMARY")
         self.grab_set()
-        self.grid()
+        #self.grid()
         self.RowWidth=0
         self.ItemHeight=0
         self.Row=0
@@ -887,6 +967,19 @@ def StartWizard(window):
                         
     def on_mousewheel(event):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def SaveModules():
+        Sorted=GetYStack()
+        NumActions=len(Sorted)
+        if NumActions==0: return
+        print(NumActions," Actions")
+        for Step,Action in enumerate(Sorted):
+            Object=Action[1]
+            ObjType=str(Object.__class__.__name__)
+            print(ObjType)
+            print(Object.GetValues())
+            #Action=Object.GetAction()
+
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
@@ -895,7 +988,7 @@ def StartWizard(window):
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='Open')
-    file_menu.add_command(label='Save')
+    file_menu.add_command(label='Save',command=SaveModules)
     file_menu.add_separator()
     file_menu.add_command(label='Clear all data')
     file_menu.add_separator()    
