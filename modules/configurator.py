@@ -270,6 +270,10 @@ def StartConfigurator(window):
         if NotSavedDataTab3() and not SelectedTabNum==2:
             messagebox.showinfo(message="Unsaved data in Syringe tab")
             tabControl.select(2)
+        if NotSavedDataTab4() and not SelectedTabNum==3:
+            messagebox.showinfo(message="Unsaved data in USB tab")
+            tabControl.select(3)
+            
         if SelectedTabNum==2: #Syringes tab
             SetSyringeOptions()
       

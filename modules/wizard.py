@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import *
-from tkinter.tix import *
+from tkinter import ttk
+#from tkinter.tix import *
 from modules.configurator import *
 
 class Pour(tk.Frame):
@@ -884,7 +885,8 @@ def StartWizard(window):
             StepByStepWindow.NextRow()
         #StepByStepWindow.mainloop()                        
                         
-                
+    def on_mousewheel(event):
+        my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
@@ -900,16 +902,21 @@ def StartWizard(window):
     file_menu.add_command(label='Exit')
     WizardWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
-    
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
-    frame2 = tk.Frame(WizardWindow,bg="white",width=1000,height=700)
-    frame2.pack()
-##    swin = ScrolledWindow(frame2, width=1000, height=400)
-##    swin.pack()
-##    win = swin.window
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
-    frame3.pack(side="bottom")    
+    frame3.pack(side="bottom")  
+    my_canvas = Canvas(WizardWindow)
+    my_canvas.pack(side=LEFT,fill=BOTH,expand=1)
+    y_scrollbar = ttk.Scrollbar(WizardWindow,orient=VERTICAL,command=my_canvas.yview)
+    y_scrollbar.pack(side=RIGHT,fill=Y)
+    my_canvas.configure(yscrollcommand=y_scrollbar.set)
+    my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
+    my_canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+    frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
+    my_canvas.create_window((0,0),window=frame2, anchor="nw")    
+  
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
