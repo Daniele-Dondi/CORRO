@@ -1102,14 +1102,26 @@ def StartConfigurator(window):
             if parms[2]=="" or parms[3]=="": return
             Test=serial.Serial(parms[2],parms[3])
             time.sleep(1)
-            while (Test.inWaiting() > 0):
-              data_str = Test.read(Test.inWaiting()).decode('ascii') 
-              #print(data_str, end='')          
-            Test.close()
         except:
             messagebox.showerror("ERROR", "Could not connect")
         else:
+            SerialWindow=tk.Toplevel(window)
+            SerialWindow.title("CORRO CONFIGURATOR")
+            SerialWindow.grab_set()
+            T = tk.Text(SerialWindow, height = 5, width = 52)
+            T.pack()
+            B = tk.Button(SerialWindow, text = "Exit",command = SerialWindow.destroy)
+            B.pack()
+            count=0
+            while (Test.inWaiting() > 0) and count<10000:
+              data_str = Test.read(Test.inWaiting()).decode('ascii')
+              count+=1
+              T.insert(0,data_str)
+##            
+            SerialWindow.mainloop()
             messagebox.showinfo('info',"Connection completed. "+str(len(data_str))+" data received:\n "+data_str)
+            Test.close()
+
 
     def RefreshUSB():
         DeviceUSB.config(values=AvailableSerialPorts())
