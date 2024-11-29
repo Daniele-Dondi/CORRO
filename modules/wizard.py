@@ -269,13 +269,14 @@ class Heat(tk.Frame):
         return self.Action
 
     def GetValues(self):
-        return [self.Source.get(), self.Temperature.get(), self.Time.get(),  self.Checked.get()]
+        return [self.Source.get(), self.Temperature.get(), self.Time.get(), self.Checked.get(), self.EndTemperature.get()]
 
     def SetValues(self,parms):
         self.Source.set(parms[0])
         self.Temperature.set(parms[1])
         self.Time.set(parms[2])
         self.Checked.set(parms[3])
+        #self.EndTemperature delete insert
 
     def CheckValues(self):
         Apparatus=self.Source.get()
