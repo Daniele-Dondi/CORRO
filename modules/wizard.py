@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
-#from tkinter.tix import *
 from modules.configurator import *
 
 class Pour(tk.Frame):
@@ -9,7 +8,6 @@ class Pour(tk.Frame):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
-        self.highlightthickness=1
         super().__init__(container)
         self.create_widgets()
 
@@ -560,7 +558,7 @@ class ELSE(tk.Frame):
         return "OK"
 
     def GetValues(self):
-        return [self.MustBeAfter, self.MustBeBefore]
+        return []
 
     def SetValues(self,parms):
         self.MustBeAfter=parms[0]
@@ -596,7 +594,7 @@ class ENDIF(tk.Frame):
         return "OK"
 
     def GetValues(self):
-        return [self.MustBeAfter, self.MustBeBefore]
+        return []
 
     def SetValues(self,parms):
         return
@@ -624,8 +622,8 @@ class LOOP(tk.Frame):
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="LOOP")
         self.Label1.pack(side="left")
-        self.Time=tk.Entry(self.Line1,state="normal",width=10)
-        self.Time.pack(side="left")
+        self.Condition=tk.Entry(self.Line1,state="normal",width=10)
+        self.Condition.pack(side="left")
         self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
         self.Units.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
@@ -643,7 +641,7 @@ class LOOP(tk.Frame):
         return self.Action
 
     def GetValues(self): #######
-        return [self.Content, self.MustBeAfter, self.MustBeBefore]
+        return [self.Condition.get(), self.Units.get()]
 
     def SetValues(self,parms): #######
         self.Content=parms[0]
@@ -679,7 +677,7 @@ class ENDLOOP(tk.Frame):
         return "OK"
 
     def GetValues(self):
-        return [self.MustBeAfter, self.MustBeBefore]
+        return []
 
     def SetValues(self,parms):
         self.MustBeAfter=parms[1]
@@ -771,7 +769,10 @@ def GetYStack():
     Result=[]
     for item in ActionsArray:
         Result.append([item.winfo_y(),item])
-    Result.sort() #now we have the array of objects ordered w. respect to Y pos            
+    try:
+     Result.sort() #now we have the array of objects ordered w. respect to Y pos
+    except:
+     pass
     return Result
 
 def DeleteObjByIdentifier(ObjIdentifier):
@@ -970,6 +971,14 @@ def StartWizard(window):
     def on_mousewheel(event):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
+    def GetObjectPosition(object_y,sortedlist):
+        try:
+            for i,obj in enumerate(sortedlist):
+                if obj[0]==object_y: return i
+            return -1 #not found
+        except:
+            return -1
+
     def SaveModules():
         Sorted=GetYStack()
         NumActions=len(Sorted)
@@ -978,6 +987,7 @@ def StartWizard(window):
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
+            print("Object: ",Step)            
             print(ObjType)
             print(Object.GetValues())
             print("Position: ",Object.winfo_x(),Object.winfo_y())
@@ -985,9 +995,22 @@ def StartWizard(window):
              if Object.Container:
                 try:
                     for Item in Object.Content:
-                        print(Item.winfo_x(),Item.winfo_y())
+                        print("Contains: ",GetObjectPosition(Item.winfo_y(),Sorted))
                 except:
                     pass
+                try:
+                    before_y=Object.MustBeBefore.winfo_y()
+                    before=GetObjectPosition(before_y,Sorted)
+                    print("Must be before: ",before)
+                except:
+                    pass
+                try:
+                    after_y=Object.MustBeAfter.winfo_y()
+                    after=GetObjectPosition(after_y,Sorted)
+                    print("Must be after: ",after)
+                except:
+                    pass
+                    
             except:
                 pass
             #Action=Object.GetAction()
