@@ -8,5 +8,6 @@ from tkinter import ttk
 from modules.wizard import *
 
 base = Tk()
+base.geometry('50x50+1500+100')
 StartWizard(base)
 base.mainloop()

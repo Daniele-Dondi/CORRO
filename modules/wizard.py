@@ -9,6 +9,7 @@ class Pour(tk.Frame):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
+        self.highlightthickness=1
         super().__init__(container)
         self.create_widgets()
 
@@ -68,7 +69,7 @@ class Pour(tk.Frame):
         Input=self.Source.get()
         Output=self.Destination.get()
         Quantity=self.Amount.get()
-        Amount=Quantity #we keep amount with the current units, Quantity will be transformed in mL
+        Amount=Quantity #we keep Amount with the current units, Quantity will be transformed in mL
         Unit=self.Units.get()
         self.Action=[]
         if Input=="" or Output=="" or Quantity=="" or Unit=="":
@@ -520,7 +521,7 @@ class IF(tk.Frame):
         return self.Action
 
     def GetValues(self):
-        return [self.Time.get(), self.Units.get(), self.Content, self.MustBeAfter, self.MustBeBefore]
+        return [self.Time.get(), self.Units.get()]
 
     def SetValues(self,parms):
         self.Time.set(parms[0])  #####
@@ -979,6 +980,16 @@ def StartWizard(window):
             ObjType=str(Object.__class__.__name__)
             print(ObjType)
             print(Object.GetValues())
+            print("Position: ",Object.winfo_x(),Object.winfo_y())
+            try:
+             if Object.Container:
+                try:
+                    for Item in Object.Content:
+                        print(Item.winfo_x(),Item.winfo_y())
+                except:
+                    pass
+            except:
+                pass
             #Action=Object.GetAction()
 
     
