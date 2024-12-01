@@ -180,10 +180,12 @@ def StartConfigurator(window):
     ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
     
     def ShowData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,CurrentDevice
+     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
      CurrentReactant=1
      CurrentSyringe=1     
      CurrentApparatus=1
+     CurrentDevice=1
      SetStatusNextPrevButtonsT1()
      SetStatusNextPrevButtonsT2()
      SetStatusNextPrevButtonsT3()
