@@ -180,16 +180,18 @@ def StartConfigurator(window):
     ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
     
     def ShowData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
      CurrentReactant=1
      CurrentSyringe=1     
      CurrentApparatus=1
      SetStatusNextPrevButtonsT1()
      SetStatusNextPrevButtonsT2()
      SetStatusNextPrevButtonsT3()
+     SetStatusNextPrevButtonsT4()
      LoadReactantParameters()
      LoadSyringeParameters()
      LoadApparatusParameters()
+     LoadDeviceParameters()
      a=len(ReactantsArray)
      if a==0: a=1
      HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(a))
@@ -199,6 +201,10 @@ def StartConfigurator(window):
      a=len(SyringesArray)
      if a==0: a=1
      HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
+     a=len(DevicesArray)
+     if a==0: a=1
+     HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(a))
+     
         
     def LoadAllData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
