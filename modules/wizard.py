@@ -55,6 +55,7 @@ class Pour(tk.Frame):
         self.Label1.config(text=parms[0])
         self.Label2.config(text=parms[1])
         self.Label3.config(text=parms[2])
+        self.Amount.delete(0,tk.END)
         self.Amount.insert(0,str(parms[3]))
         self.Units.set(parms[4])
         self.Source.set(parms[5])
@@ -272,10 +273,13 @@ class Heat(tk.Frame):
 
     def SetValues(self,parms):
         self.Source.set(parms[0])
+        self.Temperature.delete(0,tk.END)
         self.Temperature.insert(0,str(parms[1]))
+        self.Time.delete(0,tk.END)
         self.Time.insert(0,str(parms[2]))
         self.Checked.set(parms[3])
-        self.Temperature.insert(0,str(parms[4]))
+        self.EndTemperature.delete(0,tk.END)
+        self.EndTemperature.insert(0,str(parms[4]))
 
     def CheckValues(self):
         Apparatus=self.Source.get()
@@ -400,7 +404,9 @@ class Wash(tk.Frame):
     def SetValues(self,parms):
         self.Source.set(parms[0])
         self.Destination.set(parms[1])
+        self.Cycles.delete(0,tk.END)
         self.Cycles.insert(0,str(parms[2]))
+        self.Volume.delete(0,tk.END)
         self.Volume.insert(0,str(parms[3]))
 
     def CheckValues(self):
@@ -460,6 +466,7 @@ class Wait(tk.Frame):
         return [self.Time.get(), self.Units.get()]
 
     def SetValues(self,parms):
+        self.Time.delete(0,tk.END)
         self.Time.insert(0,str(parms[0]))
         self.Units.set(parms[1])
 
@@ -644,6 +651,7 @@ class LOOP(tk.Frame):
         return [self.Condition.get(), self.Units.get()]
 
     def SetValues(self,parms): #######
+        self.Condition.delete(0,tk.END)
         self.Condition.insert(0,str(parms[0]))
         self.Units.set(parms[1])
 
@@ -829,7 +837,6 @@ def StartWizard(window):
                     pass
         except:
             pass
-            
         widget.place(x=x, y=y)
         widget.update()
         ReorderObjects()
@@ -997,7 +1004,7 @@ def StartWizard(window):
             Obj=CreateNewObject(ObjType)
             CreatedModules.append(Obj)
             Obj.SetValues(ObjValues)
-            Obj.place(x=ObjXPos,y=ObjYPos)
+            Obj.place(x=ObjXPos)
         for i,Module in enumerate(ModulesArray):
             IsContainer=Module[4]
             ObjContent=Module[5]
@@ -1036,12 +1043,12 @@ def StartWizard(window):
             Actions=[]
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
-            print("Object: ",Step)
-            print(ObjType)
+            #print("Object: ",Step)
+            #print(ObjType)
             Actions.append(ObjType)            
-            print(Object.GetValues())
-            Actions.append(Object.GetValues())            
-            print("Position: ",Object.winfo_x(),Object.winfo_y())
+            #print(Object.GetValues())
+            Actions.append(Object.GetValues())           
+            #print("Position: ",Object.winfo_x(),Object.winfo_y())
             Actions.append(Object.winfo_x())
             Actions.append(Object.winfo_y())
             try:
@@ -1050,7 +1057,7 @@ def StartWizard(window):
                 try:
                     ContentList=[]
                     for Item in Object.Content:
-                        print("Contains: ",GetObjectPosition(Item.winfo_y(),Sorted))
+                        #print("Contains: ",GetObjectPosition(Item.winfo_y(),Sorted))
                         ContentList.append(GetObjectPosition(Item.winfo_y(),Sorted))
                     Actions.append(ContentList)
                 except:
@@ -1060,7 +1067,7 @@ def StartWizard(window):
                     before_y=Object.MustBeBefore.winfo_y()
                     before=GetObjectPosition(before_y,Sorted)
                     Actions.append(before)
-                    print("Must be before: ",before)
+                    #print("Must be before: ",before)
                 except:
                     Actions.append(-1)
                     pass
@@ -1068,11 +1075,10 @@ def StartWizard(window):
                     after_y=Object.MustBeAfter.winfo_y()
                     after=GetObjectPosition(after_y,Sorted)
                     Actions.append(after)
-                    print("Must be after: ",after)
+                    #print("Must be after: ",after)
                 except:
                     Actions.append(-1)
                     pass
-                    
             except:
                 Actions.append(False)
                 Actions.append([])                
@@ -1080,7 +1086,7 @@ def StartWizard(window):
                 Actions.append(-1)
                 pass
             ModulesArray.append(Actions)
-        print(ModulesArray)
+        #print(ModulesArray)
         fout=open(filename, 'wb')
         pickle.dump(ModulesArray,fout)
         fout.close()
