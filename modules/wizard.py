@@ -998,11 +998,19 @@ def StartWizard(window):
             CreatedModules.append(Obj)
             Obj.SetValues(ObjValues)
             Obj.place(x=ObjXPos,y=ObjYPos)
-        for Module in ModulesArray:
+        for i,Module in enumerate(ModulesArray):
             IsContainer=Module[4]
             ObjContent=Module[5]
             ObjBefore=Module[6]
             ObjAfter=Module[7]
+            if IsContainer:
+                if len(ObjContent)>0:
+                    for Item in ObjContent:
+                        CreatedModules[i].Content.append(CreatedModules[Item])
+                if not(ObjBefore==-1):
+                    CreatedModules[i].MustBeBefore=CreatedModules[ObjBefore]
+                if not(ObjAfter==-1):
+                    CreatedModules[i].MustBeAfter=CreatedModules[ObjAfter]
             
 
     def AskLoadModules():
