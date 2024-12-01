@@ -1,6 +1,7 @@
 import os, sys
 import zlib
 import glob
+from datetime import datetime
 
 def CRC(fileName):
     CRC32 = 0
@@ -16,18 +17,27 @@ def FilesHasBeenModified():
     except:
         pass
     CRCValues=[]
+    TotalLines=0
     directory = '*.py'  # Example to match text files
     for filename in glob.glob(directory):
+        with open(filename,'r') as textfile: TotalLines+=len(textfile.readlines())
         CRCValues.append(CRC(filename))
     directory = 'modules/*.py'  # Example to match text files
     for filename in glob.glob(directory):
+        with open(filename,'r') as textfile: TotalLines+=len(textfile.readlines())
         CRCValues.append(CRC(filename))
     with open("CRCValues",mode="w") as file:
          file.writelines(CRCValues)
     GlobalCRC=CRC("CRCValues")
     with open("CRCValues",mode="w") as file:
         file.write(GlobalCRC)
-    return not (GlobalCRC==OldGlobalCRC)
+    Changed=not (GlobalCRC==OldGlobalCRC)
+    if Changed:
+        try:
+            with open("stats.txt",'a') as outfile: outfile.write(str(datetime.now())+" total lines: "+str(TotalLines)+"\n")
+        except:
+            pass
+    return Changed
 
 def GetBuildVersion():
     try:

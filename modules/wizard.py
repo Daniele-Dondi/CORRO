@@ -1053,16 +1053,12 @@ def StartWizard(window):
         if NumActions==0: return
         print(NumActions," Actions")
         ModulesArray=[]
-        for Step,Action in enumerate(Sorted):
+        for Action in Sorted:
             Actions=[]
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
-            #print("Object: ",Step)
-            #print(ObjType)
             Actions.append(ObjType)            
-            #print(Object.GetValues())
             Actions.append(Object.GetValues())           
-            #print("Position: ",Object.winfo_x(),Object.winfo_y())
             Actions.append(Object.winfo_x())
             Actions.append(Object.winfo_y())
             try:
@@ -1071,7 +1067,6 @@ def StartWizard(window):
                 try:
                     ContentList=[]
                     for Item in Object.Content:
-                        #print("Contains: ",GetObjectPosition(Item.winfo_y(),Sorted))
                         ContentList.append(GetObjectPosition(Item.winfo_y(),Sorted))
                     Actions.append(ContentList)
                 except:
@@ -1081,7 +1076,6 @@ def StartWizard(window):
                     before_y=Object.MustBeBefore.winfo_y()
                     before=GetObjectPosition(before_y,Sorted)
                     Actions.append(before)
-                    #print("Must be before: ",before)
                 except:
                     Actions.append(-1)
                     pass
@@ -1089,7 +1083,6 @@ def StartWizard(window):
                     after_y=Object.MustBeAfter.winfo_y()
                     after=GetObjectPosition(after_y,Sorted)
                     Actions.append(after)
-                    #print("Must be after: ",after)
                 except:
                     Actions.append(-1)
                     pass
@@ -1100,7 +1093,6 @@ def StartWizard(window):
                 Actions.append(-1)
                 pass
             ModulesArray.append(Actions)
-        #print(ModulesArray)
         fout=open(filename, 'wb')
         pickle.dump(ModulesArray,fout)
         fout.close()
@@ -1170,4 +1162,3 @@ def StartWizard(window):
 
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
-
