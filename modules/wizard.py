@@ -82,7 +82,7 @@ class Pour(tk.Frame):
         except:
             self.StatusLabel.config(text="Check quantity error")
             return
-        syrnums=WhichSiringeIsConnectedTo(Input)
+        syrnums=WhichSyringeIsConnectedTo(Input)
         AvailableSyringes=[]
         for syringe in syrnums:
             Outputs=GetAllOutputsOfSyringe(int(syringe))
@@ -126,7 +126,7 @@ class Pour(tk.Frame):
             self.AlertButtonWaste.pack(side="left")
         else:
             self.AlertButtonWaste.pack_forget()    
-        self.StatusLabel.config(text="Syringe "+'or'.join(AvailableSyringes)+" "+str(Quantity)+" mL")
+        self.StatusLabel.config(text="Syringe "+' or '.join(AvailableSyringes)+" "+str(Quantity)+" mL")
         self.Action=[AvailableSyringes,Quantity,Amount,Unit,Input,Output] #Quantity=mL, Amount measured in Unit
         MaxVol=GetMaxVolumeApparatus(Output)
         if MaxVol>0 and Quantity>MaxVol:
@@ -188,7 +188,7 @@ class Pour(tk.Frame):
             self.Label1.config(text="Put")        
             self.Label2.config(text="of")
             self.Label3.config(text="in")        
-        SyrNums=WhichSiringeIsConnectedTo(Input)
+        SyrNums=WhichSyringeIsConnectedTo(Input)
         OutputsList=[]
         if len(SyrNums)==0: #database has changed meanwhile
             self.Source.set("")
@@ -316,13 +316,15 @@ class Heat(tk.Frame):
 class Wash(tk.Frame):
     def __init__(self,container):
         AvailableOutputs=GetAllSyringeOutputs()
-        AvailableOutputs=[AvailableOutputs[i][:-3] for i in range(len(AvailableOutputs))]
+        AvailableOutputs=[AvailableOutputs[i][:-3] for i in range(len(AvailableOutputs))] #remove IN
         AvailableInputs=GetAllSyringeInputs()
-        AvailableInputs=[AvailableInputs[i][:-4] for i in range(len(AvailableInputs))]
+        AvailableInputs=[AvailableInputs[i][:-4] for i in range(len(AvailableInputs))]    #remove OUT
         self.AvailableApparatus=[]
         for Apparatus in AvailableOutputs:
             if Apparatus in AvailableInputs:
-                self.AvailableApparatus.append(Apparatus)
+                if Apparatus not in self.AvailableApparatus:
+                    self.AvailableApparatus.append(Apparatus)  #we need an Apparatus having IN and OUT
+        self.SyrOutputs=""
         self.Action=[]
         self.Height=75
         self.MaxVol=0
@@ -368,10 +370,10 @@ class Wash(tk.Frame):
         self.Volume.delete(0,tk.END)
         self.Volume.insert(0,str(self.MaxVol))
 
-    def InputTypecallback(self,event):  
+    def CheckInput(self):
         Vessel=self.Destination.get()
-        SyrInputs=WhichSiringeIsConnectedTo(Vessel+" IN")
-        self.SyrOutputs=WhichSiringeIsConnectedTo(Vessel+" OUT")
+        SyrInputs=WhichSyringeIsConnectedTo(Vessel+" IN")
+        self.SyrOutputs=WhichSyringeIsConnectedTo(Vessel+" OUT")
         InputsList=[]
         for SyringeNum in SyrInputs:
             AvailableInputs=GetAllInputsOfSyringe(int(SyringeNum))
@@ -391,7 +393,10 @@ class Wash(tk.Frame):
         self.Source.config(values = PossibleInputs,state="readonly",width=self.MaxCharsInList(PossibleInputs))
         if not self.Source.get() in PossibleInputs:
             self.Source.set("")    
-    
+
+    def InputTypecallback(self,event):
+        self.CheckInput()
+
     def DeleteMe(self):
         DeleteObjByIdentifier(self)
 
@@ -410,11 +415,12 @@ class Wash(tk.Frame):
         self.Volume.insert(0,str(parms[3]))
 
     def CheckValues(self):
+        self.CheckInput()
         Destination=self.Destination.get()
         Source=self.Source.get()
         Cycles=self.Cycles.get()
         Volume=self.Volume.get()
-        SyrInputs=WhichSiringeIsConnectedTo(Source)
+        SyrInputs=WhichSyringeIsConnectedTo(Source)
         try:
             Volume=float(Volume)
         except:
@@ -423,7 +429,7 @@ class Wash(tk.Frame):
         self.StatusLabel.config(text="---")
         if not Destination=="" and not Source=="" and Volume>0.0:
          self.Action=[Destination,Source,Cycles,Volume,SyrInputs,self.SyrOutputs]
-         self.StatusLabel.config(text="Valid values")
+         self.StatusLabel.config(text="Input syringe "+' or '.join(SyrInputs)+", Output syringe "+' or '.join(self.SyrOutputs))         
         else:
          self.Action=[]
          self.StatusLabel.config(text="---")   
@@ -1031,7 +1037,15 @@ def StartWizard(window):
             else:
                 return
         LoadModules(filename)
-        
+
+    def AskImportModules():
+        if len(ActionsArray)>0:
+            MsgBox = tk.messagebox.askquestion ('Import modules','Import modules will add modules to the current project. Proceed?',icon = 'warning')
+            if MsgBox == 'yes':
+                filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
+                filename = filedialog.askopenfilename(filetypes=filetypes)
+                if filename=="": return
+                LoadModules(filename)                
 
     def SaveModules(filename):
         Sorted=GetYStack()
@@ -1090,7 +1104,6 @@ def StartWizard(window):
         fout=open(filename, 'wb')
         pickle.dump(ModulesArray,fout)
         fout.close()
-        
 
     def AskSaveModules():
      filetypes=(('SyringeBOT module files','*.modules'),('All files','*.*'))
@@ -1121,6 +1134,7 @@ def StartWizard(window):
     file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
     file_menu.add_command(label='Load modules',command=AskLoadModules)
+    file_menu.add_command(label='Import modules',command=AskImportModules)    
     file_menu.add_command(label='Save modules',command=AskSaveModules)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)

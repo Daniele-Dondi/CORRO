@@ -24,7 +24,8 @@ PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","B
 
 
 def InitAllData():
-    global ReactantsArray, CurrentReactant, SyringesOptions, CurrentSyringe, TotalNumberOfSyringes, SyringesArray, ApparatusArray, CurrentApparatus, PIDList, ThermoList, PowerList
+    global ReactantsArray, CurrentReactant, SyringesOptions, CurrentSyringe, TotalNumberOfSyringes, SyringesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
+    global DefaultDeviceParameters, PIDList, ThermoList, PowerList
     ReactantsArray=[]
     CurrentReactant=1
     SyringesOptions=["Not in use","Air/Waste"]
@@ -33,6 +34,9 @@ def InitAllData():
     SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
     ApparatusArray=[]
     CurrentApparatus=1
+    DevicesArray=[]
+    CurrentDevice=1
+    DefaultDeviceParameters=["","","","","",True,"1",""]
     PIDList=["None","Heater 1","Heater 2"]
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
@@ -82,7 +86,7 @@ def GetMMOfInput(Name):
        MM=0.0
     return MM    
 
-def WhichSiringeIsConnectedTo(Name):
+def WhichSyringeIsConnectedTo(Name):
     value=[]
     for i, element in enumerate(SyringesArray):
         if Name in element:
@@ -151,11 +155,12 @@ def GetSyringesArray():
     return SyringesArray
 
 def LoadConnFile(filename):
-    global ReactantsArray,SyringesArray,ApparatusArray
+    global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
     fin=open(filename, 'rb')
     ReactantsArray=pickle.load(fin)
     SyringesArray=pickle.load(fin)
     ApparatusArray=pickle.load(fin)
+    DevicesArray=pickle.load(fin)
     fin.close()
 
 def StartConfigurator(window):
@@ -196,7 +201,7 @@ def StartConfigurator(window):
      HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
         
     def LoadAllData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():
          MsgBox = tk.messagebox.askquestion ('Load Data','By loading data from file current data will be overwritten. Proceed?',icon = 'warning')
      else:
@@ -218,6 +223,7 @@ def StartConfigurator(window):
      pickle.dump(ReactantsArray,fout)
      pickle.dump(SyringesArray,fout)
      pickle.dump(ApparatusArray,fout)
+     pickle.dump(DevicesArray,fout)     
      fout.close()
 
     def ClearAllData():
