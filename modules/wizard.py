@@ -8,6 +8,7 @@ class Pour(tk.Frame):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
+        self.MacroName="Pour" #bind to macro name in macros folder
         super().__init__(container)
         self.create_widgets()
 
@@ -498,8 +499,8 @@ class IF(tk.Frame):
         self.Action=[]
         self.Height=65
         self.BeginBlock=True
-        self.Container=True ##
-        self.Content=[]     ##
+        self.Container=True 
+        self.Content=[]     
         self.MustBeAfter=0
         self.MustBeBefore=0
         super().__init__(container)
@@ -538,9 +539,6 @@ class IF(tk.Frame):
         return
 ##        self.Time.set(parms[0])  #####
 ##        self.Units.set(parms[1])
-##        self.Content=parms[2]
-##        self.MustBeAfter=parms[3]
-##        self.MustBeBefore=parms[4]
 
     def CheckValues(self):
         self.Action="OK"        
@@ -551,8 +549,8 @@ class ELSE(tk.Frame):
         self.Height=65
         self.BeginBlock=True        
         self.EndBlock=True        
-        self.Container=True ##
-        self.MustBeAfter=0     ##
+        self.Container=True 
+        self.MustBeAfter=0     
         self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
@@ -586,8 +584,8 @@ class ENDIF(tk.Frame):
         self.Action=[]
         self.Height=65
         self.EndBlock=True
-        self.Container=True ##
-        self.MustBeAfter=0     ##
+        self.Container=True 
+        self.MustBeAfter=0     
         self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
@@ -620,10 +618,10 @@ class LOOP(tk.Frame):
         self.Action=[]
         self.Height=65
         self.BeginBlock=True
-        self.Container=True ##
-        self.Content=[]     ##
+        self.Container=True 
+        self.Content=[]     
         self.MustBeAfter=0
-        self.MustBeBefore=0     ##
+        self.MustBeBefore=0     
         super().__init__(container)
         self.create_widgets()
 
@@ -669,8 +667,8 @@ class ENDLOOP(tk.Frame):
         self.Action=[]
         self.Height=65
         self.EndBlock=True
-        self.Container=True ##
-        self.MustBeAfter=0     ##
+        self.Container=True 
+        self.MustBeAfter=0     
         self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
@@ -703,7 +701,6 @@ class Grid(tk.Toplevel):
         super().__init__(container)        
         self.title("WIZARD SUMMARY")
         self.grab_set()
-        #self.grid()
         self.RowWidth=0
         self.ItemHeight=0
         self.Row=0
@@ -910,7 +907,24 @@ def StartWizard(window):
             if name not in ApparatusUsed:
                 return 0.0
             else:
-                return VolumesInApparatus[ApparatusUsed.index(name)]        
+                return VolumesInApparatus[ApparatusUsed.index(name)]
+            
+        def ChooseProperSyringe(ListOfSyringes,Volume):
+            if len(ListOfSyringes)==1: return ListOfSyringes[0]
+            SmallestVol=100000000
+            SmallestSyr=-1
+            BiggestVol=-1
+            BiggestSyr=-1
+            for num,Syringe in enumerate(ListOfSyringes):
+                SyrMaxVol=float(GetSyringeVolume(int(Syringe)))
+                if SyrMaxVol>BiggestVol: BiggestSyr=num
+                if SyrMaxVol<SmallestVol: SmallestSyr=num
+                if (Volume<SyrMaxVol) and (Volume>SyrMaxVol/100): #not too big, not too small
+                    return num
+            if Volume<SmallestVol: return SmallestSyr
+            if Volume>BiggestVol: return BiggestSyr
+            return ListOfSyringes[0] #it should not happen
+        
         ReactantsUsed=[]
         VolumesOfReactantsUsed=[]
         ApparatusUsed=[]
