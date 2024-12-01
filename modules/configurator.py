@@ -152,7 +152,6 @@ def GetSyringesArray():
 
 def LoadConnFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray
-    #print(filename)
     fin=open(filename, 'rb')
     ReactantsArray=pickle.load(fin)
     SyringesArray=pickle.load(fin)

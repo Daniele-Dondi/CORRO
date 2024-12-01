@@ -55,7 +55,7 @@ class Pour(tk.Frame):
         self.Label1.config(text=parms[0])
         self.Label2.config(text=parms[1])
         self.Label3.config(text=parms[2])
-        self.Amount.set(parms[3])
+        self.Amount.insert(0,str(parms[3]))
         self.Units.set(parms[4])
         self.Source.set(parms[5])
         self.Destination.set(parms[6])
@@ -272,10 +272,10 @@ class Heat(tk.Frame):
 
     def SetValues(self,parms):
         self.Source.set(parms[0])
-        self.Temperature.set(parms[1])
-        self.Time.set(parms[2])
+        self.Temperature.insert(0,str(parms[1]))
+        self.Time.insert(0,str(parms[2]))
         self.Checked.set(parms[3])
-        #self.EndTemperature delete insert
+        self.Temperature.insert(0,str(parms[4]))
 
     def CheckValues(self):
         Apparatus=self.Source.get()
@@ -400,8 +400,8 @@ class Wash(tk.Frame):
     def SetValues(self,parms):
         self.Source.set(parms[0])
         self.Destination.set(parms[1])
-        self.Cycles.set(parms[2])
-        self.Volume.set(parms[3])
+        self.Cycles.insert(0,str(parms[2]))
+        self.Volume.insert(0,str(parms[3]))
 
     def CheckValues(self):
         Destination=self.Destination.get()
@@ -460,7 +460,7 @@ class Wait(tk.Frame):
         return [self.Time.get(), self.Units.get()]
 
     def SetValues(self,parms):
-        self.Time.set(parms[0])
+        self.Time.insert(0,str(parms[0]))
         self.Units.set(parms[1])
 
     def CheckValues(self):
@@ -522,11 +522,12 @@ class IF(tk.Frame):
         return [self.Time.get(), self.Units.get()]
 
     def SetValues(self,parms):
-        self.Time.set(parms[0])  #####
-        self.Units.set(parms[1])
-        self.Content=parms[2]
-        self.MustBeAfter=parms[3]
-        self.MustBeBefore=parms[4]
+        return
+##        self.Time.set(parms[0])  #####
+##        self.Units.set(parms[1])
+##        self.Content=parms[2]
+##        self.MustBeAfter=parms[3]
+##        self.MustBeBefore=parms[4]
 
     def CheckValues(self):
         self.Action="OK"        
@@ -561,8 +562,7 @@ class ELSE(tk.Frame):
         return []
 
     def SetValues(self,parms):
-        self.MustBeAfter=parms[0]
-        self.MustBeBefore=parms[1]
+        return
 
     def CheckValues(self):
         return
@@ -644,9 +644,8 @@ class LOOP(tk.Frame):
         return [self.Condition.get(), self.Units.get()]
 
     def SetValues(self,parms): #######
-        self.Content=parms[0]
-        self.MustBeAfter=parms[1]
-        self.MustBeBefore=parms[2]
+        self.Condition.insert(0,str(parms[0]))
+        self.Units.set(parms[1])
 
     def CheckValues(self):
         self.Action="OK"        
@@ -680,8 +679,7 @@ class ENDLOOP(tk.Frame):
         return []
 
     def SetValues(self,parms):
-        self.MustBeAfter=parms[1]
-        self.MustBeBefore=parms[2]
+        return
 
     def CheckValues(self):
         return   
@@ -796,6 +794,13 @@ def StartWizard(window):
         widget = event.widget
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
+##        try:
+##         if widget.Container:
+##            for Contained in widget.Content:
+##                Contained.event_generate("<Button-1>")
+##                #Contained.invoke(on_drag_start(event)
+##        except:
+##            pass
         widget.lift()
 
     def on_drag_motion(event):
@@ -979,55 +984,132 @@ def StartWizard(window):
         except:
             return -1
 
-    def SaveModules():
+    def LoadModules(filename):
+        fin=open(filename, 'rb')
+        ModulesArray=pickle.load(fin)
+        fin.close()
+        CreatedModules=[]
+        for Module in ModulesArray:
+            ObjType=Module[0]
+            ObjValues=Module[1]
+            ObjXPos=Module[2]
+            ObjYPos=Module[3]
+            Obj=CreateNewObject(ObjType)
+            CreatedModules.append(Obj)
+            Obj.SetValues(ObjValues)
+            Obj.place(x=ObjXPos,y=ObjYPos)
+        for Module in ModulesArray:
+            IsContainer=Module[4]
+            ObjContent=Module[5]
+            ObjBefore=Module[6]
+            ObjAfter=Module[7]
+            
+
+    def AskLoadModules():
+        filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
+        filename = filedialog.askopenfilename(filetypes=filetypes)
+        if filename=="": return
+        if len(ActionsArray)>0:
+            MsgBox = tk.messagebox.askquestion ('Load modules','By loading, current modules will be deleted. Proceed anyway?',icon = 'warning')
+            if MsgBox == 'yes':
+                DeleteAllModules()
+            else:
+                return
+        LoadModules(filename)
+        
+
+    def SaveModules(filename):
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
         print(NumActions," Actions")
+        ModulesArray=[]
         for Step,Action in enumerate(Sorted):
+            Actions=[]
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
-            print("Object: ",Step)            
+            print("Object: ",Step)
             print(ObjType)
+            Actions.append(ObjType)            
             print(Object.GetValues())
+            Actions.append(Object.GetValues())            
             print("Position: ",Object.winfo_x(),Object.winfo_y())
+            Actions.append(Object.winfo_x())
+            Actions.append(Object.winfo_y())
             try:
              if Object.Container:
+                Actions.append(True) 
                 try:
+                    ContentList=[]
                     for Item in Object.Content:
                         print("Contains: ",GetObjectPosition(Item.winfo_y(),Sorted))
+                        ContentList.append(GetObjectPosition(Item.winfo_y(),Sorted))
+                    Actions.append(ContentList)
                 except:
+                    Actions.append([])
                     pass
                 try:
                     before_y=Object.MustBeBefore.winfo_y()
                     before=GetObjectPosition(before_y,Sorted)
+                    Actions.append(before)
                     print("Must be before: ",before)
                 except:
+                    Actions.append(-1)
                     pass
                 try:
                     after_y=Object.MustBeAfter.winfo_y()
                     after=GetObjectPosition(after_y,Sorted)
+                    Actions.append(after)
                     print("Must be after: ",after)
                 except:
+                    Actions.append(-1)
                     pass
                     
             except:
+                Actions.append(False)
+                Actions.append([])                
+                Actions.append(-1)
+                Actions.append(-1)
                 pass
-            #Action=Object.GetAction()
+            ModulesArray.append(Actions)
+        print(ModulesArray)
+        fout=open(filename, 'wb')
+        pickle.dump(ModulesArray,fout)
+        fout.close()
+        
 
-    
+    def AskSaveModules():
+     filetypes=(('SyringeBOT module files','*.modules'),('All files','*.*'))
+     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     if filename=="": return
+     if not ".modules" in filename: filename+=".modules"
+     SaveModules(filename)
+
+    def Close():
+        WizardWindow.destroy()
+
+    def DeleteAllModules():
+        while len(ActionsArray)>0:
+            DeleteObjByIdentifier(ActionsArray[0])
+
+    def New():
+        if len(ActionsArray)>0:
+            MsgBox = tk.messagebox.askquestion ('New procedure','Are you sure you want to delete all?',icon = 'warning')
+            if MsgBox == 'yes':
+                DeleteAllModules()
+
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x800+200+10')
     WizardWindow.grab_set()
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
-    file_menu.add_command(label='Open')
-    file_menu.add_command(label='Save',command=SaveModules)
-    file_menu.add_separator()
-    file_menu.add_command(label='Clear all data')
+    file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
-    file_menu.add_command(label='Exit')
+    file_menu.add_command(label='Load modules',command=AskLoadModules)
+    file_menu.add_command(label='Save modules',command=AskSaveModules)
+    file_menu.add_separator()
+    file_menu.add_command(label='Exit',command=Close)
     WizardWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
     frame1 = tk.Frame(WizardWindow)
