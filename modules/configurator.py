@@ -84,7 +84,13 @@ def GetMMOfInput(Name):
        MM=float(ReactantsArray[NamesArray.index(Name)][3])
     except:
        MM=0.0
-    return MM    
+    return MM
+
+def ValvePositionFor(syr,name):
+    global SyringesArray
+    #print(syr,name)
+    #print(SyringesArray[syr])
+    return (SyringesArray[syr].index(name))
 
 def WhichSyringeIsConnectedTo(Name):
     value=[]

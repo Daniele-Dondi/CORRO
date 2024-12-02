@@ -754,6 +754,7 @@ class Grid(tk.Toplevel):
 ###################### end of classes ######################
 ActionsArray=[]    
 CurrentY=2
+Macros=[['Pour','Pour.txt','5']] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
 
 def ReorderObjects():
     global CurrentY
@@ -910,17 +911,17 @@ def StartWizard(window):
                 return VolumesInApparatus[ApparatusUsed.index(name)]
             
         def ChooseProperSyringe(ListOfSyringes,Volume):
-            if len(ListOfSyringes)==1: return ListOfSyringes[0]
+            if len(ListOfSyringes)==1: return int(ListOfSyringes[0])
             SmallestVol=100000000
             SmallestSyr=-1
             BiggestVol=-1
             BiggestSyr=-1
-            for num,Syringe in enumerate(ListOfSyringes):
+            for Syringe in ListOfSyringes:
                 SyrMaxVol=float(GetSyringeVolume(int(Syringe)))
-                if SyrMaxVol>BiggestVol: BiggestSyr=num
-                if SyrMaxVol<SmallestVol: SmallestSyr=num
+                if SyrMaxVol>BiggestVol: BiggestSyr=Syringe
+                if SyrMaxVol<SmallestVol: SmallestSyr=Syringe
                 if (Volume<SyrMaxVol) and (Volume>SyrMaxVol/100): #not too big, not too small
-                    return num
+                    return Syringe
             if Volume<SmallestVol: return SmallestSyr
             if Volume>BiggestVol: return BiggestSyr
             return ListOfSyringes[0] #it should not happen
@@ -946,7 +947,7 @@ def StartWizard(window):
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
                 Quantity=float(Quantity)
-                Amount=float(Amount)
+                #Amount=float(Amount)
                 Transfered=Quantity
                 if "Reactant" in Input:
                  UpdateVolumes(Input,Quantity,ReactantsUsed,VolumesOfReactantsUsed)
@@ -957,22 +958,37 @@ def StartWizard(window):
                  UpdateVolumes(Input,-Quantity,ApparatusUsed,VolumesInApparatus)
                 if "Apparatus" in Output:
                  MaxVol=GetMaxVolumeApparatus(Output)
-                 Output=Output[:-3]   #remove IN                 
+                 Output2=Output[:-3]   #remove IN   Output2 is like output but without " IN"
                  if MaxVol>0:
-                     CurrentLiquid=ApparatusVolContent(Output)
+                     CurrentLiquid=ApparatusVolContent(Output2)
                      if Quantity+CurrentLiquid>MaxVol:
-                         messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output+" in step n."+str(Step+1))
+                         messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output2+" in step n."+str(Step+1))
                          Object.StatusLabel.config(text="ERROR")
                          return                     
-                 UpdateVolumes(Output,Quantity,ApparatusUsed,VolumesInApparatus)
+                 UpdateVolumes(Output2,Quantity,ApparatusUsed,VolumesInApparatus)
+                 ###create macro action
+                 SyringeToUse=int(ChooseProperSyringe(AvailableSyringes,Quantity))
+                 V_in=ValvePositionFor(SyringeToUse,Input)
+                 V_out=ValvePositionFor(SyringeToUse,Output)
+                 V_waste=ValvePositionFor(SyringeToUse,'Air/Waste')
+                 print("macro syr",SyringeToUse," ml:",Quantity," in:",V_in," out:",V_out," waste:",V_waste)
                  
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
+                try:
+                    if VolumesInApparatus[ApparatusUsed.index(Destination)]>0:
+                        print(Destination," not empty")
+                except:
+                    print("error wash 3")
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
+                ###create macro action
+                print(ChooseProperSyringe(SyrInputs,Volume))
+                print(ChooseProperSyringe(SyrOutputs,Volume))
+                
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
-        print(StepByStepOps)
+        #print(StepByStepOps)
         StepByStepWindow=Grid(window)
         StepByStepWindow.WriteOnHeader("#")
         StepByStepWindow.WriteOnHeader("Action")
@@ -1065,7 +1081,7 @@ def StartWizard(window):
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
-        print(NumActions," Actions")
+        #print(NumActions," Actions")
         ModulesArray=[]
         for Action in Sorted:
             Actions=[]
@@ -1144,8 +1160,11 @@ def StartWizard(window):
     file_menu.add_command(label='Save modules',command=AskSaveModules)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
+    settings_menu = Menu(menubar,tearoff=0)
+    settings_menu.add_command(label='Default macro settings')
     WizardWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
+    menubar.add_cascade(label="Settings",menu=settings_menu)
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
