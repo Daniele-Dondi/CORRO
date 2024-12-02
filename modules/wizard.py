@@ -694,6 +694,43 @@ class ENDLOOP(tk.Frame):
         return
 
     def CheckValues(self):
+        return
+
+class REM(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=55
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="blue")
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="COMMENT")
+        self.Label1.pack(side="left")
+        self.Remark=tk.Entry(self.Line1,state="normal",width=50)
+        self.Remark.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")        
+
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+        
+    def GetAction(self):
+        return "OK"
+
+    def GetValues(self):
+        return [self.Remark.get()]
+
+    def SetValues(self,parms):
+        self.Remark.delete(0,tk.END)
+        self.Remark.insert(0,str(parms[0]))
+
+    def CheckValues(self):
         return   
 
 class Grid(tk.Toplevel):
@@ -755,6 +792,7 @@ class Grid(tk.Toplevel):
 ActionsArray=[]    
 CurrentY=2
 Macros=[['Pour','Pour.txt','5']] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def ReorderObjects():
     global CurrentY
@@ -864,7 +902,9 @@ def StartWizard(window):
         elif ObjType=="LOOP":
             Obj=LOOP(frame2)
         elif ObjType=="ENDLOOP":
-            Obj=ENDLOOP(frame2)                         
+            Obj=ENDLOOP(frame2)
+        elif ObjType=="REM":
+            Obj=REM(frame2)
         elif ObjType=="IF Block":
             Obj1=CreateNewObject("IF")
             Obj2=CreateNewObject("ELSE")            
@@ -894,6 +934,7 @@ def StartWizard(window):
         return Obj
     
     def CheckProcedure():
+        global EmptyVolume
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
                 idx=NamesArray.index(Input)
@@ -975,16 +1016,30 @@ def StartWizard(window):
                  
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
+                BestInputSyringe=ChooseProperSyringe(SyrInputs,Volume)
+                BestOutputSyringe=ChooseProperSyringe(SyrOutputs,Volume)
                 try:
-                    if VolumesInApparatus[ApparatusUsed.index(Destination)]>0:
-                        print(Destination," not empty")
+                    ResidualVolume=VolumesInApparatus[ApparatusUsed.index(Destination)]
+                    if ResidualVolume>0: #reactor not empty. Before the washing we have to remove the content
+                        V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
+                        V_waste=ValvePositionFor(BestOutputSyringe,'Air/Waste')
+                        V_out=V_waste
+                        print("macro syr",BestOutputSyringe," ml:",ResidualVolume+EmptyVolume," in:",V_in," out:",V_out," waste:",V_waste)
                 except:
                     print("error wash 3")
+                for i in range(int(Cycles)):
+                    V_in=ValvePositionFor(BestInputSyringe,Source)
+                    V_out=ValvePositionFor(BestInputSyringe,Destination+" IN")
+                    V_waste=ValvePositionFor(BestInputSyringe,'Air/Waste')
+                    print("macro syr",BestInputSyringe," ml:",Volume," in:",V_in," out:",V_out," waste:",V_waste)
+                    V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
+                    V_out=ValvePositionFor(BestOutputSyringe,'Air/Waste')
+                    V_waste=V_out
+                    print("macro syr",BestOutputSyringe," ml:",Volume+EmptyVolume," in:",V_in," out:",V_out," waste:",V_waste)
+                    
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
                 ###create macro action
-                print(ChooseProperSyringe(SyrInputs,Volume))
-                print(ChooseProperSyringe(SyrOutputs,Volume))
                 
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
@@ -1185,7 +1240,8 @@ def StartWizard(window):
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
     tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")
     tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")
-    tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")      
+    tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
+    tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")      
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    

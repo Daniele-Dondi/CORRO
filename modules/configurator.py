@@ -88,9 +88,11 @@ def GetMMOfInput(Name):
 
 def ValvePositionFor(syr,name):
     global SyringesArray
-    #print(syr,name)
-    #print(SyringesArray[syr])
-    return (SyringesArray[syr].index(name))
+    try:
+       return (SyringesArray[int(syr)].index(name))
+    except:
+        print("ERROR Valvepos")
+        return -1
 
 def WhichSyringeIsConnectedTo(Name):
     value=[]
