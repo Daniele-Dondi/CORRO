@@ -1125,7 +1125,7 @@ def StartWizard(window):
 
     def AskImportModules():
         if len(ActionsArray)>0:
-            MsgBox = tk.messagebox.askquestion ('Import modules','Import modules will add modules to the current project. Proceed?',icon = 'warning')
+            MsgBox = tk.messagebox.askquestion ('Append modules','Import modules will add modules to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
                 filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
                 filename = filedialog.askopenfilename(filetypes=filetypes)
