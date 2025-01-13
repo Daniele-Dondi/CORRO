@@ -1211,7 +1211,7 @@ def StartWizard(window):
     file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
     file_menu.add_command(label='Load modules',command=AskLoadModules)
-    file_menu.add_command(label='Import modules',command=AskImportModules)    
+    file_menu.add_command(label='Append modules',command=AskImportModules)    
     file_menu.add_command(label='Save modules',command=AskSaveModules)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
