@@ -1,21 +1,21 @@
- # Program CORRO
- #
- # Copyright (c) 2024 Daniele Dondi
- #
- # This program is free software: you can redistribute it and/or modify
- # it under the terms of the GNU General Public License as published by
- # the Free Software Foundation, either version 3 of the License, or
- # (at your option) any later version.
- #
- # This program is distributed in the hope that it will be useful,
- # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- # GNU General Public License for more details.
- #
- # You should have received a copy of the GNU General Public License
- # along with this program.  If not, see <https://www.gnu.org/licenses/>.
- #
- #
+# Copyright (C) 2025 Daniele Dondi
+#
+# This work is licensed under a Creative Commons Attribution 4.0 International License.
+# To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
+#
+# You are free to:
+# - Share: copy and redistribute the material in any medium or format
+# - Adapt: remix, transform, and build upon the material for any purpose, even commercially
+#
+# Under the following terms:
+# - Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+#   You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+# - No additional restrictions: You may not apply legal terms or technological measures that legally restrict
+#   others from doing anything the license permits.
+#
+# Author: Daniele Dondi
+# Date: 2025
+
 import PIL.Image
 from threading import Timer
 import tkinter

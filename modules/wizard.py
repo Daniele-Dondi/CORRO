@@ -1,3 +1,21 @@
+# Copyright (C) 2025 Daniele Dondi
+#
+# This work is licensed under a Creative Commons Attribution 4.0 International License.
+# To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
+#
+# You are free to:
+# - Share: copy and redistribute the material in any medium or format
+# - Adapt: remix, transform, and build upon the material for any purpose, even commercially
+#
+# Under the following terms:
+# - Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+#   You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+# - No additional restrictions: You may not apply legal terms or technological measures that legally restrict
+#   others from doing anything the license permits.
+#
+# Author: Daniele Dondi
+# Date: 2025
+
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
@@ -791,8 +809,26 @@ class Grid(tk.Toplevel):
 ###################### end of classes ######################
 ActionsArray=[]    
 CurrentY=2
-Macros=[['Pour','Pour.txt','5']] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+AvailableMacros=[['Pour','Pour.txt','5']] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
 EmptyVolume=10 #Extra volume to be used to remove all reactors content
+
+def CreateCode(*args):
+    numvars=-1
+    for macro in AvailableMacros:
+        if macro[0]==args[0]:
+            macroname=macro[1]
+            numvars=macro[2]
+            break
+    if numvars==-1:
+        print("Macro",args[0],"not found! cannot compile code. Check the list of available macros")
+        return
+    if not(numvars==(len(args)-1)):
+        print("Macro",args[0],"needs",numvars,"variables, but ",str(len(args)-1),"were given")
+        return
+    print("OK")
+    return
+    for i,argument in enumerate(args):
+        print(argument)
 
 def ReorderObjects():
     global CurrentY
@@ -1012,7 +1048,7 @@ def StartWizard(window):
                  V_in=ValvePositionFor(SyringeToUse,Input)
                  V_out=ValvePositionFor(SyringeToUse,Output)
                  V_waste=ValvePositionFor(SyringeToUse,'Air/Waste')
-                 print("macro syr",SyringeToUse," ml:",Quantity," in:",V_in," out:",V_out," waste:",V_waste)
+                 CreateCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste)
                  
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
