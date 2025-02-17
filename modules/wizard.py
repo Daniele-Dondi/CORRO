@@ -825,10 +825,14 @@ def CreateCode(*args):
     if not(numvars==(len(args)-1)):
         print("Macro",args[0],"needs",numvars,"variables, but ",str(len(args)-1),"were given")
         return
-    print("OK")
+    code='macro "'+str(macroname)+'"'
+    for i,var in enumerate(args):
+        if i>0:
+            code+=str(var)
+            if i<len(args)-1:
+                code+=','
+    print(code)
     return
-    for i,argument in enumerate(args):
-        print(argument)
 
 def ReorderObjects():
     global CurrentY
