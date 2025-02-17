@@ -809,7 +809,7 @@ class Grid(tk.Toplevel):
 ###################### end of classes ######################
 ActionsArray=[]    
 CurrentY=2
-AvailableMacros=[['Pour','Pour.txt','5']] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
 EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def CreateCode(*args):
