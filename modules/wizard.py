@@ -832,7 +832,6 @@ def CreateCode(*args):
             if i<len(args)-1:
                 code+=','
     print(code)
-    return
 
 def ReorderObjects():
     global CurrentY
@@ -1047,7 +1046,6 @@ def StartWizard(window):
                          Object.StatusLabel.config(text="ERROR")
                          return                     
                  UpdateVolumes(Output2,Quantity,ApparatusUsed,VolumesInApparatus)
-                 ###create macro action
                  SyringeToUse=int(ChooseProperSyringe(AvailableSyringes,Quantity))
                  V_in=ValvePositionFor(SyringeToUse,Input)
                  V_out=ValvePositionFor(SyringeToUse,Output)
@@ -1064,23 +1062,21 @@ def StartWizard(window):
                         V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                         V_waste=ValvePositionFor(BestOutputSyringe,'Air/Waste')
                         V_out=V_waste
-                        print("macro syr",BestOutputSyringe," ml:",ResidualVolume+EmptyVolume," in:",V_in," out:",V_out," waste:",V_waste)
+                        CreateCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste)
                 except:
                     print("error wash 3")
                 for i in range(int(Cycles)):
                     V_in=ValvePositionFor(BestInputSyringe,Source)
                     V_out=ValvePositionFor(BestInputSyringe,Destination+" IN")
                     V_waste=ValvePositionFor(BestInputSyringe,'Air/Waste')
-                    print("macro syr",BestInputSyringe," ml:",Volume," in:",V_in," out:",V_out," waste:",V_waste)
+                    CreateCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste)
                     V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                     V_out=ValvePositionFor(BestOutputSyringe,'Air/Waste')
                     V_waste=V_out
-                    print("macro syr",BestOutputSyringe," ml:",Volume+EmptyVolume," in:",V_in," out:",V_out," waste:",V_waste)
+                    CreateCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste)
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
-                ###create macro action
-                
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         #print(StepByStepOps)
