@@ -1140,7 +1140,7 @@ def StartConfigurator(window):
             parms=GetTab4Variables()
             if parms[2]=="" or parms[3]=="": return
             Test=serial.Serial(parms[2],parms[3])
-            time.sleep(1)
+            time.sleep(0.5)
         except:
             messagebox.showerror("ERROR", "Could not connect")
         else:
@@ -1149,12 +1149,18 @@ def StartConfigurator(window):
             SerialWindow.grab_set()
             T = tk.Text(SerialWindow, height = 5, width = 52)
             T.pack()
+            F=ttk.Frame(SerialWindow)
+            F.pack()
+            E=ttk.Entry(F)
+            E.pack()
+            S=tk.Button(F, text = "Send",command = SerialWindow.destroy)
+            S.pack()
             B = tk.Button(SerialWindow, text = "Exit",command = SerialWindow.destroy)
             B.pack()
-            count=0
-            while (Test.inWaiting() > 0) and count<10000:
+            #count=0
+            while (Test.inWaiting() > 0): #and count<10000:
               data_str = Test.read(Test.inWaiting()).decode('ascii')
-              count+=1
+              #count+=1
               T.insert(0,data_str)
 ##            
             SerialWindow.mainloop()
