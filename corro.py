@@ -980,14 +980,17 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         btn.pack()
         Charts_enabled[0]=True
         cntr=0
-        for var_name in Sensors_var_names:
-         print(var_name)       
-         if USB_deviceready[cntr]:       
-          btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr +1)% len(graph_colors)],fg="white",bd=4)
-          Plot_B.append(btn)
-          btn.pack()
-          cntr+=1
-          Charts_enabled[cntr]=True
+        for sensor in range(len(USB_names)):
+        #for var_name in Sensors_var_names:
+         #print(var_name)       
+         if USB_deviceready[sensor]:
+          for variable in range(int(USB_num_vars[sensor])):
+           var_name=Sensors_var_names[cntr]
+           btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr +1)% len(graph_colors)],fg="white",bd=4)
+           Plot_B.append(btn)
+           btn.pack()
+           cntr+=1
+           Charts_enabled[cntr]=True
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
@@ -1162,7 +1165,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
        
-   #logfile.write(str(DT.datetime.now())+log_text+"\n") #CAZZO
+   logfile.write(str(DT.datetime.now())+log_text+"\n") 
    Sensors_var_values=" ".join(USB_last_values).split()
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
