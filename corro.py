@@ -935,6 +935,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
     global DoNotConnect
+    global chart_h
 
     if connected == 0:  #if it is not connected, connect
         SyringeBOT_IS_INITIALIZED=False
@@ -952,6 +953,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
          print("ERROR Connect(): ",e)
          HasSyringeBOT=False
+         w2.pack_forget()
         else:
          connected = 1
          HasSyringeBOT=True
@@ -971,8 +973,12 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         if connected==0:
                 tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in configuration.txt")
                 return
+        if HasSyringeBOT==False: #No SyringeBOT, only sensors. Expand Graph
+                w.pack_forget()
+                chart_h=600
+                w.config(width=chart_w,height=chart_h)
+                w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
-        print(Sensors_var_names)
         #create buttons to enable/disable plots
         Charts_enabled=[False]*(len(Sensors_var_names)+1)
         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
@@ -1166,7 +1172,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        print("MainCycle",e," line ",tb.tb_lineno)
        
    logfile.write(str(DT.datetime.now())+log_text+"\n") 
-   Sensors_var_values=" ".join(USB_last_values).split()
+   #Sensors_var_values=" ".join(USB_last_values).split()
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
 def DeleteTemperatureEvent(t):
@@ -1322,7 +1328,7 @@ Graph=Frame(base)  #frame for graph showing values
 Graph.pack(side="bottom")
 w=Canvas(Graph,width=chart_w,height=chart_h)
 w.pack(expand=YES,fill=BOTH)
-w.config(width=chart_w,height=chart_h)
+#w.config(width=chart_w,height=chart_h)
 #IM.pack() #show graphical control
 IM=Frame(base)   #frame for main image with syringebot scheme
 IM.pack(side="left")
