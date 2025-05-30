@@ -14,7 +14,7 @@
 #schematic image of the current configuration
 test.png
 #USB port for the syringebot
-COM120
+COM12
 #baud rate for syringebot
 250000
 #USB interface
@@ -29,4 +29,4 @@ COM14
 #Variables to read
 2
 #var names
-V1,V2
+V1 V2

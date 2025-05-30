@@ -45,6 +45,7 @@ connected = 0
 GO_Fullscreen=False #if true, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
+ShowMacrosPalettes=False
 #USB sensors control vars
 USB_handles=[]  
 USB_names=[]
@@ -959,7 +960,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
           try:
            USB_handles.append(serial.Serial(USB_ports[sensor],USB_baudrates[sensor]))
            USB_deviceready[sensor]=True
-           if (debug): print("USB device #",sensor,"port:",USB_ports[sensor],"num vars=" ,USB_num_vars[sensor])
+           if (debug): print("USB device #",sensor+1,"port:",USB_ports[sensor],"num vars=" ,USB_num_vars[sensor])
            USB_last_values.append(("0.01 " *int(USB_num_vars[sensor])).strip())
           except Exception as e:
            print(e)       
@@ -967,7 +968,11 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            tkinter.messagebox.showerror("ERROR", USB_names[sensor]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
           else:
            connected=1
+        if connected==0:
+                tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in configuration.txt")
+                return
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
+        print(Sensors_var_names)
         #create buttons to enable/disable plots
         Charts_enabled=[False]*(len(Sensors_var_names)+1)
         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
@@ -991,7 +996,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             logfile.write("-         PROCESS STARTS         -\n")
             logfile.write("----------------------------------\n")
             logfile.write(str(DT.datetime.now())+"\n")
-            logfile.write("\nTimestamp\tActual Temperature\tSetPoint")
+            logfile.write("\nTimestamp")
+            if (HasSyringeBOT): logfile.write("\tActual Temperature\tSetPoint")
             for device in range(len(USB_names)):
               logfile.write("\t"+USB_var_names[device].replace(" ","\t"))      
             logfile.write("\n")               
@@ -1273,7 +1279,7 @@ b_temp=Button(F, image=temp_icon,command=temp_button_click)
 clock_icon = PhotoImage(file = r"icons"+os.sep+"clock.png")
 b_clock=Button(F, image=clock_icon,command=time_button_click)
 Z = Frame(base,bd=2,relief=RIDGE) #macros frame
-Z.pack(side="left",fill="y")
+if ShowMacrosPalettes: Z.pack(side="left",fill="y")
 try:  #read macros and decide if we have to create a second palette
  for file in os.listdir("macros"):
     if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
@@ -1284,12 +1290,12 @@ else:
   macrolist.sort()     
   if len(macrolist)>28:
           ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
-          ZZ.pack(side="left",fill="y")
+          if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
           Label(ZZ, text="MACROS 2",font="Verdana 10 bold",bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
-Z2.pack(side="left",fill="y")
+if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
 Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
-Zcore.pack(side="left",fill="y")
+if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
 Label(Zcore, text="HAL MACROS",font="Verdana 10 bold",bg='pink').pack(pady=10)
 GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
