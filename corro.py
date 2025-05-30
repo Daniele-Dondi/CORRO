@@ -1007,7 +1007,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       b_clock.pack_forget()
       Temperature_Hook=False
       b_temp.pack_forget()          
-      syringe.close()
+      if HasSyringeBOT: syringe.close()
       for sensor in range(len(USB_names)):
         if USB_deviceready[sensor]:
             USB_deviceready[sensor]=False    
@@ -1094,6 +1094,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   if connected == 1:
    w.delete("all") #clear canvas
    graph_color_index=0
+   log_text=""
    if HasSyringeBOT:
            if SyringeWorking:
                 try:   
@@ -1119,7 +1120,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
 
            SyringeSendNow='M105' #send immediate gcode to SyringeBOT
            Temp_points.append(float(T_Actual))
-           log_text="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
+           log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
            #w.delete("all") #clear canvas
            #graph_color_index=0
            Draw_Chart(Temp_points)
