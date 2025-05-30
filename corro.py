@@ -29,7 +29,7 @@ from tkinter import dialog
 from tkinter import ttk
 import sys
 import time
-import datetime
+import datetime as DT
 import os
 import serial
 from os import listdir
@@ -62,6 +62,7 @@ Charts_enabled=[]
 Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
 HasRobot = False
+HasSyringeBOT = False
 SyringeUSB = ""
 RobotUSB = ""
 SyringeUSBrate = 0
@@ -154,7 +155,7 @@ def GraphZoom_Unzoom():
 def readConfigurationFiles():
     global NumSyringes,SyringeMax,SyringeVol,VolInlet,VolOutlet,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
     global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
-    global HasRobot
+    global HasRobot,HasSyringeBOT
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points
     
     try:
@@ -365,7 +366,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
       commands=line.split(' ',1)
       commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
       if(debug): print(commands[1])
-      logfile.write(str(datetime.datetime.now())+"\t"+commands[1]+"\n")  
+      logfile.write(str(DT.datetime.now())+"\t"+commands[1]+"\n")  
      except:
       tkinter.messagebox.showerror("ERROR in log method","use: log text")
       return "Error"
@@ -377,7 +378,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
             IsBuffered0=False
             if noprint_debug==False: StartPrint0()
             else:
-             cmdfile.write("                     "+str(datetime.datetime.now())+"\n")
+             cmdfile.write("                     "+str(DT.datetime.now())+"\n")
              for lin in Gcode:
               cmdfile.write(lin+'\n')
     elif line.find('ask')==0: #if ask, make question to user
@@ -539,7 +540,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
           time=time.split('m')[1]            
          if 's' in time:
           seconds=int(time.split('s',1)[0])
-         datet=datetime.datetime.now()         
+         datet=DT.datetime.now()         
          new_datet=datet+datetime.timedelta(hours=hours,minutes=minutes,seconds=seconds)
          Time_Hook=True
          Time_Hook_Value=new_datet
@@ -862,7 +863,7 @@ def sendcommand(cmd,where): #send a gcode command
           SyringeSendNow=cmd      
           time.sleep(0.1)
         else:
-          cmdfile.write("                     "+str(datetime.datetime.now())+"\n")
+          cmdfile.write("                     "+str(DT.datetime.now())+"\n")
           cmdfile.write(cmd+"\n") 
       else:         #1 = robot
        if (HasRobot):   
@@ -928,7 +929,7 @@ def Enable_Disable_plot(j):
     Plot_B[j].config(relief=SUNKEN)
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
-    global connected,robot,syringe,logfile,HasRobot,SyringeBOT_IS_INITIALIZED
+    global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
     global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
@@ -949,10 +950,11 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         except Exception as e:
          tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
          print("ERROR Connect(): ",e)
-         connected=0
-         return
-        connected = 1
-        threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
+         HasSyringeBOT=False
+        else:
+         connected = 1
+         HasSyringeBOT=True
+         threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
         for sensor in range(len(USB_names)): #connect all the sensors
           try:
            USB_handles.append(serial.Serial(USB_ports[sensor],USB_baudrates[sensor]))
@@ -963,6 +965,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            print(e)       
            USB_deviceready[sensor]=False       
            tkinter.messagebox.showerror("ERROR", USB_names[sensor]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
+          else:
+           connected=1
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
         Charts_enabled=[False]*(len(Sensors_var_names)+1)
@@ -970,10 +974,11 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         Plot_B.append(btn)
         btn.pack()
         Charts_enabled[0]=True
-        cntr=1        
+        cntr=0
         for var_name in Sensors_var_names:
+         print(var_name)       
          if USB_deviceready[cntr]:       
-          btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[cntr% len(graph_colors)],fg="white",bd=4)
+          btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr +1)% len(graph_colors)],fg="white",bd=4)
           Plot_B.append(btn)
           btn.pack()
           cntr+=1
@@ -981,11 +986,11 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
-            logfile=open("log"+os.sep+"log"+str(datetime.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
+            logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
             logfile.write("----------------------------------\n")
             logfile.write("-         PROCESS STARTS         -\n")
             logfile.write("----------------------------------\n")
-            logfile.write(str(datetime.datetime.now())+"\n")
+            logfile.write(str(DT.datetime.now())+"\n")
             logfile.write("\nTimestamp\tActual Temperature\tSetPoint")
             for device in range(len(USB_names)):
               logfile.write("\t"+USB_var_names[device].replace(" ","\t"))      
@@ -1014,7 +1019,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       logfile.write("---------------------------------\n")
       logfile.write("-         PROCESS ENDED         -\n")
       logfile.write("---------------------------------\n")
-      logfile.write(str(datetime.datetime.now())+"\n")
+      logfile.write(str(DT.datetime.now())+"\n")
       logfile.close()
 
 def SyringeCycle(): #listen and send messages to SyringeBOT
@@ -1032,7 +1037,7 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
         T_Actual=float(T1)
         T_SetPoint=float(T2)
     except:
-     #print(datetime.datetime.now(),"whops")
+     #print(DT.datetime.now(),"whops")
      pass       
  if (SyringeWorking):
    if (SyringeReady):
@@ -1068,7 +1073,7 @@ def HookEventsCycle():
                print("Temp Hook: executing macro "+Temperature_Hook_Macro)
                Macro(macrolist.index(Temperature_Hook_Macro))
         if Time_Hook:
-           datet=datetime.datetime.now()
+           datet=DT.datetime.now()
            now = int(datet.timestamp())
            alarm = int(Time_Hook_Value.timestamp())
            if (now>=alarm):
@@ -1081,46 +1086,52 @@ def HookEventsCycle():
 #MAIN CYCLE
 def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
   global syringe,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
+  global logfile
+  global HasSyringeBOT
   global SyringeWorking,SyringeQueueIndex,SyringeQueue,SyringeSendNow 
   global oldprogress,graph_color_index
   global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points,Sensors_var_names,Sensors_var_values
   if connected == 1:
-   if SyringeWorking:
-        try:   
-         progress=float(SyringeQueueIndex/SyringeQueue)
-        except:
-         progress=0
-        if not(oldprogress==progress):
-                logfile.write(str(datetime.datetime.now())+"\tProcessing progress: "+str(progress*100)+" %\n")
-        oldprogress=progress 
-        #print(progress)
-        if SyringeBOT_WAS_BUSY==False:
-           w2.create_rectangle(5,200,795,400,fill='white')
-           w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=('Helvetica 15 bold'))
-        w2.create_rectangle(10,300,progress*780+10,350,fill='red')
-        SyringeBOT_IS_BUSY=True
-        SyringeBOT_WAS_BUSY=True
-   else:
-        if SyringeBOT_WAS_BUSY==True:
-          w2.create_image(0, 0, image = Aimage, anchor=NW)
-          logfile.write(str(datetime.datetime.now())+"\tProcess finished\n")
-        SyringeBOT_IS_BUSY=False
-        SyringeBOT_WAS_BUSY=False
-
-   SyringeSendNow='M105' #send immediate gcode to SyringeBOT
-   Temp_points.append(float(T_Actual))
-   log_text="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
    w.delete("all") #clear canvas
    graph_color_index=0
-   Draw_Chart(Temp_points)
-   try:
-    MAX_Temp=max(Temp_points)
-   except:
-    MAX_Temp=0.01       
-   Y2=float(T_SetPoint)
-   if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the value
-     setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
-     w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
+   if HasSyringeBOT:
+           if SyringeWorking:
+                try:   
+                 progress=float(SyringeQueueIndex/SyringeQueue)
+                except:
+                 progress=0
+                if not(oldprogress==progress):
+                        logfile.write(str(DT.datetime.now())+"\tProcessing progress: "+str(progress*100)+" %\n")
+                oldprogress=progress 
+                #print(progress)
+                if SyringeBOT_WAS_BUSY==False:
+                   w2.create_rectangle(5,200,795,400,fill='white')
+                   w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=('Helvetica 15 bold'))
+                w2.create_rectangle(10,300,progress*780+10,350,fill='red')
+                SyringeBOT_IS_BUSY=True
+                SyringeBOT_WAS_BUSY=True
+           else:
+                if SyringeBOT_WAS_BUSY==True:
+                  w2.create_image(0, 0, image = Aimage, anchor=NW)
+                  logfile.write(str(DT.datetime.now())+"\tProcess finished\n")
+                SyringeBOT_IS_BUSY=False
+                SyringeBOT_WAS_BUSY=False
+
+           SyringeSendNow='M105' #send immediate gcode to SyringeBOT
+           Temp_points.append(float(T_Actual))
+           log_text="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
+           #w.delete("all") #clear canvas
+           #graph_color_index=0
+           Draw_Chart(Temp_points)
+           try:
+            MAX_Temp=max(Temp_points)
+           except:
+            MAX_Temp=0.01       
+           Y2=float(T_SetPoint)
+           if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the value
+             setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
+             w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
+   ########################################################################################################################################  
    for sensor in range(len(USB_names)):  #read values from all sensors connected to USB
      try:
       if (USB_deviceready[sensor]):
@@ -1144,7 +1155,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
        
-   logfile.write(str(datetime.datetime.now())+log_text+"\n")
+   #logfile.write(str(DT.datetime.now())+log_text+"\n") #CAZZO
    Sensors_var_values=" ".join(USB_last_values).split()
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
