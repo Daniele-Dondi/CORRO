@@ -992,8 +992,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          ex=0
         cntr=0 
         for sensor in range(len(USB_names)):
-        #for var_name in Sensors_var_names:
-         #print(var_name)       
          if USB_deviceready[sensor]:
           for variable in range(int(USB_num_vars[sensor])):
            var_name=Sensors_var_names[cntr]
@@ -1005,7 +1003,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
-            logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The format is needed for Windows to avoid invalid characters
+            logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The replace is needed for Windows to avoid invalid characters
             logfile.write("----------------------------------\n")
             logfile.write("-         PROCESS STARTS         -\n")
             logfile.write("----------------------------------\n")
@@ -1149,7 +1147,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
            except:
             MAX_Temp=0.01       
            Y2=float(T_SetPoint)
-           if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the value
+           if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the setpoint value
              setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
              w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
