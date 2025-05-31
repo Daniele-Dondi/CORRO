@@ -42,7 +42,7 @@ from modules.buildvercalculator import *
 
 #global vars
 connected = 0
-GO_Fullscreen=True #if true, app starts in fullscreen mode
+GO_Fullscreen=False #if true, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 ShowMacrosPalettes=False
@@ -1157,6 +1157,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        if USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
+        logfile.write(str(stringa)+"\n")
         V=stringa.split('\t')
         values=""
         if len(V)==USB_num_vars[sensor]: #keep data only if they correspond to the number of real variables, to avoid misreadings
@@ -1275,9 +1276,9 @@ if (HasRobot):
 ''' 
 Button(F, text="load gcode", command=LoadGcode).pack();
 rec_icon = PhotoImage(file = r"icons/rec.png")
-Button(F, text="REC", command=Record,image = rec_icon, compound = LEFT).pack();
+#Button(F, text="REC", command=Record,image = rec_icon, compound = LEFT).pack();
 canc_icon = PhotoImage(file = r"icons/stop.png")
-Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
+#Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
 conf_icon = PhotoImage(file = r"icons/configurator.png")
 Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
 wiz_icon = PhotoImage(file = r"icons/wizard.png")
