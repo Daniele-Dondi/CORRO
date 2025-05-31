@@ -1281,9 +1281,9 @@ Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound =
 conf_icon = PhotoImage(file = r"icons/configurator.png")
 Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
 wiz_icon = PhotoImage(file = r"icons/wizard.png")
-Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT).pack();
+#Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT).pack();
 bo_icon = PhotoImage(file = r"icons/BO.png")
-Button(F, text="B.O.", command=Wizard,image = bo_icon, compound = LEFT).pack();
+#Button(F, text="B.O.", command=Wizard,image = bo_icon, compound = LEFT).pack();
 bClose = Button(F, text="EXIT", command=Close)
 bClose.pack(pady=10)
 temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
