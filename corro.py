@@ -90,7 +90,7 @@ macrob=[]      #macro button array
 IsEditingMacro=0
 IsDeletingMacro=0
 #chart parameters
-chart_w=900 #size of the temp and voltages chart
+chart_w=600 #size of the temp and voltages chart
 chart_h=200
 graph_colors=['black','blue','green','red','dark violet','brown','orange','purple']
 graph_color_index=0
