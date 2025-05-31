@@ -23,7 +23,7 @@ Electrodes
 #type
 BOH
 #USB port
-COM14
+/dev/ttyACM0
 #baud rate
 9600
 #Variables to read

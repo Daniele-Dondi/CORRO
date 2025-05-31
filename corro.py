@@ -1157,7 +1157,6 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
        if USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
-        logfile.write(str(stringa)+"\n")
         V=stringa.split('\t')
         values=""
         if len(V)==USB_num_vars[sensor]: #keep data only if they correspond to the number of real variables, to avoid misreadings
