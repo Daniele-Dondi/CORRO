@@ -42,7 +42,7 @@ from modules.buildvercalculator import *
 
 #global vars
 connected = 0
-GO_Fullscreen=False #if true, app starts in fullscreen mode
+GO_Fullscreen=True #if true, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 ShowMacrosPalettes=False
@@ -962,7 +962,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
           try:
            USB_handles.append(serial.Serial(USB_ports[sensor],USB_baudrates[sensor]))
            USB_deviceready[sensor]=True
-           if (debug): print("USB device #",sensor+1,"port:",USB_ports[sensor],"num vars=" ,USB_num_vars[sensor])
+           if (debug): print("USB device #",sensor+1,"port:",USB_ports[sensor],"num vars=",USB_num_vars[sensor])
            USB_last_values.append(("0.01 " *int(USB_num_vars[sensor])).strip())
           except Exception as e:
            print(e)       
@@ -980,23 +980,28 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
-        Charts_enabled=[False]*(len(Sensors_var_names)+1)
-        btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
-        Plot_B.append(btn)
-        btn.pack()
-        Charts_enabled[0]=True
-        cntr=0
+        if HasSyringeBOT:
+         Charts_enabled=[False]*(len(Sensors_var_names)+1)
+         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
+         Plot_B.append(btn)
+         btn.pack()
+         Charts_enabled[0]=True
+         ex=1
+        else:
+         Charts_enabled=[False]*(len(Sensors_var_names))
+         ex=0
+        cntr=0 
         for sensor in range(len(USB_names)):
         #for var_name in Sensors_var_names:
          #print(var_name)       
          if USB_deviceready[sensor]:
           for variable in range(int(USB_num_vars[sensor])):
            var_name=Sensors_var_names[cntr]
-           btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr +1)% len(graph_colors)],fg="white",bd=4)
+           btn=Button(GRP, text=var_name, command=lambda j=cntr+ex : Enable_Disable_plot(j),bg=graph_colors[(cntr +ex)% len(graph_colors)],fg="white",bd=4)
            Plot_B.append(btn)
            btn.pack()
+           Charts_enabled[cntr+ex]=True
            cntr+=1
-           Charts_enabled[cntr]=True
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
