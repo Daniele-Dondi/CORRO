@@ -17,7 +17,6 @@
 # Date: 2025
 
 import PIL.Image
-#from PIL import Image as CULO
 from PIL import ImageTk
 from threading import Timer
 import tkinter
