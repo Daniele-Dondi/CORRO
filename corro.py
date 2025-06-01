@@ -1166,16 +1166,15 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
           USB_last_values[sensor]=values
         #elif debug:
         # print("no data received from sensor ",sensor)       
-        USB_var_points[sensor].append(USB_last_values[sensor]+" ")
-        log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
-        for datum in range(int(USB_num_vars[sensor])):
+       USB_var_points[sensor].append(USB_last_values[sensor]+" ")
+       log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
+       for datum in range(int(USB_num_vars[sensor])):
           Draw_Chart([float(e.split(' ')[datum]) for e in USB_var_points[sensor]])
      except Exception as e:
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
        
    logfile.write(str(DT.datetime.now())+log_text+"\n") 
-   #Sensors_var_values=" ".join(USB_last_values).split()
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
 def DeleteTemperatureEvent(t):
@@ -1235,6 +1234,8 @@ def Wizard():
 
 #Main window
 base = Tk()
+# Apply a default font globally
+base.option_add("*Font", ("Arial", 6))
 #base.iconbitmap("icons/main_icon.ico")
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
