@@ -17,6 +17,8 @@
 # Date: 2025
 
 import PIL.Image
+#from PIL import Image as CULO
+from PIL import ImageTk
 from threading import Timer
 import tkinter
 import threading
@@ -240,19 +242,23 @@ def onclick(event):
     if IsEditingMacro or IsDeletingMacro:
      return       
     if SyringeBOT_is_ready():
-     color=pix[event.x,event.y]
-     if (debug):
-      print ("clicked at", event.x, event.y)
-      print (color)
-     if color in colorsbound:
-      macroname=pixboundedmacro[colorsbound.index(color)]   
-      if(debug): print(macroname)
-      try:
-        macronum=macrolist.index(macroname)
-        Macro(macronum,str(str(color[0])+','+str(color[1])+','+str(color[2]))) #by default passes color arguments to macro
-      except Exception as e:
-        tkinter.messagebox.showerror("ERROR","Problem executing macro "+macroname)
-        print("onclick error:",e)
+     try:
+      color=pix[event.x,event.y]
+      if (debug):
+       print ("clicked at", event.x, event.y)
+       print (color)
+      if color in colorsbound:
+       macroname=pixboundedmacro[colorsbound.index(color)]   
+       if(debug): print(macroname)
+       try:
+         macronum=macrolist.index(macroname)
+         Macro(macronum,str(str(color[0])+','+str(color[1])+','+str(color[2]))) #by default passes color arguments to macro
+       except Exception as e:
+         tkinter.messagebox.showerror("ERROR","Problem executing macro "+macroname)
+         print("onclick error:",e)
+     except:
+        print("Clicked out of image")
+        pass
 
 def onmiddleclick(event):
     global pix,pixboundedmacro,colorsbound    
@@ -1125,7 +1131,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
                 #print(progress)
                 if SyringeBOT_WAS_BUSY==False:
                    w2.create_rectangle(5,200,795,400,fill='white')
-                   w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=('Helvetica 15 bold'))
+                   w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=(BUSY_FONT))
                 w2.create_rectangle(10,300,progress*780+10,350,fill='red')
                 SyringeBOT_IS_BUSY=True
                 SyringeBOT_WAS_BUSY=True
@@ -1139,8 +1145,6 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
            SyringeSendNow='M105' #send immediate gcode to SyringeBOT
            Temp_points.append(float(T_Actual))
            log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
-           #w.delete("all") #clear canvas
-           #graph_color_index=0
            Draw_Chart(Temp_points)
            try:
             MAX_Temp=max(Temp_points)
@@ -1236,6 +1240,9 @@ def Wizard():
 base = Tk()
 # Apply a default font globally
 base.option_add("*Font", ("Arial", 7))
+CORRO_FONT="Verdana 15 bold"
+HEADER_FONT="Verdana 8 bold"
+BUSY_FONT='Helvetica 15 bold'
 #base.iconbitmap("icons/main_icon.ico")
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
@@ -1244,7 +1251,7 @@ F.pack(side="left",fill="y")
 #Software name
 F.master.title("CO.R.RO 1.2 Build "+str(BuildVersion))
 #Frame F
-lTitle = Label(F, text="CO.R.RO",  font=("Verdana 15 bold"))
+lTitle = Label(F, text="CO.R.RO",  font=(CORRO_FONT))
 lTitle.pack(side="top")
 bStart = Button(F, text="CONNECT/DISCONNECT", command=Connect)
 bStart.pack(side="top", pady=10)
@@ -1304,15 +1311,15 @@ else:
   if len(macrolist)>28:
           ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
           if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
-          Label(ZZ, text="MACROS 2",font="Verdana 8 bold",bg='pink').pack(pady=10)
+          Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
 if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
 Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
 if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
-Label(Zcore, text="HAL MACROS",font="Verdana 8 bold",bg='pink').pack(pady=10)
+Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
 GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
-Label(GRP, text="GRAPH CTRL",font="Verdana 8 bold",bg='pink').pack(pady=10)
+Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
 Button(GRP, text="reset chart", command=ResetChart).pack();
 Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
 Zoom_B.pack()
@@ -1343,17 +1350,29 @@ w2.bind("<Button-3>", onrightclick) #bind click procedure to syringebot scheme
 w2.pack()
 #Load configuration file
 readConfigurationFiles()
-Aimage=PhotoImage(file=SchematicImage) # load the scheme of the current configuration
+RESIZE_IMAGES=False
+original_image = PIL.Image.open(SchematicImage)  # Replace with your actual image file
+if (RESIZE_IMAGES):
+        resized_image = original_image.resize((200, 200))  # Resize to desired dimensions
+else:
+        resized_image =original_image
+# Convert to Tkinter-compatible image format
+Aimage = ImageTk.PhotoImage(resized_image)
+#Aimage=PhotoImage(file=SchematicImage) # load the scheme of the current configuration
 w2.create_image(0, 0, image = Aimage, anchor=NW) #show image on canvas w2
 if noprint_debug: w2.create_text(400,15,text="DEBUG MODE. NO DATA IS SENT TO SYRINGEBOT. Gcode commands are saved in gcodecmds.txt",fill="red") 
-im = PIL.Image.open(MaskImage) # load the mask here
-pix = im.load()
+original_mask = PIL.Image.open(MaskImage) # load the mask here
+if (RESIZE_IMAGES):
+        resized_mask = original_mask.resize((200, 200))  # Resize to desired dimensions
+else:
+        resized_mask = original_mask
+pix = resized_mask.load()
 
 '''
 #Frames G,H,I,J,K
 if (HasRobot):
  step=StringVar()
- lControl = Label(G, text="ROBOT MANUAL CONTROL",font="Verdana 8 bold",bg='pink')
+ lControl = Label(G, text="ROBOT MANUAL CONTROL",font=HEADER_FONT,bg='pink')
  lControl.pack()
  Button(H, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
  Button(H, text="+Y", command=lambda: MoveRobot('+Y'),width=3).pack(side=LEFT)
@@ -1379,14 +1398,14 @@ if (HasRobot):
 
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
-  Label(Z, text="MACROS",font="Verdana 8 bold",bg='pink').pack(pady=10)
+  Label(Z, text="MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
   Button(Z, text="CREATE MACRO",command=CreateMacro).pack()
   ToggleB=Button(Z, text="EDIT MACRO",command=EditMacro)
   ToggleB.pack()
   ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacro)
   ToggleB2.pack()
   Button(Z, text="", state=DISABLED,bd=0).pack() #space between buttons
-  Label(Z2, text="Functions",font="Verdana 8 bold",bg='pink').pack(pady=10)
+  Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
   i=0
   buttons_in_palette1=0
   for macro in macrolist:  #create a button for each macro
