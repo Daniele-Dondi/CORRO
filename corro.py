@@ -1235,7 +1235,7 @@ def Wizard():
 #Main window
 base = Tk()
 # Apply a default font globally
-base.option_add("*Font", ("Arial", 6))
+base.option_add("*Font", ("Arial", 7))
 #base.iconbitmap("icons/main_icon.ico")
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
@@ -1304,15 +1304,15 @@ else:
   if len(macrolist)>28:
           ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
           if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
-          Label(ZZ, text="MACROS 2",font="Verdana 10 bold",bg='pink').pack(pady=10)
+          Label(ZZ, text="MACROS 2",font="Verdana 8 bold",bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
 if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
 Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
 if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
-Label(Zcore, text="HAL MACROS",font="Verdana 10 bold",bg='pink').pack(pady=10)
+Label(Zcore, text="HAL MACROS",font="Verdana 8 bold",bg='pink').pack(pady=10)
 GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
-Label(GRP, text="GRAPH CTRL",font="Verdana 10 bold",bg='pink').pack(pady=10)
+Label(GRP, text="GRAPH CTRL",font="Verdana 8 bold",bg='pink').pack(pady=10)
 Button(GRP, text="reset chart", command=ResetChart).pack();
 Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
 Zoom_B.pack()
@@ -1353,7 +1353,7 @@ pix = im.load()
 #Frames G,H,I,J,K
 if (HasRobot):
  step=StringVar()
- lControl = Label(G, text="ROBOT MANUAL CONTROL",font="Verdana 10 bold",bg='pink')
+ lControl = Label(G, text="ROBOT MANUAL CONTROL",font="Verdana 8 bold",bg='pink')
  lControl.pack()
  Button(H, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
  Button(H, text="+Y", command=lambda: MoveRobot('+Y'),width=3).pack(side=LEFT)
@@ -1379,14 +1379,14 @@ if (HasRobot):
 
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
-  Label(Z, text="MACROS",font="Verdana 10 bold",bg='pink').pack(pady=10)
+  Label(Z, text="MACROS",font="Verdana 8 bold",bg='pink').pack(pady=10)
   Button(Z, text="CREATE MACRO",command=CreateMacro).pack()
   ToggleB=Button(Z, text="EDIT MACRO",command=EditMacro)
   ToggleB.pack()
   ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacro)
   ToggleB2.pack()
   Button(Z, text="", state=DISABLED,bd=0).pack() #space between buttons
-  Label(Z2, text="Functions",font="Verdana 10 bold",bg='pink').pack(pady=10)
+  Label(Z2, text="Functions",font="Verdana 8 bold",bg='pink').pack(pady=10)
   i=0
   buttons_in_palette1=0
   for macro in macrolist:  #create a button for each macro
