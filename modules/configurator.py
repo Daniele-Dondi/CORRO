@@ -189,12 +189,15 @@ def GetValvesArray():
 
 def LoadConfFile(filename):
     global ReactantsArray,ValvesArray,ApparatusArray,DevicesArray
-    fin=open(filename, 'rb')
-    ReactantsArray=pickle.load(fin)
-    ValvesArray=pickle.load(fin)
-    ApparatusArray=pickle.load(fin)
-    DevicesArray=pickle.load(fin)
-    fin.close()
+    try:
+     fin=open(filename, 'rb')
+     ReactantsArray=pickle.load(fin)
+     ValvesArray=pickle.load(fin)
+     ApparatusArray=pickle.load(fin)
+     DevicesArray=pickle.load(fin)
+     fin.close()
+    except:
+     messagebox.showerror("ERROR", "Cannot load "+filename)
 
 def StartConfigurator(window):
     ConfiguratorWindow=tk.Toplevel(window)
@@ -251,7 +254,7 @@ def StartConfigurator(window):
          filetypes = (('SyringeBOT configuration files', '*.conf'),('All files', '*.*'))
          filename = filedialog.askopenfilename(filetypes=filetypes)
          if filename=="": return
-         LoadConnFile(filename)
+         LoadConfFile(filename)
          SetSyringeOptions()
          ShowData()
 
