@@ -26,12 +26,14 @@ from .serialmon import *
 
 ReactantsArray=[]
 CurrentReactant=1
-SyringesOptions=["Not in use","Air/Waste"]
+ValveOptions=["Not in use","Air/Waste"]
 CurrentSyringe=1
 TotalNumberOfSyringes=6
-SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
+ValvesArray=[[ValveOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
 SyringeVolumes=[60,10,60,10,60,10]
-SyringePrimeVolumes=[10,10,10,10,10,10]
+SyringeInletVolumes=[10,10,10,10,10,10]
+SyringeOutletVolumes=[5,5,10,10,10,10]
+SyringemmToMax=[92.5,59,92.5,59,92.5,59]
 ApparatusArray=[]
 CurrentApparatus=1
 DevicesArray=[]
@@ -43,14 +45,14 @@ PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","B
 
 
 def InitAllData():
-    global ReactantsArray, CurrentReactant, SyringesOptions, CurrentSyringe, TotalNumberOfSyringes, SyringesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
+    global ReactantsArray, CurrentReactant, ValveOptions, CurrentSyringe, TotalNumberOfSyringes, ValvesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
     ReactantsArray=[]
     CurrentReactant=1
-    SyringesOptions=["Not in use","Air/Waste"]
+    ValveOptions=["Not in use","Air/Waste"]
     CurrentSyringe=1
     TotalNumberOfSyringes=6
-    SyringesArray=[[SyringesOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
+    ValvesArray=[[ValveOptions[1 if i==0 else 0] for i in range(5)] for j in range(TotalNumberOfSyringes)]
     ApparatusArray=[]
     CurrentApparatus=1
     DevicesArray=[]
@@ -106,23 +108,23 @@ def GetMMOfInput(Name):
     return MM
 
 def ValvePositionFor(syr,name):
-    global SyringesArray
+    global ValvesArray
     try:
-       return (SyringesArray[int(syr)].index(name))
+       return (ValvesArray[int(syr)].index(name))
     except:
         print("ERROR Valvepos")
         return -1
 
 def WhichSyringeIsConnectedTo(Name):
     value=[]
-    for i, element in enumerate(SyringesArray):
+    for i, element in enumerate(ValvesArray):
         if Name in element:
             value.append(str(i))
     return value
 
 def GetAllSyringeInputs():
     value=[]
-    for Syringe, element in enumerate(SyringesArray):
+    for Syringe, element in enumerate(ValvesArray):
       for Exit,connection in enumerate(element):
           if ("Reactant" in connection or ("Apparatus" in connection and "OUT" in connection)) and not connection in value:
             value.append(connection) #value.append([str(Syringe),str(Exit),connection])
@@ -131,7 +133,7 @@ def GetAllSyringeInputs():
 
 def GetAllSyringeOutputs():
     value=[]
-    for Syringe, element in enumerate(SyringesArray):
+    for Syringe, element in enumerate(ValvesArray):
       for Exit,connection in enumerate(element):
           if ("Apparatus" in connection and "IN" in connection) and not connection in value:
             value.append(connection) #value.append([str(Syringe),str(Exit),connection])
@@ -140,14 +142,14 @@ def GetAllSyringeOutputs():
 
 def GetAllOutputsOfSyringe(num):
     value=[]
-    for Exit,connection in enumerate(SyringesArray[num]):
+    for Exit,connection in enumerate(ValvesArray[num]):
       if ("Apparatus" in connection and "IN" in connection) or "Air/Waste" in connection: #and not connection in value???
         value.append([connection]) #value.append([str(Exit),connection])
     return value
 
 def GetAllInputsOfSyringe(num):
     value=[]
-    for Exit,connection in enumerate(SyringesArray[num]):
+    for Exit,connection in enumerate(ValvesArray[num]):
       if ("Reactant" in connection) and not connection in value:
         value.append([connection]) #value.append([str(Exit),connection])
     return value
@@ -156,9 +158,13 @@ def GetSyringeVolume(num):
     if num<TotalNumberOfSyringes:
         return SyringeVolumes[num]
 
-def GetSyringePrimeVolume(num):
+def GetSyringeInletvolume(num):
     if num<TotalNumberOfSyringes:
-        return SyringePrimeVolumes[num]    
+        return SyringeInletVolumes[num]
+
+def GetSyringeOutletvolume(num):
+    if num<TotalNumberOfSyringes:
+        return SyringeOutletVolumes[num]        
 
 def GetReactantsNames():
     value=[]
@@ -178,14 +184,14 @@ def GetReactantsArray():
 def GetApparatusArray():
     return ApparatusArray
 
-def GetSyringesArray():
-    return SyringesArray
+def GetValvesArray():
+    return ValvesArray
 
 def LoadConnFile(filename):
-    global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+    global ReactantsArray,ValvesArray,ApparatusArray,DevicesArray
     fin=open(filename, 'rb')
     ReactantsArray=pickle.load(fin)
-    SyringesArray=pickle.load(fin)
+    ValvesArray=pickle.load(fin)
     ApparatusArray=pickle.load(fin)
     DevicesArray=pickle.load(fin)
     fin.close()
@@ -208,7 +214,7 @@ def StartConfigurator(window):
     
     def ShowData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,CurrentDevice
-     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+     global ReactantsArray,ValvesArray,ApparatusArray,DevicesArray
      CurrentReactant=1
      CurrentSyringe=1     
      CurrentApparatus=1
@@ -227,7 +233,7 @@ def StartConfigurator(window):
      a=len(ApparatusArray)
      if a==0: a=1
      HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(a))
-     a=len(SyringesArray)
+     a=len(ValvesArray)
      if a==0: a=1
      HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
      a=len(DevicesArray)
@@ -236,7 +242,7 @@ def StartConfigurator(window):
      
         
     def LoadAllData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+     global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,ValvesArray,ApparatusArray,DevicesArray
      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():
          MsgBox = tk.messagebox.askquestion ('Load Data','By loading data from file current data will be overwritten. Proceed?',icon = 'warning')
      else:
@@ -256,7 +262,7 @@ def StartConfigurator(window):
      if not ".conn" in filename: filename+=".conn"
      fout=open(filename, 'wb')
      pickle.dump(ReactantsArray,fout)
-     pickle.dump(SyringesArray,fout)
+     pickle.dump(ValvesArray,fout)
      pickle.dump(ApparatusArray,fout)
      pickle.dump(DevicesArray,fout)     
      fout.close()
@@ -280,23 +286,23 @@ def StartConfigurator(window):
     menubar.add_cascade(label="File",menu=file_menu)
 
     def SetSyringeOptions():
-        global SyringesOptions
-        SyringesOptions=["Not in use","Air/Waste"]
+        global ValveOptions
+        ValveOptions=["Not in use","Air/Waste"]
         count=0
         for element in ReactantsArray:
             count+=1
-            SyringesOptions.append("Reactant"+str(count)+": "+element[0])
+            ValveOptions.append("Reactant"+str(count)+": "+element[0])
         count=0
         for element in ApparatusArray:
             count+=1
             name="Apparatus"+str(count)+": "+element[0]
-            SyringesOptions.append(name+" IN")
-            SyringesOptions.append(name+" OUT")
-        exit1type.config(values=SyringesOptions)
-        exit2type.config(values=SyringesOptions)
-        exit3type.config(values=SyringesOptions)
-        exit4type.config(values=SyringesOptions)
-        exit5type.config(values=SyringesOptions)
+            ValveOptions.append(name+" IN")
+            ValveOptions.append(name+" OUT")
+        exit1type.config(values=ValveOptions)
+        exit2type.config(values=ValveOptions)
+        exit3type.config(values=ValveOptions)
+        exit4type.config(values=ValveOptions)
+        exit5type.config(values=ValveOptions)
 
 
     def on_tab_selected(event):
@@ -538,8 +544,8 @@ def StartConfigurator(window):
           elif NotSavedDataTab1():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
            if answer:
-            if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the SyringesArray
-                UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")           
+            if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the ValvesArray
+                UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")           
             ReactantsArray[CurrentReactant-1]=newvalues
 
     def ClearAllValuesT1():
@@ -598,10 +604,10 @@ def StartConfigurator(window):
         ClearAllValuesT1()
         SetStatusNextPrevButtonsT1()
 
-    def UpdateEntryFromSyringesArray(Item,position,NewValue,EntryType):
-        global SyringesArray
+    def UpdateEntryFromValvesArray(Item,position,NewValue,EntryType):
+        global ValvesArray
         Item=EntryType+str(position)+": "+Item # EntryType should be Reactant or Apparatus
-        for element in SyringesArray:
+        for element in ValvesArray:
           for i, n in enumerate(element):
            if EntryType=="Apparatus":
             if n==Item+" IN":
@@ -611,7 +617,7 @@ def StartConfigurator(window):
            else:    
             if n==Item:
               element[i]=NewValue
-        SetTab3Variables(SyringesArray[CurrentSyringe-1])      
+        SetTab3Variables(ValvesArray[CurrentSyringe-1])      
            
 
     def DeleteCurrentReactant():
@@ -627,7 +633,7 @@ def StartConfigurator(window):
                  HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
                  SetTab1Variables(ReactantsArray[CurrentReactant-1])
          else:
-             UpdateEntryFromSyringesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use","Reactant")
+             UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use","Reactant")
              del ReactantsArray[CurrentReactant-1]
              if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
                  HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
@@ -778,8 +784,8 @@ def StartConfigurator(window):
           elif NotSavedDataTab2():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Apparatus?")
            if answer:
-            if not ApparatusName.get()==ApparatusArray[CurrentApparatus-1][0]: #Apparatus name has changed, we have to update the SyringesArray
-                UpdateEntryFromSyringesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")           
+            if not ApparatusName.get()==ApparatusArray[CurrentApparatus-1][0]: #Apparatus name has changed, we have to update the ValvesArray
+                UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")           
             ApparatusArray[CurrentApparatus-1]=newvalues
 
     def ClearAllValuesT2():
@@ -850,7 +856,7 @@ def StartConfigurator(window):
                  HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
                  SetTab2Variables(ApparatusArray[CurrentApparatus-1])
          else:
-             UpdateEntryFromSyringesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Not in use","Apparatus")
+             UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Not in use","Apparatus")
              del ApparatusArray[CurrentApparatus-1]
              if CurrentApparatus>len(ApparatusArray): #we deleted the first and only Apparatus
                  HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
@@ -913,14 +919,17 @@ def StartConfigurator(window):
 
     def NotSavedDataTab3():
         global CurrentSyringe
-        return not(SyringesArray[CurrentSyringe-1]==GetTab3Variables())
+        return not(ValvesArray[CurrentSyringe-1]==GetTab3Variables())
         
     def GetTab3Variables():
         return [exit1type.get(), exit2type.get(), exit3type.get(), exit4type.get(), exit5type.get()]  
 
     def SetTab3Variables(parms):
+        global CurrentSyringe
         maxvolsyr.delete(0,tk.END); maxvolsyr.insert(0,str(SyringeVolumes[CurrentSyringe-1]))
-        primevol.delete(0,tk.END); primevol.insert(0,str(SyringePrimeVolumes[CurrentSyringe-1]))
+        mmtomax.delete(0,tk.END); mmtomax.insert(0,str(SyringemmToMax[CurrentSyringe-1]))
+        inletvol.delete(0,tk.END); inletvol.insert(0,str(SyringeInletVolumes[CurrentSyringe-1]))
+        outletvol.delete(0,tk.END); outletvol.insert(0,str(SyringeOutletVolumes[CurrentSyringe-1]))
         exit1type.set(parms[0])
         exit2type.set(parms[1])
         exit3type.set(parms[2])
@@ -940,7 +949,7 @@ def StartConfigurator(window):
 
     def LoadSyringeParameters():
         global CurrentSyringe
-        SetTab3Variables(SyringesArray[CurrentSyringe-1])
+        SetTab3Variables(ValvesArray[CurrentSyringe-1])
         
     def SaveSyringeParameters():
         global CurrentSyringe
@@ -953,7 +962,7 @@ def StartConfigurator(window):
              if not(Connection=="Not in use") and Connection in SyringeConnections[i+1:]:
                   messagebox.showerror("ERROR", "Duplicated connection: "+Connection)
                   return
-         SyringesArray[CurrentSyringe-1]=GetTab3Variables()    
+         ValvesArray[CurrentSyringe-1]=SyringeConnections    
 
     def NextT3():
         global CurrentSyringe
@@ -961,8 +970,8 @@ def StartConfigurator(window):
          messagebox.showinfo(message="Finish first to edit the current syringe")
          return
         CurrentSyringe+=1
-        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
-        SetTab3Variables(SyringesArray[CurrentSyringe-1])
+        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(ValvesArray)))
+        SetTab3Variables(ValvesArray[CurrentSyringe-1])
         SetStatusNextPrevButtonsT3()
         
     def PrevT3():
@@ -971,8 +980,8 @@ def StartConfigurator(window):
          messagebox.showinfo(message="Finish first to edit the current syringe")
          return
         CurrentSyringe-=1
-        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
-        SetTab3Variables(SyringesArray[CurrentSyringe-1])
+        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(ValvesArray)))
+        SetTab3Variables(ValvesArray[CurrentSyringe-1])
         SetStatusNextPrevButtonsT3()
         
     
@@ -982,19 +991,27 @@ def StartConfigurator(window):
     HeaderLabelT3=ttk.Label(tab3,text ="Syringe n. 1 of 6",font=("Arial", 12)); HeaderLabelT3.pack(pady="10");
     #ttk.Label(tab3,text ="Type").pack(); pumptype=ttk.Combobox(tab3, values = ("Syringe","Peristaltic"), state = 'readonly',width=25); pumptype.current(0); pumptype.pack()     
     ttk.Label(tab3,text ="Max. volume (mL)").pack(); maxvolsyr=ttk.Entry(tab3); maxvolsyr.pack(); maxvolsyr.delete(0,tk.END); maxvolsyr.insert(0,str(SyringeVolumes[CurrentSyringe-1]))
-    ttk.Label(tab3,text ="Priming volume (mL)").pack(); primevol=ttk.Entry(tab3); primevol.pack(); primevol.delete(0,tk.END); primevol.insert(0,str(SyringePrimeVolumes[CurrentSyringe-1]))
+    ttk.Label(tab3,text ="0 to max sign distance (mm)").pack(); mmtomax=ttk.Entry(tab3); mmtomax.pack(); mmtomax.delete(0,tk.END); mmtomax.insert(0,str(SyringemmToMax[CurrentSyringe-1]))
+    ttk.Label(tab3,text ="Inlet tube volume (mL)").pack(); inletvol=ttk.Entry(tab3); inletvol.pack(); inletvol.delete(0,tk.END); inletvol.insert(0,str(SyringeInletVolumes[CurrentSyringe-1]))
+    ttk.Label(tab3,text ="Outlet tube volume (mL)").pack(); outletvol=ttk.Entry(tab3); outletvol.pack(); outletvol.delete(0,tk.END); outletvol.insert(0,str(SyringeOutletVolumes[CurrentSyringe-1]))
     #ttk.Label(tab3,text ="Max. speed (mL/min)").pack(); maxspeed=ttk.Entry(tab3); maxspeed.pack()
-    ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit1type.current(1); exit1type.pack() 
-    ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit2type.current(0); exit2type.pack()
-    ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit3type.current(0); exit3type.pack()
-    ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit4type.current(0); exit4type.pack()
-    ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = SyringesOptions, state = 'readonly',width=25); exit5type.current(0); exit5type.pack()
-
+    ttk.Label(tab3,text ="Valve exit n.1").pack(); exit1type=ttk.Combobox(tab3, values = ValveOptions, state = 'readonly',width=25); exit1type.current(1); exit1type.pack() 
+    ttk.Label(tab3,text ="Valve exit n.2").pack(); exit2type=ttk.Combobox(tab3, values = ValveOptions, state = 'readonly',width=25); exit2type.current(0); exit2type.pack()
+    ttk.Label(tab3,text ="Valve exit n.3").pack(); exit3type=ttk.Combobox(tab3, values = ValveOptions, state = 'readonly',width=25); exit3type.current(0); exit3type.pack()
+    ttk.Label(tab3,text ="Valve exit n.4").pack(); exit4type=ttk.Combobox(tab3, values = ValveOptions, state = 'readonly',width=25); exit4type.current(0); exit4type.pack()
+    ttk.Label(tab3,text ="Valve exit n.5").pack(); exit5type=ttk.Combobox(tab3, values = ValveOptions, state = 'readonly',width=25); exit5type.current(0); exit5type.pack()
+    F2T3 = ttk.Frame(tab3); F2T3.pack(pady="10")
+    F3T3 = ttk.Frame(tab3); F3T3.pack(pady="10")    
+    ttk.Button(F2T3, text="Save changes", command=SaveSyringeParameters).pack(side="left")
+    ttk.Button(F2T3, text="Ignore changes", command=LoadSyringeParameters).pack(side="left")
+    ttk.Button(F3T3, text="Add new Syringe" ).pack(side="left")
+    ttk.Button(F3T3, text="Remove Syringe").pack(side="left")    
    
     def GetTab4Variables():
         return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled, NumVariables.get(), VarNames.get()]
 
     def SetTab4Variables(parms):
+        print (parms)
         DeviceName.delete(0,tk.END); DeviceName.insert(0,str(parms[0]))
         DeviceType.set(parms[1])
         DeviceUSB.set(parms[2])
@@ -1179,19 +1196,16 @@ def StartConfigurator(window):
     HeaderLabelT4=ttk.Label(tab4,text ="USB device n. 1 of 1",font=("Arial", 12)); HeaderLabelT4.pack(pady="10");
     ttk.Label(tab4,text ="Device Name").pack(); DeviceName=ttk.Entry(tab4); DeviceName.pack();
     ttk.Label(tab4,text ="Device type").pack(); DeviceType=ttk.Combobox(tab4, values = ("SyringeBOT","Sensor","Robot"), state = 'readonly'); DeviceType.pack(); DeviceType.bind("<<ComboboxSelected>>", DeviceTypecallback)
-    ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts(), state = 'readonly'); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
+    ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts()); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
     ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
-    protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","G-Code"),state="readonly"); Protocol.pack()
+    protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","Read/Write","Writeonly"),state="readonly"); Protocol.pack()
     SensorEnabled=tk.BooleanVar()
     SensorEnabled=True
     DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled)
     DevEnabled.select()
     DevEnabled.pack()
-    ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=1, to=100000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
+    ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=0, to=10000, repeatdelay=500, repeatinterval=200, textvariable="1"); NumVariables.pack()
     ttk.Label(tab4,text ="Variable names (base name or comma separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
-##    ttk.Label(tab4,text ="Concentration units (numerator)").pack(); ConcNumType4=ttk.Combobox(tab4, values = ('g', 'mg', 'mol', 'mmol'), state = 'readonly'); ConcNumType4.pack(); ConcNumType4.bind("<<ComboboxSelected>>", ConcNumTypecallback)
-##    ttk.Label(tab4,text ="Concentration units (denominator)").pack(); ConcDenType4=ttk.Combobox(tab4, values = ('L', 'mL','100g'), state = 'readonly'); ConcDenType4.pack(); ConcDenType4.bind("<<ComboboxSelected>>", ConcDenTypecallback)
-##    ttk.Label(tab4,text ="Density (g/mL)").pack(); density4=ttk.Entry(tab4); density4.insert(0, '1'); density4.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
     F2T4 = ttk.Frame(tab4); F2T4.pack()
     F3T4 = ttk.Frame(tab4); F3T4.pack()
