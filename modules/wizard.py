@@ -872,7 +872,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
 
 def StartWizard(window):
     
-    LoadConnFile('test.conn')
+    LoadConfFile('test.conn')
 
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)

@@ -62,11 +62,11 @@ def InitAllData():
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
 
-def GetAllVesselApparatus():
+def GetAllReactorApparatus():
     global ApparatusArray
     outlist=[]
     for apparatus in ApparatusArray:
-        if apparatus[1]=="Heated reactor":
+        if "reactor" in apparatus[1]:
             outlist.append(apparatus[0])
     return outlist
 
@@ -187,7 +187,7 @@ def GetApparatusArray():
 def GetValvesArray():
     return ValvesArray
 
-def LoadConnFile(filename):
+def LoadConfFile(filename):
     global ReactantsArray,ValvesArray,ApparatusArray,DevicesArray
     fin=open(filename, 'rb')
     ReactantsArray=pickle.load(fin)
@@ -248,7 +248,7 @@ def StartConfigurator(window):
      else:
          MsgBox="yes"
      if MsgBox == 'yes':  
-         filetypes = (('SyringeBOT connection files', '*.conn'),('All files', '*.*'))
+         filetypes = (('SyringeBOT configuration files', '*.conf'),('All files', '*.*'))
          filename = filedialog.askopenfilename(filetypes=filetypes)
          if filename=="": return
          LoadConnFile(filename)
@@ -256,10 +256,10 @@ def StartConfigurator(window):
          ShowData()
 
     def SaveAllData():
-     filetypes=(('SyringeBOT connection files','*.conn'),('All files','*.*'))
+     filetypes=(('SyringeBOT cconfiguration files','*.conf'),('All files','*.*'))
      filename=filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
-     if not ".conn" in filename: filename+=".conn"
+     if not ".conf" in filename: filename+=".conf"
      fout=open(filename, 'wb')
      pickle.dump(ReactantsArray,fout)
      pickle.dump(ValvesArray,fout)
@@ -333,7 +333,7 @@ def StartConfigurator(window):
       
     tabControl.add(tab1, text ='Reactants') 
     tabControl.add(tab2, text ='Apparatus')
-    tabControl.add(tab3, text ='Syringes')
+    tabControl.add(tab3, text ='SyringeBOT')
     tabControl.add(tab4, text ='USB devices') 
     tabControl.pack(expand = 1, fill ="both")
 
@@ -983,6 +983,40 @@ def StartConfigurator(window):
         HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(ValvesArray)))
         SetTab3Variables(ValvesArray[CurrentSyringe-1])
         SetStatusNextPrevButtonsT3()
+
+    def AddSyringe():
+        global CurrentSyringe 
+        if len(SyringesArray)==CurrentSyringe-1:
+            messagebox.showinfo(message="Finish first to edit the current Syringe")
+            return
+        if NotSavedDataTab3():
+            messagebox.showinfo(message="Unsaved data for the current Syringe")
+            return
+        CurrentSyringe=len(SyringesArray)+1
+        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(CurrentSyringe))
+        ClearSyringeParameters()
+        SetStatusNextPrevButtonsT3()
+
+    def DeleteCurrentSyringe(): 
+        global CurrentSyringe
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Syringe?")
+        if answer:
+         ClearSyringeParameters()
+         if CurrentSyringe>len(SyringesArray): #we have the number but still it is not saved in the array. So the array is shorter
+             if CurrentSyringe==1:
+                 return
+             else:
+                 CurrentSyringe-=1
+                 HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(CurrentSyringe))
+                 SetTab3Variables(SyringesArray[CurrentSyringe-1])
+         else:
+             del SyringesArray[CurrentSyringe-1]
+             if CurrentSyringe>len(SyringesArray): #we deleted the first and only Syringe
+                 HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(CurrentSyringe))
+             else:    
+                 HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
+                 SetTab3Variables(SyringesArray[CurrentSyringe-1])
+         SetStatusNextPrevButtonsT3()        
         
     
     F1T3 = ttk.Frame(tab3); F1T3.pack()
@@ -1004,8 +1038,8 @@ def StartConfigurator(window):
     F3T3 = ttk.Frame(tab3); F3T3.pack(pady="10")    
     ttk.Button(F2T3, text="Save changes", command=SaveSyringeParameters).pack(side="left")
     ttk.Button(F2T3, text="Ignore changes", command=LoadSyringeParameters).pack(side="left")
-    ttk.Button(F3T3, text="Add new Syringe" ).pack(side="left")
-    ttk.Button(F3T3, text="Remove Syringe").pack(side="left")    
+    ttk.Button(F3T3, text="Add new Syringe", command=AddSyringe).pack(side="left")
+    ttk.Button(F3T3, text="Remove Syringe", command=DeleteCurrentSyringe).pack(side="left")    
    
     def GetTab4Variables():
         return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled, NumVariables.get(), VarNames.get()]
