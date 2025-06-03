@@ -26,13 +26,12 @@ from .serialmon import *
 
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
-    global ValveOptions,CurrentSyringe,TotalNumberOfSyringes,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
+    global ValveOptions,CurrentSyringe,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
     ReactantsArray=[]
     CurrentReactant=1
     ValveOptions=["Not in use","Air/Waste"]
     CurrentSyringe=1
-    TotalNumberOfSyringes=0
     SyringesArray=[]
     ValvesArray=[]
     SyringeVolumes=[]#60,10,60,10,60,10]
@@ -143,15 +142,15 @@ def GetAllInputsOfSyringe(num):
     return value
 
 def GetSyringeVolume(num):
-    if num<TotalNumberOfSyringes:
+    if num<len(SyringesArray):
         return SyringeVolumes[num]
 
 def GetSyringeInletvolume(num):
-    if num<TotalNumberOfSyringes:
+    if num<len(SyringesArray):
         return SyringeInletVolumes[num]
 
 def GetSyringeOutletvolume(num):
-    if num<TotalNumberOfSyringes:
+    if num<len(SyringesArray):
         return SyringeOutletVolumes[num]        
 
 def GetReactantsNames():
@@ -176,7 +175,7 @@ def GetValvesArray():
     return ValvesArray
 
 def SplitSyringesArray():
-    global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax,TotalNumberOfSyringes
+    global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     SyringeVolumes=[]
     SyringeInletVolumes=[]
     SyringeOutletVolumes=[]
@@ -188,8 +187,6 @@ def SplitSyringesArray():
         SyringeOutletVolumes.append(element[2])
         SyringemmToMax.append(element[3])
         ValvesArray.append(element[4:])
-    TotalNumberOfSyringes=len(SyringesArray)        
-
 
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
@@ -205,7 +202,7 @@ def LoadConfFile(filename):
      messagebox.showerror("ERROR", "Cannot load "+filename)
 
 def StartConfigurator(window):
-    global ReactantsArray, CurrentReactant, ValveOptions, CurrentSyringe, TotalNumberOfSyringes, ValvesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
+    global ReactantsArray, CurrentReactant, ValveOptions, CurrentSyringe, ValvesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes, SyringemmToMax    
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList    
     ConfiguratorWindow=tk.Toplevel(window)
