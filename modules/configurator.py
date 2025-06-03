@@ -176,7 +176,7 @@ def GetValvesArray():
     return ValvesArray
 
 def SplitSyringesArray():
-    global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
+    global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax,TotalNumberOfSyringes
     SyringeVolumes=[]
     SyringeInletVolumes=[]
     SyringeOutletVolumes=[]
@@ -188,6 +188,7 @@ def SplitSyringesArray():
         SyringeOutletVolumes.append(element[2])
         SyringemmToMax.append(element[3])
         ValvesArray.append(element[4:])
+    TotalNumberOfSyringes=len(SyringesArray)        
 
 
 def LoadConfFile(filename):
