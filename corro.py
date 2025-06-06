@@ -934,6 +934,13 @@ def Enable_Disable_plot(j):
    else:        
     Plot_B[j].config(relief=SUNKEN)
 
+def ensure_directory_exists(directory_path):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+        print(f"Directory '{directory_path}' created.")
+    else:
+        print(f"Directory '{directory_path}' already exists.")    
+
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
     global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
     global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
@@ -941,6 +948,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
+
+    ensure_directory_exists("log")
 
     if connected == 0:  #if it is not connected, connect
         SyringeBOT_IS_INITIALIZED=False
