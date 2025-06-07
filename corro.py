@@ -577,41 +577,8 @@ def Parse(line,variables):    #parse macro line and execute statements
         print('unknown command')
         return "Error"
 
-def Macro(num,*args): #run, delete or edit a macro 
-    global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY
-    watchdog=0 #this is used to avoid infinite loops
-    variables=[] #macro's internal variables
-    stack=[] #stack keeps line numbers for cycles
-    labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions
-    for ar in args:  #we have some variables passed to the macro
-      par=ar.split(',')
-      for x in range(0,len(par)):
-          RefreshVarValues('$'+str(x+1)+'$',par[x],variables)
-    if IsEditingMacro==0:
-     if IsDeletingMacro==0:
-      if connected==0:   
-        MsgBox = tkinter.messagebox.askquestion ('Not Connected','SyringeBOT is not connected. Connect now?',icon = 'error')
-        if MsgBox == 'yes':
-            Connect()
-            try:
-             num=macrolist.index("INIT_ALL")
-            except:
-             tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.")
-             return
-            Macro(num)
-            return
-      if connected==1:   #we are connected
-       if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
-        if not(macrolist[num])=="INIT_ALL": #only call to INIT_ALL is allowed
-         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
-         return
-        else:
-         SyringeBOT_IS_INITIALIZED=True #we set True because we are executing INIT_ALL
-       if SyringeBOT_IS_BUSY==True:
-        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
-        return
+def ExecuteMacro(num):
        ###########################################################################################################################################################################
-       # put the code included in ExecuteMacro()
        if(debug): print('executing macro:',macrolist[num])
        with open('macros/'+macrolist[num]+'.txt') as macro_file: 
         lines=macro_file.readlines() #read the entire file and put lines into an array
@@ -690,6 +657,42 @@ def Macro(num,*args): #run, delete or edit a macro
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
        ###########################################################################################################################################################################
+
+
+def Macro(num,*args): #run, delete or edit a macro 
+    global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY
+    watchdog=0 #this is used to avoid infinite loops
+    variables=[] #macro's internal variables
+    stack=[] #stack keeps line numbers for cycles
+    labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions
+    for ar in args:  #we have some variables passed to the macro
+      par=ar.split(',')
+      for x in range(0,len(par)):
+          RefreshVarValues('$'+str(x+1)+'$',par[x],variables)
+    if IsEditingMacro==0:
+     if IsDeletingMacro==0:
+      if connected==0:   
+        MsgBox = tkinter.messagebox.askquestion ('Not Connected','SyringeBOT is not connected. Connect now?',icon = 'error')
+        if MsgBox == 'yes':
+            Connect()
+            try:
+             num=macrolist.index("INIT_ALL")
+            except:
+             tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.")
+             return
+            Macro(num)
+            return
+      if connected==1:   #we are connected
+       if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
+        if not(macrolist[num])=="INIT_ALL": #only call to INIT_ALL is allowed
+         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
+         return
+        else:
+         SyringeBOT_IS_INITIALIZED=True #we set True because we are executing INIT_ALL
+       if SyringeBOT_IS_BUSY==True:
+        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
+        return
+       ExecuteMacro(num)
       else:  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
      else:  #delete macro
       MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
