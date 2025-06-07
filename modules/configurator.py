@@ -334,18 +334,18 @@ def StartConfigurator(window):
 
     def on_tab_selected(event):
         SelectedTabNum=event.widget.index(event.widget.select())
-##        if NotSavedDataTab1() and not SelectedTabNum==0:
-##            messagebox.showinfo(message="Unsaved data in Reactants tab")
-##            tabControl.select(0)
-##        if NotSavedDataTab2() and not SelectedTabNum==1:
-##            messagebox.showinfo(message="Unsaved data in Apparatus tab")
-##            tabControl.select(1)
-##        if NotSavedDataTab3() and not SelectedTabNum==2:
-##            messagebox.showinfo(message="Unsaved data in Syringe tab")
-##            tabControl.select(2)
-##        if NotSavedDataTab4() and not SelectedTabNum==3:
-##            messagebox.showinfo(message="Unsaved data in USB tab")
-##            tabControl.select(3)
+        if NotSavedDataTab1() and not SelectedTabNum==0:
+            messagebox.showinfo(message="Unsaved data in Reactants tab")
+            tabControl.select(0)
+        if NotSavedDataTab2() and not SelectedTabNum==1:
+            messagebox.showinfo(message="Unsaved data in Apparatus tab")
+            tabControl.select(1)
+        if NotSavedDataTab3() and not SelectedTabNum==2:
+            messagebox.showinfo(message="Unsaved data in Syringe tab")
+            tabControl.select(2)
+        if NotSavedDataTab4() and not SelectedTabNum==3:
+            messagebox.showinfo(message="Unsaved data in USB tab")
+            tabControl.select(3)
             
         if SelectedTabNum==2: #Syringes tab
             SetSyringeOptions()
