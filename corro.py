@@ -211,7 +211,8 @@ def readConfigurationFiles():
 ##                USB_deviceready.append(False)
 ##                curline+=1
 
-    except:
+    except Exception as e:
+     print(e)       
      tkinter.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
     try: #open configuration-binds.txt
      bind_file = open(MaskMacros, "r")

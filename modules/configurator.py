@@ -240,36 +240,35 @@ def StartConfigurator(window):
        ConfiguratorWindow.destroy()
        
     ConfiguratorWindow.protocol("WM_DELETE_WINDOW", Close)
-    
+
     def ShowData():
-     global CurrentReactant,CurrentSyringe,CurrentApparatus,CurrentDevice
-     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
-     CurrentReactant=1
-     CurrentSyringe=1     
-     CurrentApparatus=1
-     CurrentDevice=1
-     SetStatusNextPrevButtonsT1()
-     SetStatusNextPrevButtonsT2()
-     SetStatusNextPrevButtonsT3()
-     SetStatusNextPrevButtonsT4()
-     LoadReactantParameters()
-     LoadSyringeParameters()
-     LoadApparatusParameters()
-     LoadDeviceParameters()
-     a=len(ReactantsArray)
-     if a==0: a=1
-     HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(a))
-     a=len(ApparatusArray)
-     if a==0: a=1
-     HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(a))
-     a=len(SyringesArray)
-     if a==0: a=1
-     HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
-     a=len(DevicesArray)
-     if a==0: a=1
-     HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(a))
-     
-        
+        global CurrentReactant,CurrentSyringe,CurrentApparatus,CurrentDevice
+        global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+        CurrentReactant=1
+        CurrentSyringe=1     
+        CurrentApparatus=1
+        CurrentDevice=1
+        SetStatusNextPrevButtonsT1()
+        SetStatusNextPrevButtonsT2()
+        SetStatusNextPrevButtonsT3()
+        SetStatusNextPrevButtonsT4()
+        LoadReactantParameters()
+        LoadSyringeParameters()
+        LoadApparatusParameters()
+        LoadDeviceParameters()
+        a=len(ReactantsArray)
+        if a==0: a=1
+        HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(a))
+        a=len(ApparatusArray)
+        if a==0: a=1
+        HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(a))
+        a=len(SyringesArray)
+        if a==0: a=1
+        HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(a))
+        a=len(DevicesArray)
+        if a==0: a=1
+        HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(a))
+    
     def LoadAllData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():
@@ -335,18 +334,18 @@ def StartConfigurator(window):
 
     def on_tab_selected(event):
         SelectedTabNum=event.widget.index(event.widget.select())
-        if NotSavedDataTab1() and not SelectedTabNum==0:
-            messagebox.showinfo(message="Unsaved data in Reactants tab")
-            tabControl.select(0)
-        if NotSavedDataTab2() and not SelectedTabNum==1:
-            messagebox.showinfo(message="Unsaved data in Apparatus tab")
-            tabControl.select(1)
-        if NotSavedDataTab3() and not SelectedTabNum==2:
-            messagebox.showinfo(message="Unsaved data in Syringe tab")
-            tabControl.select(2)
-        if NotSavedDataTab4() and not SelectedTabNum==3:
-            messagebox.showinfo(message="Unsaved data in USB tab")
-            tabControl.select(3)
+##        if NotSavedDataTab1() and not SelectedTabNum==0:
+##            messagebox.showinfo(message="Unsaved data in Reactants tab")
+##            tabControl.select(0)
+##        if NotSavedDataTab2() and not SelectedTabNum==1:
+##            messagebox.showinfo(message="Unsaved data in Apparatus tab")
+##            tabControl.select(1)
+##        if NotSavedDataTab3() and not SelectedTabNum==2:
+##            messagebox.showinfo(message="Unsaved data in Syringe tab")
+##            tabControl.select(2)
+##        if NotSavedDataTab4() and not SelectedTabNum==3:
+##            messagebox.showinfo(message="Unsaved data in USB tab")
+##            tabControl.select(3)
             
         if SelectedTabNum==2: #Syringes tab
             SetSyringeOptions()
@@ -854,8 +853,12 @@ def StartConfigurator(window):
         global CurrentApparatus
         if len(ApparatusArray)==CurrentApparatus-1:
          if Tab2HavingDefaultValues():
+               print("1")
                return False
-         else: return True
+         else:
+             print("2")
+             return True
+        print("3")    
         return not(GetTab2Variables()==ApparatusArray[CurrentApparatus-1])    
 
     def AddApparatus():
@@ -1278,6 +1281,7 @@ def StartConfigurator(window):
     ttk.Button(F4T4, text="Add new Device", command=AddDevice).pack(side="left")
     ttk.Button(F4T4, text="Remove Device", command=DeleteCurrentDevice).pack(side="left")
 
-
-      
+    LoadConfFile('startup.conf')
+    SetSyringeOptions()
+    ShowData()      
     #ConfiguratorWindow.mainloop()
