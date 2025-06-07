@@ -35,16 +35,19 @@ import os
 import serial
 from os import listdir
 from os.path import isfile, join
-##from modules.configurator import *
 import modules.configurator as conf
+##import modules.wizard 
+##import modules.listserialports
+##import modules.buildvercalculator
 from modules.wizard import *
 from modules.listserialports import *
 from modules.buildvercalculator import *
 
 
+
 #global vars
 connected = 0
-GO_Fullscreen=False #if true, app starts in fullscreen mode
+GO_Fullscreen=False #if True, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 ShowMacrosPalettes=False
@@ -65,10 +68,10 @@ SyringeBOTReady=True
 SyringeBOTWorking=False 
 SyringeBOTSendNow=""
 #CORRO DEBUG SECTION
-debug=True #if true print additional information to console
-noprint_debug=False #if true save gcode commands to file instead sending them to SyringeBOT
+debug=True #if True print additional information to console
+noprint_debug=False #if True save gcode commands to file instead sending them to SyringeBOT
 if noprint_debug: cmdfile=open("gcodecmds.txt","w")
-DoNotConnect=False #if true no module connections is done
+DoNotConnect=False #if True no module connections is done
 #END OF CORRO DEBUG SECTION
 WatchdogMax=2000 #max number of instructions before a message asking if there is an infinite loop
 T_Actual = 0
@@ -84,7 +87,7 @@ chart_w=600 #size of the temp and voltages chart
 chart_h=200
 graph_colors=['black','blue','green','red','dark violet','brown','orange','purple','Navy','Teal','Olive','Gold','Violet','Indigo','Maroon','Coral','Aquamarine']
 graph_color_index=0
-graph_all=True  #If true show all the data recorded. If false show only the last data
+graph_all=True  #If True show all the data recorded. If false show only the last data
 macrout=0      #global var for macros. Filled when macro returns a value
 pixboundedmacro=[] # list of macros bound to pixels
 colorsbound=[]     # list of colors bound. Refers to above macros name
@@ -108,10 +111,10 @@ MaskMacros=""     #file name for the bounded colors to macros
 # Hooks for events
 Temperature_Hook=False
 Temperature_Hook_Value="" #valid values are >xxx <yyy
-Temperature_Hook_Macro="" #macro to call when condition is true
+Temperature_Hook_Macro="" #macro to call when condition is True
 Time_Hook=False
 Time_Hook_Value="" #valid values are >xxx <yyy
-Time_Hook_Macro="" #macro to call when condition is true
+Time_Hook_Macro="" #macro to call when condition is True
 #macro global variables
 #Macro global variables are variables that are available to all scripts and are kept up to program exit
 #To access them use the commands getglobal and setglobal
@@ -314,14 +317,12 @@ def GetVarValue(var_name,variables): #retrieve a value of var_name
     else:
       return variables[variables.index(var_name)+1]
 
-def Parse(line,variables):    #parse macro lines and execute statements
+def Parse(line,variables):    #parse macro line and execute statements
     global logfile,IsBuffered0,Gcode,debug,cmdfile,SyringeBOT_IS_INITIALIZED
     global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration.txt
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro
     global Sensors_var_names,Sensors_var_values
     global global_vars
-    #line = line.split(";", 1)[0] #remove comments (present eventually after ;)
-    #line=line.rstrip()  #remove cr/lf
     if line=="": return
     if line.find('log')==0: #print string to log file
      try:
@@ -605,15 +606,17 @@ def Macro(num,*args): #run, delete or edit a macro
          MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
          return
         else:
-         SyringeBOT_IS_INITIALIZED=True #we set true because we are executing INIT_ALL
+         SyringeBOT_IS_INITIALIZED=True #we set True because we are executing INIT_ALL
        if SyringeBOT_IS_BUSY==True:
         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
         return
+       ###########################################################################################################################################################################
+       # put the code included in ExecuteMacro()
        if(debug): print('executing macro:',macrolist[num])
-       with open('macros/'+macrolist[num]+'.txt') as macro_file:
+       with open('macros/'+macrolist[num]+'.txt') as macro_file: 
         lines=macro_file.readlines() #read the entire file and put lines into an array
         i=0
-        for j in range(len(lines)):
+        for j in range(len(lines)): #analyze all macro code and record the labels line position
          line=lines[j]
          line = line.split(";", 1)[0] #remove comments (present eventually after ;)
          line=line.strip()  #remove cr/lf
@@ -677,8 +680,8 @@ def Macro(num,*args): #run, delete or edit a macro
               tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
               return
          else:
-          exitcode=Parse(line,variables)
-          if exitcode=="Error": #execute code contained in line. In the case of error abort
+          exitcode=Parse(line,variables) #no flow commands are present, executes the statement present in the line
+          if exitcode=="Error": #execute code contained in line. In the case of error abort macro execution
               tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
               return "Error"
           elif exitcode=="Cancel":
@@ -686,6 +689,7 @@ def Macro(num,*args): #run, delete or edit a macro
               return "Error"    
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
+       ###########################################################################################################################################################################
       else:  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
      else:  #delete macro
       MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
