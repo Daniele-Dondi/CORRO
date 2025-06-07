@@ -424,14 +424,14 @@ def Parse(line,variables):    #parse macro lines and execute statements
       except:
        tkinter.messagebox.showerror("ERROR in eval method","use: eval $varname$,math_expression")
        return "Error"
-    elif line.find('getvalue')==0: #we've to calculate somethg
+    elif line.find('getvalue')==0: #we've to retrieve a sensor variable
       try:
        commands=line.split(',',1)
        commands[0]=commands[0][9:] # remove getvalue
        x = Sensors_var_values[Sensors_var_names.index(commands[1])]
        RefreshVarValues(commands[0],x,variables)
       except Exception as e:
-       tkinter.messagebox.showerror("ERROR in eval method","use: getvalue $varname$,sensor_value"+e)
+       tkinter.messagebox.showerror("ERROR in getvalue method","use: getvalue $varname$,sensor_value"+e)
        return "Error"
     elif line.find('let')==0: #variable assignment
       try:
