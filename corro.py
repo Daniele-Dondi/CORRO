@@ -49,32 +49,30 @@ AutoInit=False #if True, after the connection starts immediately SyringeBOT init
 ShowMacrosPalettes=False
 #USB sensors control vars
 USB_handles=[]  
-USB_names=[]
-USB_deviceready=[]
-USB_ports=[]
-USB_baudrates=[]
-USB_types=[]
-USB_num_vars=[]
-USB_var_names=[]
-USB_var_points=[]
-USB_last_values=[]
-Sensors_var_names=[]
-Sensors_var_values=[]
+##USB_names=[]
+##USB_deviceready=[]
+##USB_ports=[]
+##USB_baudrates=[]
+##USB_types=[]
+##USB_num_vars=[]
+##USB_var_names=[]
+##USB_var_points=[]
+##USB_last_values=[]
+##Sensors_var_names=[]
+##Sensors_var_values=[]
 Charts_enabled=[]
 Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
 HasRobot = False
 HasSyringeBOT = False
-SyringeUSB = ""
 RobotUSB = ""
-SyringeUSBrate = 0
 RobotUSBrate = 0
-#SyringeBOT queue vars
-SyringeQueueIndex=0
-SyringeQueue=0
-SyringeReady=True
-SyringeWorking=False
-SyringeSendNow=""
+#SyringeBOT queue vars 
+SyringeBOTQueueIndex=0 
+SyringeBOTQueue=0 
+SyringeBOTReady=True 
+SyringeBOTWorking=False 
+SyringeBOTSendNow=""
 #CORRO DEBUG SECTION
 debug=True #if true print additional information to console
 noprint_debug=False #if true save gcode commands to file instead sending them to SyringeBOT
@@ -93,7 +91,7 @@ IsDeletingMacro=0
 #chart parameters
 chart_w=600 #size of the temp and voltages chart
 chart_h=200
-graph_colors=['black','blue','green','red','dark violet','brown','orange','purple']
+graph_colors=['black','blue','green','red','dark violet','brown','orange','purple','Navy','Teal','Olive','Gold','Violet','Indigo','Maroon','Coral','Aquamarine']
 graph_color_index=0
 graph_all=True  #If true show all the data recorded. If false show only the last data
 macrout=0      #global var for macros. Filled when macro returns a value
@@ -106,16 +104,16 @@ IsBuffered0=False
 SyringeBOT_IS_BUSY=False
 SyringeBOT_WAS_BUSY=False
 SyringeBOT_IS_INITIALIZED=False
+oldprogress=0 #progress in printing
 #following parameters will be read from configuration.txt file
-NumSyringes=0 #Number of installed syringes
-SyringeMax=[1,2,3,4,5,6] #Syringe height of graduated part in millimeters
-SyringeVol=[1,2,3,4,5,6] #Syringe max volume in milliliters
-VolInlet=0   #volume of the inlet tube
-VolOutlet=0  #volume of the outlet tube
+#NumSyringes=0 #Number of installed syringes
+##SyringemmToMax=[1,2,3,4,5,6] #Syringe height of graduated part in millimeters
+##SyringeVolumes=[1,2,3,4,5,6] #Syringe max volume in milliliters
+##SyringeInletVolumes=[]   #volume of the inlet tube 
+##SyringeOutletVolumes=0  #volume of the outlet tube
 SchematicImage="" #file name for the image
 MaskImage=""      #file name for the mask image
 MaskMacros=""     #file name for the bounded colors to macros
-oldprogress=0
 # Hooks for events
 Temperature_Hook=False
 Temperature_Hook_Value="" #valid values are >xxx <yyy
@@ -155,8 +153,8 @@ def GraphZoom_Unzoom():
     Zoom_B.config(text="View Last")       
 
 def readConfigurationFiles():
-    global NumSyringes,SyringeMax,SyringeVol,VolInlet,VolOutlet,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
-    global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
+    global SyringemmToMax,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
+    global RobotUSB,RobotUSBrate
     global HasRobot,HasSyringeBOT
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points
     
@@ -165,51 +163,53 @@ def readConfigurationFiles():
         lines=conf_file.readlines()
         conf_file.close()
         NumSyringes=int(lines[1].strip())
-        for x in range(NumSyringes):
-            l=lines[3+x].split(";")
-            SyringeMax[x]=float(l[0].strip())*2 #annoyngly we have to multiply by 2 to have the correct movement in mm
-            SyringeVol[x]=float(l[1].strip())
+##        for x in range(NumSyringes):
+##            l=lines[3+x].split(";")
+##            SyringemmToMax[x]=float(l[0].strip())*2 #annoyngly we have to multiply by 2 to have the correct movement in mm
+##            SyringeVolumes[x]=float(l[1].strip())
         curline=4+NumSyringes
-        VolInlet=float(lines[curline].strip())
+        #VolInlet=float(lines[curline].strip())
         curline+=2
-        VolOutlet=float(lines[curline].strip())
+        #VolOutlet=float(lines[curline].strip())
         curline+=2
         SchematicImage="conf"+os.sep+lines[curline].strip()
         MaskImage=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-mask.png" #define automatically the names of mask and binds from the schematic image name
         MaskMacros=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-binds.txt"
-        curline+=2; SyringeUSB=lines[curline].strip() 
-        curline+=2; SyringeUSBrate=lines[curline].strip()
-        curline+=1;
-        while len(lines)>curline:
-         if lines[curline].strip()=="#USB interface":
-          curline+=1;
-          if lines[curline].strip()=="#name":
-           curline+=1; interface_name=lines[curline].strip()
-           curline+=1
-           if lines[curline].strip()=="#type":
-            curline+=1; interface_type=lines[curline].strip()
-            curline+=1
-            if lines[curline].strip()=="#USB port":
-             curline+=1; interface_port=lines[curline].strip()
-             curline+=1
-             if lines[curline].strip()=="#baud rate":
-              curline+=1; interface_baudrate=lines[curline].strip()
-              curline+=1
-              if lines[curline].strip()=="#Variables to read":
-               curline+=1; interface_numvars=lines[curline].strip()
-               curline+=1
-               if lines[curline].strip()=="#var names":
-                curline+=1; interface_varnames=lines[curline].strip()
-                #USB_handles.append(0)
-                USB_names.append(interface_name)
-                USB_types.append(interface_type)                
-                USB_ports.append(interface_port)
-                USB_baudrates.append(interface_baudrate)
-                USB_num_vars.append(int(interface_numvars))
-                USB_var_names.append(interface_varnames)
-                USB_var_points.append([])
-                USB_deviceready.append(False)
-                curline+=1
+        LoadConfFile('startup.conf')
+        print(USB_names)
+##        curline+=2; SyringeUSB=lines[curline].strip() 
+##        curline+=2; SyringeUSBrate=lines[curline].strip()
+##        curline+=1;
+##        while len(lines)>curline:
+##         if lines[curline].strip()=="#USB interface":
+##          curline+=1;
+##          if lines[curline].strip()=="#name":
+##           curline+=1; interface_name=lines[curline].strip()
+##           curline+=1
+##           if lines[curline].strip()=="#type":
+##            curline+=1; interface_type=lines[curline].strip()
+##            curline+=1
+##            if lines[curline].strip()=="#USB port":
+##             curline+=1; interface_port=lines[curline].strip()
+##             curline+=1
+##             if lines[curline].strip()=="#baud rate":
+##              curline+=1; interface_baudrate=lines[curline].strip()
+##              curline+=1
+##              if lines[curline].strip()=="#Variables to read":
+##               curline+=1; interface_numvars=lines[curline].strip()
+##               curline+=1
+##               if lines[curline].strip()=="#var names":
+##                curline+=1; interface_varnames=lines[curline].strip()
+##                #USB_handles.append(0)
+##                USB_names.append(interface_name)
+##                USB_types.append(interface_type)                
+##                USB_ports.append(interface_port)
+##                USB_baudrates.append(interface_baudrate)
+##                USB_num_vars.append(int(interface_numvars))
+##                USB_var_names.append(interface_varnames)
+##                USB_var_points.append([])
+##                USB_deviceready.append(False)
+##                curline+=1
 
     except:
      tkinter.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
@@ -360,7 +360,7 @@ def GetVarValue(var_name,variables): #retrieve a value of var_name
 
 def Parse(line,variables):    #parse macro lines and execute statements
     global logfile,IsBuffered0,Gcode,debug,cmdfile,SyringeBOT_IS_INITIALIZED
-    global NumSyringes, SyringeMax, SyringeVol, VolInlet, VolOutlet #global parameters for syringes taken from configuration.txt
+    global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration.txt
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro
     global Sensors_var_names,Sensors_var_values
     global global_vars
@@ -405,12 +405,12 @@ def Parse(line,variables):    #parse macro lines and execute statements
       commands=line.split(' ',1)
       commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
       commands[1]=int(commands[1])-1 #Syringe n is in n-1 position inside the array
-      RefreshVarValues("$syringemax$",SyringeMax[commands[1]],variables)
-      RefreshVarValues("$syringevol$",SyringeVol[commands[1]],variables)
-      RefreshVarValues("$volinlet$",VolInlet,variables)
-      RefreshVarValues("$voloutlet$",VolOutlet,variables)
+      RefreshVarValues("$syringemax$",SyringemmToMax[commands[1]],variables)
+      RefreshVarValues("$syringevol$",SyringeVolumes[commands[1]],variables)
+      RefreshVarValues("$volinlet$",SyringeInletVolumes[commands[1]],variables) 
+      RefreshVarValues("$voloutlet$",SyringeOutletVolumes[commands[1]],variables) 
       RefreshVarValues("$axisname$",axisnames[commands[1]],variables)
-      RefreshVarValues("$numsyringes$",int(NumSyringes),variables)
+      RefreshVarValues("$numsyringes$",len(SyringeVolumes),variables)
      except:
       tkinter.messagebox.showerror("ERROR in getsyringeparms method","use: getsyringeparms syringenumber")
       return "Error"
@@ -818,10 +818,10 @@ def LoadGcode():
    tkinter.messagebox.showerror("ERROR","Cannot run Gcode "+filename)
 
 def CancelPrint():
- global SyringeWorking
+ global SyringeBOTWorking
  MsgBox = tkinter.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
  if MsgBox == 'yes':  
-  SyringeWorking=False
+  SyringeBOTWorking=False
 '''
 #Robot direct interface for buttons
 def MoveRobot(cmd):
@@ -858,7 +858,7 @@ def MoveRobot(cmd):
 '''  
 
 def sendcommand(cmd,where): #send a gcode command
-    global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeSendNow
+    global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeBOTSendNow
     destination=['Syringe','Robot']
     if connected==1:
       if where==0:  #0 = syringe
@@ -866,7 +866,7 @@ def sendcommand(cmd,where): #send a gcode command
            Gcode.append(cmd)
        else:
         if noprint_debug==False:
-          SyringeSendNow=cmd      
+          SyringeBOTSendNow=cmd      
           time.sleep(0.1)
         else:
           cmdfile.write("                     "+str(DT.datetime.now())+"\n")
@@ -879,11 +879,11 @@ def sendcommand(cmd,where): #send a gcode command
 
 
 def StartPrint0(): #send gcode array to SyringeBOT
-     global Gcode,SyringeWorking,SyringeQueueIndex,SyringeReady
+     global Gcode,SyringeBOTWorking,SyringeBOTQueueIndex,SyringeBOTReady
      if len(Gcode)>0:
-      SyringeQueueIndex=0
-      SyringeReady=True
-      SyringeWorking=True
+      SyringeBOTQueueIndex=0
+      SyringeBOTReady=True
+      SyringeBOTWorking=True
   
 
 def Draw_Chart(data):  #update graph
@@ -939,11 +939,39 @@ def ensure_directory_exists(directory_path):
         os.makedirs(directory_path)
         print(f"Directory '{directory_path}' created.")
     else:
-        print(f"Directory '{directory_path}' already exists.")    
+        print(f"Directory '{directory_path}' already exists.")
+
+def ConnectSyringeBOT(USB,USBrate):
+    global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
+    global RobotUSB,RobotUSBrate
+    global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
+    global Temperature_Hook,Time_Hook
+    global DoNotConnect
+    global chart_h
+    SyringeBOT_IS_INITIALIZED=False
+    ResetChart()
+    if DoNotConnect:
+            connected=1
+            return
+    try:
+     syringe = serial.Serial(USB,USBrate)
+     time.sleep(1)         
+     while (syringe.inWaiting() > 0):
+      data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
+      print(data_str, end='')          
+    except Exception as e:
+     tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
+     print("ERROR Connect(): ",e)
+     HasSyringeBOT=False
+     w2.pack_forget()
+    else:
+     connected = 1
+     HasSyringeBOT=True
+     threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
     global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
-    global SyringeUSB,RobotUSB,SyringeUSBrate,RobotUSBrate
+    global RobotUSB,RobotUSBrate
     global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
     global DoNotConnect
@@ -952,36 +980,39 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     ensure_directory_exists("log")
 
     if connected == 0:  #if it is not connected, connect
-        SyringeBOT_IS_INITIALIZED=False
-        ResetChart()
-        if DoNotConnect:
-                connected=1
-                return
-        try:
-         syringe = serial.Serial(SyringeUSB,SyringeUSBrate)
-         time.sleep(1)         
-         while (syringe.inWaiting() > 0):
-          data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
-          print(data_str, end='')          
-        except Exception as e:
-         tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
-         print("ERROR Connect(): ",e)
-         HasSyringeBOT=False
-         w2.pack_forget()
-        else:
-         connected = 1
-         HasSyringeBOT=True
-         threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
-        for sensor in range(len(USB_names)): #connect all the sensors
+##        SyringeBOT_IS_INITIALIZED=False
+##        ResetChart()
+##        if DoNotConnect:
+##                connected=1
+##                return
+##        try:
+##         syringe = serial.Serial(SyringeUSB,SyringeUSBrate)
+##         time.sleep(1)         
+##         while (syringe.inWaiting() > 0):
+##          data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
+##          print(data_str, end='')          
+##        except Exception as e:
+##         tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
+##         print("ERROR Connect(): ",e)
+##         HasSyringeBOT=False
+##         w2.pack_forget()
+##        else:
+##         connected = 1
+##         HasSyringeBOT=True
+##         threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
+        for device in range(len(USB_names)): #connect all the sensors
+         if USB_types[device]=="SyringeBOT":
+                 ConnectSyringeBOT(USB_ports[device],USB_baudrates[device])
+         else:
           try:
-           USB_handles.append(serial.Serial(USB_ports[sensor],USB_baudrates[sensor]))
-           USB_deviceready[sensor]=True
-           if (debug): print("USB device #",sensor+1,"port:",USB_ports[sensor],"num vars=",USB_num_vars[sensor])
-           USB_last_values.append(("0.01 " *int(USB_num_vars[sensor])).strip())
+           USB_handles.append(serial.Serial(USB_ports[device],USB_baudrates[device]))
+           USB_deviceready[device]=True
+           if (debug): print("USB device #",device+1,"port:",USB_ports[device],"num vars=",USB_num_vars[device])
+           USB_last_values.append(("0.01 " *int(USB_num_vars[device])).strip())
           except Exception as e:
            print(e)       
-           USB_deviceready[sensor]=False       
-           tkinter.messagebox.showerror("ERROR", USB_names[sensor]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
+           USB_deviceready[device]=False       
+           tkinter.messagebox.showerror("ERROR", USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
           else:
            connected=1
         if connected==0:
@@ -1005,9 +1036,9 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          Charts_enabled=[False]*(len(Sensors_var_names))
          ex=0
         cntr=0 
-        for sensor in range(len(USB_names)):
-         if USB_deviceready[sensor]:
-          for variable in range(int(USB_num_vars[sensor])):
+        for device in range(len(USB_names)):
+         if USB_deviceready[device]:
+          for variable in range(int(USB_num_vars[device])):
            var_name=Sensors_var_names[cntr]
            btn=Button(GRP, text=var_name, command=lambda j=cntr+ex : Enable_Disable_plot(j),bg=graph_colors[(cntr +ex)% len(graph_colors)],fg="white",bd=4)
            Plot_B.append(btn)
@@ -1040,10 +1071,10 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       Temperature_Hook=False
       b_temp.pack_forget()          
       if HasSyringeBOT: syringe.close()
-      for sensor in range(len(USB_names)):
-        if USB_deviceready[sensor]:
-            USB_deviceready[sensor]=False    
-            USB_handles[sensor].close()
+      for device in range(len(USB_names)):
+        if USB_deviceready[device]:
+            USB_deviceready[device]=False    
+            USB_handles[device].close()
       USB_handles=[] #remove all handles     
       for btn in Plot_B:
         btn.destroy()
@@ -1055,12 +1086,12 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       logfile.close()
 
 def SyringeCycle(): #listen and send messages to SyringeBOT
- global syringe,connected,SyringeReady,Gcode,SyringeWorking,SyringeQueue,SyringeQueueIndex,SyringeSendNow,T_Actual,T_SetPoint
+ global syringe,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
  while (syringe.inWaiting() > 0):
   data_str = syringe.read(syringe.inWaiting()).decode('ascii')
   for s in data_str.split('\n'):
     if s.strip()=="ok":
-       SyringeReady=True
+       SyringeBOTReady=True
        #print("   Syringe Ready",data_str)
     try:   
      if (data_str.find(' B:')>0 and data_str.find('root')<0):
@@ -1071,25 +1102,25 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
     except:
      #print(DT.datetime.now(),"whops")
      pass       
- if (SyringeWorking):
-   if (SyringeReady):
-     if not(SyringeSendNow==""):
-       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code and we are processing give the priority to the immediate sending
+ if (SyringeBOTWorking):
+   if (SyringeBOTReady):
+     if not(SyringeBOTSendNow==""):
+       syringe.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code and we are processing give the priority to the immediate sending
        #print('sent M105')
-       SyringeSendNow=""
+       SyringeBOTSendNow=""
      else:  
-       syringe.write((Gcode[SyringeQueueIndex]+'\n').encode())
-       #print("   Sent ",Gcode[SyringeQueueIndex])
-       SyringeReady=False
-       SyringeQueueIndex+=1
-       SyringeQueue=len(Gcode)
-       if SyringeQueueIndex==SyringeQueue:
-         SyringeWorking=False
+       syringe.write((Gcode[SyringeBOTQueueIndex]+'\n').encode())
+       #print("   Sent ",Gcode[SyringeBOTQueueIndex])
+       SyringeBOTReady=False
+       SyringeBOTQueueIndex+=1
+       SyringeBOTQueue=len(Gcode)
+       if SyringeBOTQueueIndex==SyringeBOTQueue:
+         SyringeBOTWorking=False
          Gcode=[]
- elif not(SyringeSendNow==""):
-       syringe.write((SyringeSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
+ elif not(SyringeBOTSendNow==""):
+       syringe.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
        #print('sent M105')
-       SyringeSendNow=""
+       SyringeBOTSendNow=""
         
  if connected: threading.Timer(0.05, SyringeCycle).start() #call itself
 
@@ -1120,7 +1151,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   global syringe,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
   global logfile
   global HasSyringeBOT
-  global SyringeWorking,SyringeQueueIndex,SyringeQueue,SyringeSendNow 
+  global SyringeBOTWorking,SyringeBOTQueueIndex,SyringeBOTQueue,SyringeBOTSendNow 
   global oldprogress,graph_color_index
   global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points,Sensors_var_names,Sensors_var_values
   if connected == 1:
@@ -1128,9 +1159,9 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
    graph_color_index=0
    log_text=""
    if HasSyringeBOT:
-           if SyringeWorking:
+           if SyringeBOTWorking:
                 try:   
-                 progress=float(SyringeQueueIndex/SyringeQueue)
+                 progress=float(SyringeBOTQueueIndex/SyringeBOTQueue)
                 except:
                  progress=0
                 if not(oldprogress==progress):
@@ -1150,7 +1181,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
                 SyringeBOT_IS_BUSY=False
                 SyringeBOT_WAS_BUSY=False
 
-           SyringeSendNow='M105' #send immediate gcode to SyringeBOT
+           SyringeBOTSendNow='M105' #send immediate gcode to SyringeBOT
            Temp_points.append(float(T_Actual))
            log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
            Draw_Chart(Temp_points)

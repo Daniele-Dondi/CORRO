@@ -28,6 +28,8 @@ def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global ValveOptions,CurrentSyringe,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
+    global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
+    global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
     ReactantsArray=[]
     CurrentReactant=1
     ValveOptions=["Not in use","Air/Waste"]
@@ -46,6 +48,8 @@ def InitAllData():
     PIDList=["None","Heater 1","Heater 2"]
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
+    USB_handles=[]; USB_names=[]; USB_deviceready=[]; USB_ports=[]; USB_baudrates=[]; USB_types=[]
+    USB_num_vars=[]; USB_var_names=[]; USB_var_points=[]; USB_last_values=[]; Sensors_var_names=[]; Sensors_var_values=[]
 
 InitAllData()
 
@@ -188,6 +192,21 @@ def SplitSyringesArray():
         SyringemmToMax.append(element[3])
         ValvesArray.append(element[4:])
 
+def SplitDevicesArray():
+    global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
+    global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
+    global DevicesArray
+    for device in DevicesArray:
+        DeviceName, DeviceType, DeviceUSB, USBBaudRate, Protocol, SensorEnabled, NumVariables, VarNames=device
+        USB_names.append(DeviceName)
+        USB_types.append(DeviceType)                
+        USB_ports.append(DeviceUSB)
+        USB_baudrates.append(USBBaudRate)
+        USB_num_vars.append(int(NumVariables))
+        USB_var_names.append(VarNames)
+        USB_var_points.append([])
+        USB_deviceready.append(SensorEnabled)
+
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
     try:
@@ -197,8 +216,10 @@ def LoadConfFile(filename):
      SplitSyringesArray()
      ApparatusArray=pickle.load(fin)
      DevicesArray=pickle.load(fin)
+     SplitDevicesArray()
      fin.close()
-    except:
+    except Exception as e:
+     print(e)
      messagebox.showerror("ERROR", "Cannot load "+filename)
 
 def StartConfigurator(window):
