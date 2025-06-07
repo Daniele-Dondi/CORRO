@@ -184,11 +184,6 @@ def GetValvesArray():
 
 def SplitSyringesArray():
     global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
-    SyringeVolumes=[]
-    SyringeInletVolumes=[]
-    SyringeOutletVolumes=[]
-    SyringemmToMax=[]
-    ValvesArray=[]
     for element in SyringesArray:
         SyringeVolumes.append(element[0])
         SyringeInletVolumes.append(element[1])
@@ -290,6 +285,7 @@ def StartConfigurator(window):
          ShowData()
 
     def SaveConfFile(filename):
+     global CurrentFileName,FileIsModified
      try:
       fout=open(filename, 'wb')
       pickle.dump(ReactantsArray,fout)
@@ -302,6 +298,7 @@ def StartConfigurator(window):
       messagebox.showerror("ERROR", "Cannot save "+filename)
      else:
       CurrentFileName=filename
+      FileIsModified=False
 
     def SaveData():
         SaveConfFile(CurrentFileName)
@@ -337,11 +334,13 @@ def StartConfigurator(window):
         count=0
         for element in ReactantsArray:
             count+=1
-            ValveOptions.append("Reactant"+str(count)+": "+element[0])
+            #ValveOptions.append("Reactant"+str(count)+": "+element[0])
+            ValveOptions.append("Reactant: "+element[0])
         count=0
         for element in ApparatusArray:
             count+=1
-            name="Apparatus"+str(count)+": "+element[0]
+            #name="Apparatus"+str(count)+": "+element[0]
+            name="Apparatus: "+element[0]
             ValveOptions.append(name+" IN")
             ValveOptions.append(name+" OUT")
         exit1type.config(values=ValveOptions)
@@ -526,8 +525,14 @@ def StartConfigurator(window):
         return 0
 
     def CheckReactantParameters():
-        if ReactantName.get()=="":
+        global ReactantsArray
+        Name=ReactantName.get()
+        if Name=="":
             messagebox.showerror("ERROR", "Reactant name cannot be empty. Insert a valid name and retry.")
+            return False
+        for R_Name in ReactantsArray:
+         if Name in R_Name[0]:
+            messagebox.showerror("ERROR", "Duplicated reactant name.")
             return False
         if ReactantType.get()=="":
             messagebox.showerror("ERROR", "Reactant type cannot be empty. Insert a valid type and retry.")
@@ -582,7 +587,7 @@ def StartConfigurator(window):
         return [ReactantName.get(),ReactantType.get(),rformula.get(),MW.get(),purity.get(),conclabel.cget("text"),concentration.get(),ConcNumType.get(),ConcDenType.get(),density.get(),molaritylabel.cget("text")]  
 
     def SaveReactantParameters():
-        global CurrentReactant
+        global CurrentReactant,FileIsModified
         if CheckReactantParameters():
           newvalues=GetTab1Variables()
           if len(ReactantsArray)==CurrentReactant-1:  
@@ -593,7 +598,8 @@ def StartConfigurator(window):
            if answer:
             FileIsModified=True   
             if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the ValvesArray
-                UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")           
+                #UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")
+                UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant: "+ReactantName.get(),"Reactant")           
             ReactantsArray[CurrentReactant-1]=newvalues
 
     def ClearAllValuesT1():
@@ -653,9 +659,10 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT1()
 
     def UpdateEntryFromValvesArray(Item,position,NewValue,EntryType):
-        global ValvesArray
-        Item=EntryType+str(position)+": "+Item # EntryType should be Reactant or Apparatus
-        for element in ValvesArray:
+        global SyringesArray
+        #Item=EntryType+str(position)+": "+Item # EntryType should be Reactant or Apparatus
+        Item=EntryType+": "+Item # EntryType should be Reactant or Apparatus
+        for element in SyringesArray:
           for i, n in enumerate(element):
            if EntryType=="Apparatus":
             if n==Item+" IN":
@@ -665,14 +672,15 @@ def StartConfigurator(window):
            else:    
             if n==Item:
               element[i]=NewValue
-        SetTab3Variables(ValvesArray[CurrentSyringe-1])      
+        SetTab3Variables(SyringesArray[CurrentSyringe-1])      
            
 
     def DeleteCurrentReactant():
-        global CurrentReactant
+        global CurrentReactant,FileIsModified
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current reactant?")
         if answer:
          ClearAllValuesT1()
+         FileIsModified=True
          if CurrentReactant>len(ReactantsArray): #we have the number but still it is not saved in the array. So the array is shorter
              if CurrentReactant==1:
                  return
@@ -741,8 +749,13 @@ def StartConfigurator(window):
     ##################   E N D   O F   T A B  1   #############################################################
 
     def CheckApparatusParameters(avoid):
-        if ApparatusName.get()=="":
+        Name=ApparatusName.get()
+        if Name=="":
             messagebox.showerror("ERROR", "Apparatus name cannot be empty. Insert a valid name and retry.")
+            return False
+        for A_Name in ApparatusArray:
+         if Name in A_Name[0]:
+            messagebox.showerror("ERROR", "Duplicated apparatus name.")
             return False
         if ApparatusType.get()=="":
             messagebox.showerror("ERROR", "Apparatus type cannot be empty. Insert a valid type and retry.")
@@ -825,7 +838,7 @@ def StartConfigurator(window):
         return [ApparatusName.get(),ApparatusType.get(),thermo.get(),heated.get(),stirred.get(),onoff.get(),otheronoff.get(),minvol.get(),maxvol.get(),maxinputs.get(),maxoutputs.get()]
 
     def SaveApparatusParameters():
-        global CurrentApparatus
+        global CurrentApparatus,FileIsModified
         if CheckApparatusParameters(CurrentApparatus):
           newvalues=GetTab2Variables()
           if len(ApparatusArray)==CurrentApparatus-1:  
@@ -836,7 +849,8 @@ def StartConfigurator(window):
            if answer:
             FileIsModified=True   
             if not ApparatusName.get()==ApparatusArray[CurrentApparatus-1][0]: #Apparatus name has changed, we have to update the ValvesArray
-                UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")           
+                #UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")
+                UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus: "+ApparatusName.get(),"Apparatus")           
             ApparatusArray[CurrentApparatus-1]=newvalues
 
     def ClearAllValuesT2():
@@ -896,10 +910,11 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT2()
 
     def DeleteCurrentApparatus():
-        global CurrentApparatus
+        global CurrentApparatus,FileIsModified
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Apparatus?")
         if answer:
          ClearAllValuesT2()
+         FileIsModified=True
          if CurrentApparatus>len(ApparatusArray): #we have the number but still it is not saved in the array. So the array is shorter
              if CurrentApparatus==1:
                  return
@@ -1007,7 +1022,7 @@ def StartConfigurator(window):
         SetTab3Variables(SyringesArray[CurrentSyringe-1])
         
     def SaveSyringeParameters():
-        global CurrentSyringe
+        global CurrentSyringe,FileIsModified
         #if NotSavedDataTab3():
         SyringeConnections=GetTab3Variables()
         for i,element in enumerate(SyringeConnections[:3]):
@@ -1072,10 +1087,11 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT3()
 
     def DeleteCurrentSyringe(): 
-        global CurrentSyringe
+        global CurrentSyringe,FileIsModified
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Syringe?")
         if answer:
          ClearSyringeParameters()
+         FileIsModified=True
          if CurrentSyringe>len(SyringesArray): #we have the number but still it is not saved in the array. So the array is shorter
              if CurrentSyringe==1:
                  return
@@ -1135,7 +1151,7 @@ def StartConfigurator(window):
          SetTab4Variables(DevicesArray[CurrentDevice-1])
 
     def SaveDeviceParameters():
-        global CurrentDevice
+        global CurrentDevice,FileIsModified
         if CheckDeviceParameters():
           newvalues=GetTab4Variables()
           if len(DevicesArray)==CurrentDevice-1:  
@@ -1171,10 +1187,11 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT4()
 
     def DeleteCurrentDevice(): 
-        global CurrentDevice
+        global CurrentDevice,FileIsModified
         answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Device?")
         if answer:
          ClearDeviceParameters()
+         FileIsModified=True
          if CurrentDevice>len(DevicesArray): #we have the number but still it is not saved in the array. So the array is shorter
              if CurrentDevice==1:
                  return
