@@ -596,7 +596,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
       except:
        tkinter.messagebox.showerror("ERROR in setglobal method","use: setglobal $varname$ [$varname2$]") 
        return "Error"
-    elif line.find('getglobal')==0: #retrieve a variable in the global variable list            
+    elif line.find('getglobal')==0: #retrieve a variable from the global variable list            
       try:
        commands=line.split(' ')
        for var in commands[1:]:
@@ -604,7 +604,7 @@ def Parse(line,variables):    #parse macro lines and execute statements
         value=SubstituteVarValues(var,global_vars) #retrieve its value
         RefreshVarValues(var_name,value,variables) #register it in local variables
       except:
-       tkinter.messagebox.showerror("ERROR in setglobal method","use: getglobal $varname$ [$varname2$]") 
+       tkinter.messagebox.showerror("ERROR in getglobal method","use: getglobal $varname$ [$varname2$]") 
        return "Error"
     elif line.find('send')==0:
       try:
