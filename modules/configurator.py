@@ -24,13 +24,14 @@ import time
 from modules.listserialports import *
 from .serialmon import *
 
-
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global ValveOptions,CurrentSyringe,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
     global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
     global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
+    global CurrentFileName
+    global FileIsModified
     ReactantsArray=[]
     CurrentReactant=1
     ValveOptions=["Not in use","Air/Waste"]
@@ -51,6 +52,8 @@ def InitAllData():
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
     USB_handles=[]; USB_names=[]; USB_deviceready=[]; USB_ports=[]; USB_baudrates=[]; USB_types=[]
     USB_num_vars=[]; USB_var_names=[]; USB_var_points=[]; USB_last_values=[]; Sensors_var_names=[]; Sensors_var_values=[]
+    CurrentFileName=""
+    FileIsModified=False
 
 InitAllData()
 
@@ -208,6 +211,7 @@ def SplitDevicesArray():
 
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+    global CurrentFileName
     InitAllData()
     try:
      fin=open(filename, 'rb')
@@ -221,6 +225,8 @@ def LoadConfFile(filename):
     except Exception as e:
      print(e)
      messagebox.showerror("ERROR", "Cannot load "+filename)
+    else:
+     CurrentFileName=filename
 
 def StartConfigurator(window):
     global ReactantsArray, CurrentReactant, ValveOptions, CurrentSyringe, ValvesArray, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
@@ -232,7 +238,7 @@ def StartConfigurator(window):
     ConfiguratorWindow.grab_set()
     
     def Close():
-      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3():  
+      if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3() or FileIsModified:  
        MsgBox = tk.messagebox.askquestion ('Exit Configurator','Are you sure you want to exit configurator? Unsaved data are present',icon = 'warning')
       else:
        MsgBox="yes"
@@ -283,17 +289,29 @@ def StartConfigurator(window):
          SetSyringeOptions()
          ShowData()
 
-    def SaveAllData():
+    def SaveConfFile(filename):
+     try:
+      fout=open(filename, 'wb')
+      pickle.dump(ReactantsArray,fout)
+      pickle.dump(SyringesArray,fout)
+      pickle.dump(ApparatusArray,fout)
+      pickle.dump(DevicesArray,fout)     
+      fout.close()
+     except Exception as e:
+      print(e)
+      messagebox.showerror("ERROR", "Cannot save "+filename)
+     else:
+      CurrentFileName=filename
+
+    def SaveData():
+        SaveConfFile(CurrentFileName)
+         
+    def SaveAsData():
      filetypes=(('SyringeBOT cconfiguration files','*.conf'),('All files','*.*'))
      filename=filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
-     if not ".conf" in filename: filename+=".conf"
-     fout=open(filename, 'wb')
-     pickle.dump(ReactantsArray,fout)
-     pickle.dump(SyringesArray,fout)
-     pickle.dump(ApparatusArray,fout)
-     pickle.dump(DevicesArray,fout)     
-     fout.close()
+     if not filename[-5:]==".conf": filename+=".conf"
+     SaveConfFile(filename)
 
     def ClearAllData():
      MsgBox = tk.messagebox.askquestion ('Clear Data','Current data will be overwritten. Proceed?',icon = 'warning')
@@ -304,7 +322,8 @@ def StartConfigurator(window):
     menubar = Menu(ConfiguratorWindow)
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='Open',command=LoadAllData)
-    file_menu.add_command(label='Save',command=SaveAllData)
+    file_menu.add_command(label='Save',command=SaveData)
+    file_menu.add_command(label='Save As',command=SaveAsData)
     file_menu.add_separator()
     file_menu.add_command(label='Clear all data',command=ClearAllData)
     file_menu.add_separator()    
@@ -568,9 +587,11 @@ def StartConfigurator(window):
           newvalues=GetTab1Variables()
           if len(ReactantsArray)==CurrentReactant-1:  
            ReactantsArray.append(newvalues)
+           FileIsModified=True
           elif NotSavedDataTab1():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current reactant?")
            if answer:
+            FileIsModified=True   
             if not ReactantName.get()==ReactantsArray[CurrentReactant-1][0]: #Reactant name has changed, we have to update the ValvesArray
                 UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Reactant"+str(CurrentReactant)+": "+ReactantName.get(),"Reactant")           
             ReactantsArray[CurrentReactant-1]=newvalues
@@ -662,6 +683,7 @@ def StartConfigurator(window):
          else:
              UpdateEntryFromValvesArray(ReactantsArray[CurrentReactant-1][0],CurrentReactant,"Not in use","Reactant")
              del ReactantsArray[CurrentReactant-1]
+             FileIsModified=True
              if CurrentReactant>len(ReactantsArray): #we deleted the first and only reactant
                  HeaderLabelT1.config(text="Reactant n. "+str(CurrentReactant)+" of "+str(CurrentReactant))
              else:    
@@ -808,9 +830,11 @@ def StartConfigurator(window):
           newvalues=GetTab2Variables()
           if len(ApparatusArray)==CurrentApparatus-1:  
            ApparatusArray.append(newvalues)
+           FileIsModified=True
           elif NotSavedDataTab2():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Apparatus?")
            if answer:
+            FileIsModified=True   
             if not ApparatusName.get()==ApparatusArray[CurrentApparatus-1][0]: #Apparatus name has changed, we have to update the ValvesArray
                 UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Apparatus"+str(CurrentApparatus)+": "+ApparatusName.get(),"Apparatus")           
             ApparatusArray[CurrentApparatus-1]=newvalues
@@ -886,6 +910,7 @@ def StartConfigurator(window):
          else:
              UpdateEntryFromValvesArray(ApparatusArray[CurrentApparatus-1][0],CurrentApparatus,"Not in use","Apparatus")
              del ApparatusArray[CurrentApparatus-1]
+             FileIsModified=True
              if CurrentApparatus>len(ApparatusArray): #we deleted the first and only Apparatus
                  HeaderLabelT2.config(text="Apparatus n. "+str(CurrentApparatus)+" of "+str(CurrentApparatus))
              else:    
@@ -1004,6 +1029,7 @@ def StartConfigurator(window):
              if not(Connection=="Not in use") and Connection in SyringeConnections[i+5:]:
                   messagebox.showerror("ERROR", "Duplicated connection: "+Connection)
                   return
+        FileIsModified=True        
         if len(SyringesArray)==CurrentSyringe-1:  
            SyringesArray.append(SyringeConnections)
         else:   
@@ -1059,6 +1085,7 @@ def StartConfigurator(window):
                  SetTab3Variables(SyringesArray[CurrentSyringe-1])
          else:
              del SyringesArray[CurrentSyringe-1]
+             FileIsModified=True
              if CurrentSyringe>len(SyringesArray): #we deleted the first and only Syringe
                  HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(CurrentSyringe))
              else:    
@@ -1113,10 +1140,12 @@ def StartConfigurator(window):
           newvalues=GetTab4Variables()
           if len(DevicesArray)==CurrentDevice-1:  
            DevicesArray.append(newvalues)
+           FileIsModified=True
           elif NotSavedDataTab4():
            answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Device?")
            if answer:
             DevicesArray[CurrentDevice-1]=newvalues
+            FileIsModified=True
 
     def AskLoadDeviceParameters():
         global CurrentDevice
@@ -1155,6 +1184,7 @@ def StartConfigurator(window):
                  SetTab4Variables(DevicesArray[CurrentDevice-1])
          else:
              del DevicesArray[CurrentDevice-1]
+             FileIsModified=True
              if CurrentDevice>len(DevicesArray): #we deleted the first and only Device
                  HeaderLabelT4.config(text="Device n. "+str(CurrentDevice)+" of "+str(CurrentDevice))
              else:    
@@ -1265,7 +1295,7 @@ def StartConfigurator(window):
     protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","Read/Write","Writeonly"),state="readonly"); Protocol.pack(); Protocol.bind("<<ComboboxSelected>>", DeviceTypecallback)
     SensorEnabled=tk.BooleanVar(value=True); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.select(); DevEnabled.pack()
     ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=0, to=10000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
-    ttk.Label(tab4,text ="Variable names (base name or comma separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
+    ttk.Label(tab4,text ="Variable names (base name or space separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
     F2T4 = ttk.Frame(tab4); F2T4.pack()
     F3T4 = ttk.Frame(tab4); F3T4.pack()

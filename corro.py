@@ -59,8 +59,6 @@ Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
 HasRobot = False
 HasSyringeBOT = False
-##RobotUSB = ""
-##RobotUSBrate = 0
 #SyringeBOT queue vars 
 SyringeBOTQueueIndex=0 
 SyringeBOTQueue=0 
