@@ -49,18 +49,8 @@ AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 ShowMacrosPalettes=False
 #USB sensors control vars
-##USB_handles=[]  
-##USB_names=[]
-##USB_deviceready=[]
-##USB_ports=[]
-##USB_baudrates=[]
-##USB_types=[]
-##USB_num_vars=[]
-##USB_var_names=[]
-##USB_var_points=[]
-##USB_last_values=[]
-##Sensors_var_names=[]
-##Sensors_var_values=[]
+Sensors_var_names=[]
+Sensors_var_values=[]
 Charts_enabled=[]
 Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
