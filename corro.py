@@ -175,7 +175,6 @@ def readConfigurationFiles():
         MaskMacros=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-binds.txt"
  
         LoadConfFile('startup.conf')
-        print(conf.USB_names)
 
 
     except Exception as e:
@@ -201,7 +200,6 @@ def SyringeBOT_is_ready():
      MsgBox = tkinter.messagebox.showerror ('SyringeBOT is event-driven','SyringeBOT is waiting for Time or Temperature events. An action could create problems',icon = 'error')
      return False
     return True
-
         
 def onclick(event):
     global pix,pixboundedmacro,colorsbound,debug
@@ -944,7 +942,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
 
     ensure_directory_exists("log")
     LoadConfFile('startup.conf')    
-    print(conf.USB_names,conf.USB_types)
     if connected == 0:  #if it is not connected, connect
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_types[device]=="SyringeBOT":

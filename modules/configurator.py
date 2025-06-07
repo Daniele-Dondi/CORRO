@@ -194,8 +194,6 @@ def SplitSyringesArray():
         ValvesArray.append(element[4:])
 
 def SplitDevicesArray():
-##    global USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
-##    global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
     global DevicesArray
     for device in DevicesArray:
         DeviceName, DeviceType, DeviceUSB, USBBaudRate, Protocol, SensorEnabled, NumVariables, VarNames=device
@@ -207,7 +205,6 @@ def SplitDevicesArray():
         USB_var_names.append(VarNames)
         USB_var_points.append([])
         USB_deviceready.append(SensorEnabled)
-    print("co",USB_names)
 
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
