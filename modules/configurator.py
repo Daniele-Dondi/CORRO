@@ -24,6 +24,7 @@ import time
 from modules.listserialports import *
 from .serialmon import *
 
+
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global ValveOptions,CurrentSyringe,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
@@ -193,8 +194,8 @@ def SplitSyringesArray():
         ValvesArray.append(element[4:])
 
 def SplitDevicesArray():
-    global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
-    global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
+##    global USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
+##    global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
     global DevicesArray
     for device in DevicesArray:
         DeviceName, DeviceType, DeviceUSB, USBBaudRate, Protocol, SensorEnabled, NumVariables, VarNames=device
@@ -206,9 +207,11 @@ def SplitDevicesArray():
         USB_var_names.append(VarNames)
         USB_var_points.append([])
         USB_deviceready.append(SensorEnabled)
+    print("co",USB_names)
 
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
+    InitAllData()
     try:
      fin=open(filename, 'rb')
      ReactantsArray=pickle.load(fin)
@@ -853,12 +856,9 @@ def StartConfigurator(window):
         global CurrentApparatus
         if len(ApparatusArray)==CurrentApparatus-1:
          if Tab2HavingDefaultValues():
-               print("1")
                return False
          else:
-             print("2")
              return True
-        print("3")    
         return not(GetTab2Variables()==ApparatusArray[CurrentApparatus-1])    
 
     def AddApparatus():

@@ -35,7 +35,8 @@ import os
 import serial
 from os import listdir
 from os.path import isfile, join
-from modules.configurator import *
+##from modules.configurator import *
+import modules.configurator as conf
 from modules.wizard import *
 from modules.listserialports import *
 from modules.buildvercalculator import *
@@ -48,7 +49,7 @@ AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
 ShowMacrosPalettes=False
 #USB sensors control vars
-USB_handles=[]  
+##USB_handles=[]  
 ##USB_names=[]
 ##USB_deviceready=[]
 ##USB_ports=[]
@@ -65,8 +66,8 @@ Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
 HasRobot = False
 HasSyringeBOT = False
-RobotUSB = ""
-RobotUSBrate = 0
+##RobotUSB = ""
+##RobotUSBrate = 0
 #SyringeBOT queue vars 
 SyringeBOTQueueIndex=0 
 SyringeBOTQueue=0 
@@ -139,10 +140,9 @@ def keypress(event):  #keyboard shortcuts
 
 def ResetChart():
   global Temp_points
-  global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points
   Temp_points=[]
-  for device in range(len(USB_names)):
-   USB_var_points[device]=[]
+  for device in range(len(conf.USB_names)):
+   conf.USB_var_points[device]=[]
 
 def GraphZoom_Unzoom():
   global graph_all
@@ -154,9 +154,7 @@ def GraphZoom_Unzoom():
 
 def readConfigurationFiles():
     global SyringemmToMax,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
-    global RobotUSB,RobotUSBrate
     global HasRobot,HasSyringeBOT
-    global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points
     
     try:
         conf_file = open("conf"+os.sep+"configuration.txt", "r") #open configuration.txt and read parameters
@@ -175,41 +173,10 @@ def readConfigurationFiles():
         SchematicImage="conf"+os.sep+lines[curline].strip()
         MaskImage=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-mask.png" #define automatically the names of mask and binds from the schematic image name
         MaskMacros=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-binds.txt"
+ 
         LoadConfFile('startup.conf')
-        print(USB_names)
-##        curline+=2; SyringeUSB=lines[curline].strip() 
-##        curline+=2; SyringeUSBrate=lines[curline].strip()
-##        curline+=1;
-##        while len(lines)>curline:
-##         if lines[curline].strip()=="#USB interface":
-##          curline+=1;
-##          if lines[curline].strip()=="#name":
-##           curline+=1; interface_name=lines[curline].strip()
-##           curline+=1
-##           if lines[curline].strip()=="#type":
-##            curline+=1; interface_type=lines[curline].strip()
-##            curline+=1
-##            if lines[curline].strip()=="#USB port":
-##             curline+=1; interface_port=lines[curline].strip()
-##             curline+=1
-##             if lines[curline].strip()=="#baud rate":
-##              curline+=1; interface_baudrate=lines[curline].strip()
-##              curline+=1
-##              if lines[curline].strip()=="#Variables to read":
-##               curline+=1; interface_numvars=lines[curline].strip()
-##               curline+=1
-##               if lines[curline].strip()=="#var names":
-##                curline+=1; interface_varnames=lines[curline].strip()
-##                #USB_handles.append(0)
-##                USB_names.append(interface_name)
-##                USB_types.append(interface_type)                
-##                USB_ports.append(interface_port)
-##                USB_baudrates.append(interface_baudrate)
-##                USB_num_vars.append(int(interface_numvars))
-##                USB_var_names.append(interface_varnames)
-##                USB_var_points.append([])
-##                USB_deviceready.append(False)
-##                curline+=1
+        print(conf.USB_names)
+
 
     except Exception as e:
      print(e)       
@@ -944,8 +911,6 @@ def ensure_directory_exists(directory_path):
 
 def ConnectSyringeBOT(USB,USBrate):
     global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
-    global RobotUSB,RobotUSBrate
-    global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
@@ -972,59 +937,40 @@ def ConnectSyringeBOT(USB,USBrate):
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
     global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
-    global RobotUSB,RobotUSBrate
-    global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,Sensors_var_names,Sensors_var_values,Charts_enabled,Plot_B
+    global USB_handles,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
 
     ensure_directory_exists("log")
-
+    LoadConfFile('startup.conf')    
+    print(conf.USB_names,conf.USB_types)
     if connected == 0:  #if it is not connected, connect
-##        SyringeBOT_IS_INITIALIZED=False
-##        ResetChart()
-##        if DoNotConnect:
-##                connected=1
-##                return
-##        try:
-##         syringe = serial.Serial(SyringeUSB,SyringeUSBrate)
-##         time.sleep(1)         
-##         while (syringe.inWaiting() > 0):
-##          data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
-##          print(data_str, end='')          
-##        except Exception as e:
-##         tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
-##         print("ERROR Connect(): ",e)
-##         HasSyringeBOT=False
-##         w2.pack_forget()
-##        else:
-##         connected = 1
-##         HasSyringeBOT=True
-##         threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
-        for device in range(len(USB_names)): #connect all the sensors
-         if USB_types[device]=="SyringeBOT":
-                 ConnectSyringeBOT(USB_ports[device],USB_baudrates[device])
+        for device in range(len(conf.USB_names)): #connect all the sensors
+         if conf.USB_types[device]=="SyringeBOT":
+                 ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
+                 USB_handles.append("ROBOT")
          else:
           try:
-           USB_handles.append(serial.Serial(USB_ports[device],USB_baudrates[device]))
-           USB_deviceready[device]=True
-           if (debug): print("USB device #",device+1,"port:",USB_ports[device],"num vars=",USB_num_vars[device])
-           USB_last_values.append(("0.01 " *int(USB_num_vars[device])).strip())
+           USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
+           conf.USB_deviceready[device]=True
+           if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
+           conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
           except Exception as e:
            print(e)       
-           USB_deviceready[device]=False       
-           tkinter.messagebox.showerror("ERROR", USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in configuration.txt")
+           conf.USB_deviceready[device]=False       
+           tkinter.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
           else:
            connected=1
         if connected==0:
-                tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in configuration.txt")
+                tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in Configurator")
                 return
         if HasSyringeBOT==False: #No SyringeBOT, only sensors. Expand Graph
                 w.pack_forget()
                 chart_h=600
                 w.config(width=chart_w,height=chart_h)
                 w.pack(expand=YES,fill=BOTH)
-        Sensors_var_names=" ".join(USB_var_names).split() #prepare var names array for getvalues
+        Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
         if HasSyringeBOT:
          Charts_enabled=[False]*(len(Sensors_var_names)+1)
@@ -1037,9 +983,9 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          Charts_enabled=[False]*(len(Sensors_var_names))
          ex=0
         cntr=0 
-        for device in range(len(USB_names)):
-         if USB_deviceready[device]:
-          for variable in range(int(USB_num_vars[device])):
+        for device in range(len(conf.USB_names)):
+         if conf.USB_deviceready[device]:
+          for variable in range(int(conf.USB_num_vars[device])):
            var_name=Sensors_var_names[cntr]
            btn=Button(GRP, text=var_name, command=lambda j=cntr+ex : Enable_Disable_plot(j),bg=graph_colors[(cntr +ex)% len(graph_colors)],fg="white",bd=4)
            Plot_B.append(btn)
@@ -1056,8 +1002,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             logfile.write(str(DT.datetime.now())+"\n")
             logfile.write("\nTimestamp")
             if (HasSyringeBOT): logfile.write("\tActual Temperature\tSetPoint")
-            for device in range(len(USB_names)):
-              logfile.write("\t"+USB_var_names[device].replace(" ","\t"))      
+            for device in range(len(conf.USB_names)):
+              logfile.write("\t"+conf.USB_var_names[device].replace(" ","\t"))      
             logfile.write("\n")               
         except Exception as e:
            print(e)     
@@ -1072,9 +1018,9 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       Temperature_Hook=False
       b_temp.pack_forget()          
       if HasSyringeBOT: syringe.close()
-      for device in range(len(USB_names)):
-        if USB_deviceready[device]:
-            USB_deviceready[device]=False    
+      for device in range(len(conf.USB_names)):
+        if conf.USB_deviceready[device]:
+            conf.USB_deviceready[device]=False    
             USB_handles[device].close()
       USB_handles=[] #remove all handles     
       for btn in Plot_B:
@@ -1154,7 +1100,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   global HasSyringeBOT
   global SyringeBOTWorking,SyringeBOTQueueIndex,SyringeBOTQueue,SyringeBOTSendNow 
   global oldprogress,graph_color_index
-  global USB_handles,USB_names,USB_types,USB_ports,USB_baudrates,USB_num_vars,USB_var_names,USB_deviceready,USB_last_values,USB_var_points,Sensors_var_names,Sensors_var_values
+  global USB_handles
   if connected == 1:
    w.delete("all") #clear canvas
    graph_color_index=0
@@ -1195,25 +1141,26 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
              setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
              w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
-   for sensor in range(len(USB_names)):  #read values from all sensors connected to USB
+   for sensor in range(len(conf.USB_names)):  #read values from all sensors connected to USB
+     if conf.USB_types[sensor]=="SyringeBOT": continue
      try:
-      if (USB_deviceready[sensor]):
+      if (conf.USB_deviceready[sensor]):
        if USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
         values=""
-        if len(V)==USB_num_vars[sensor]: #keep data only if they correspond to the number of real variables, to avoid misreadings
+        if len(V)==conf.USB_num_vars[sensor]: #keep data only if they correspond to the number of real variables, to avoid misreadings
           for value in V:
             values+=str(abs(float(value)))+" "
           values=values.strip()
-          USB_last_values[sensor]=values
+          conf.USB_last_values[sensor]=values
         #elif debug:
         # print("no data received from sensor ",sensor)       
-       USB_var_points[sensor].append(USB_last_values[sensor]+" ")
-       log_text+="\t"+USB_last_values[sensor].replace(" ","\t")
-       for datum in range(int(USB_num_vars[sensor])):
-          Draw_Chart([float(e.split(' ')[datum]) for e in USB_var_points[sensor]])
+       conf.USB_var_points[sensor].append(conf.USB_last_values[sensor]+" ")
+       log_text+="\t"+conf.USB_last_values[sensor].replace(" ","\t")
+       for datum in range(int(conf.USB_num_vars[sensor])):
+          Draw_Chart([float(e.split(' ')[datum]) for e in conf.USB_var_points[sensor]])
      except Exception as e:
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
