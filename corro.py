@@ -914,6 +914,7 @@ def ConnectSyringeBOT(USB,USBrate):
             return
     try:
      syringe = serial.Serial(USB,USBrate)
+     USB_handles.append(syringe)
      time.sleep(1)         
      while (syringe.inWaiting() > 0):
       data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
@@ -941,7 +942,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_types[device]=="SyringeBOT":
                  ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
-                 USB_handles.append("ROBOT")
          else:
           try:
            USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
@@ -963,6 +963,8 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.config(width=chart_w,height=chart_h)
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
+        print(Sensors_var_names)
+        1/0
         #create buttons to enable/disable plots
         if HasSyringeBOT:
          Charts_enabled=[False]*(len(Sensors_var_names)+1)
