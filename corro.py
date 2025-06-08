@@ -913,13 +913,8 @@ def ConnectSyringeBOT(USB,USBrate):
             connected=1
             return
     try:
-<<<<<<< Updated upstream
-     syringe = serial.Serial(USB,USBrate)
-     USB_handles.append(syringe)
-=======
      SyringeBOT = serial.Serial(USB,USBrate)
      USB_handles.append(SyringeBOT)
->>>>>>> Stashed changes
      time.sleep(1)         
      while (SyringeBOT.inWaiting() > 0):
       data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii') 
@@ -969,10 +964,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         print(Sensors_var_names)
-<<<<<<< Updated upstream
-        1/0
-=======
->>>>>>> Stashed changes
         #create buttons to enable/disable plots
 ##        if HasSyringeBOT:
 ##         Charts_enabled=[False]*(len(Sensors_var_names)+1)
