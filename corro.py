@@ -900,7 +900,7 @@ def ensure_directory_exists(directory_path):
         os.makedirs(directory_path)
         print(f"Directory '{directory_path}' created.")
     else:
-        print(f"Directory '{directory_path}' already exists.")
+        if (debug): print(f"Directory '{directory_path}' already exists.")
 
 def ConnectSyringeBOT(USB,USBrate):
     global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
