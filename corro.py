@@ -99,10 +99,10 @@ SyringeBOT_IS_INITIALIZED=False
 oldprogress=0 #progress in printing
 #following parameters will be read from configuration.txt file
 #NumSyringes=0 #Number of installed syringes
-##SyringemmToMax=[1,2,3,4,5,6] #Syringe height of graduated part in millimeters
-##SyringeVolumes=[1,2,3,4,5,6] #Syringe max volume in milliliters
+##SyringemmToMax=[] #Syringe height of graduated part in millimeters
+##SyringeVolumes=[] #Syringe max volume in milliliters
 ##SyringeInletVolumes=[]   #volume of the inlet tube 
-##SyringeOutletVolumes=0  #volume of the outlet tube
+##SyringeOutletVolumes=[]  #volume of the outlet tube
 SchematicImage="" #file name for the image
 MaskImage=""      #file name for the mask image
 MaskMacros=""     #file name for the bounded colors to macros
@@ -820,9 +820,9 @@ def MoveRobot(cmd):
 
 def sendcommand(cmd,where): #send a gcode command
     global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeBOTSendNow
-    destination=['Syringe','Robot']
+    destination=['SyringeBOT','Robot']
     if connected==1:
-      if where==0:  #0 = syringe
+      if where==0:  #0 = SyringeBOT
        if (IsBuffered0):
            Gcode.append(cmd)
        else:
@@ -903,7 +903,7 @@ def ensure_directory_exists(directory_path):
         if (debug): print(f"Directory '{directory_path}' already exists.")
 
 def ConnectSyringeBOT(USB,USBrate):
-    global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
+    global connected,robot,SyringeBOT,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
@@ -913,24 +913,29 @@ def ConnectSyringeBOT(USB,USBrate):
             connected=1
             return
     try:
+<<<<<<< Updated upstream
      syringe = serial.Serial(USB,USBrate)
      USB_handles.append(syringe)
+=======
+     SyringeBOT = serial.Serial(USB,USBrate)
+     USB_handles.append(SyringeBOT)
+>>>>>>> Stashed changes
      time.sleep(1)         
-     while (syringe.inWaiting() > 0):
-      data_str = syringe.read(syringe.inWaiting()).decode('ascii') 
+     while (SyringeBOT.inWaiting() > 0):
+      data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii') 
       print(data_str, end='')          
     except Exception as e:
-     tkinter.messagebox.showerror("ERROR", "SYRINGE unit not connected! \ncheck connections\nand restart")
+     tkinter.messagebox.showerror("ERROR", "SyringeBOT unit not connected! \ncheck connections\nand restart")
      print("ERROR Connect(): ",e)
      HasSyringeBOT=False
      w2.pack_forget()
     else:
      connected = 1
      HasSyringeBOT=True
-     threading.Timer(0.1, SyringeCycle).start()  #call SyringeBOT cycle
+     threading.Timer(0.1, SyringeBOTCycle).start()  #call SyringeBOT cycle
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
-    global connected,robot,syringe,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
+    global connected,robot,SyringeBOT,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
     global USB_handles,Charts_enabled,Plot_B
     global Temperature_Hook,Time_Hook
     global DoNotConnect
@@ -964,27 +969,31 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         print(Sensors_var_names)
+<<<<<<< Updated upstream
         1/0
+=======
+>>>>>>> Stashed changes
         #create buttons to enable/disable plots
-        if HasSyringeBOT:
-         Charts_enabled=[False]*(len(Sensors_var_names)+1)
-         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
-         Plot_B.append(btn)
-         btn.pack()
-         Charts_enabled[0]=True
-         ex=1
-        else:
-         Charts_enabled=[False]*(len(Sensors_var_names))
-         ex=0
-        cntr=0 
+##        if HasSyringeBOT:
+##         Charts_enabled=[False]*(len(Sensors_var_names)+1)
+##         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
+##         Plot_B.append(btn)
+##         btn.pack()
+##         Charts_enabled[0]=True
+##         ex=1
+##        else:
+##         Charts_enabled=[False]*(len(Sensors_var_names))
+##         ex=0
+        Charts_enabled=[False]*len(Sensors_var_names)
+        cntr=0
         for device in range(len(conf.USB_names)):
          if conf.USB_deviceready[device]:
           for variable in range(int(conf.USB_num_vars[device])):
            var_name=Sensors_var_names[cntr]
-           btn=Button(GRP, text=var_name, command=lambda j=cntr+ex : Enable_Disable_plot(j),bg=graph_colors[(cntr +ex)% len(graph_colors)],fg="white",bd=4)
+           btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr)% len(graph_colors)],fg="white",bd=4)
            Plot_B.append(btn)
            btn.pack()
-           Charts_enabled[cntr+ex]=True
+           Charts_enabled[cntr]=True
            cntr+=1
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
@@ -1011,12 +1020,13 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       b_clock.pack_forget()
       Temperature_Hook=False
       b_temp.pack_forget()          
-      if HasSyringeBOT: syringe.close()
+      #if HasSyringeBOT: SyringeBOT.close()
       for device in range(len(conf.USB_names)):
         if conf.USB_deviceready[device]:
             conf.USB_deviceready[device]=False    
             USB_handles[device].close()
-      USB_handles=[] #remove all handles     
+      USB_handles=[] #remove all handles
+      HasSyringeBOT=False
       for btn in Plot_B:
         btn.destroy()
       Plot_B=[]  
@@ -1026,14 +1036,14 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       logfile.write(str(DT.datetime.now())+"\n")
       logfile.close()
 
-def SyringeCycle(): #listen and send messages to SyringeBOT
- global syringe,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
- while (syringe.inWaiting() > 0):
-  data_str = syringe.read(syringe.inWaiting()).decode('ascii')
+def SyringeBOTCycle(): #listen and send messages to SyringeBOT
+ global SyringeBOT,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
+ while (SyringeBOT.inWaiting() > 0):
+  data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii')
   for s in data_str.split('\n'):
     if s.strip()=="ok":
        SyringeBOTReady=True
-       #print("   Syringe Ready",data_str)
+       #print("   SyringeBOT Ready",data_str)
     try:   
      if (data_str.find(' B:')>0 and data_str.find('root')<0):
         temp=data_str[data_str.find('B')+2:data_str.find('@')]; #filter all messages but temperature
@@ -1046,11 +1056,11 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
  if (SyringeBOTWorking):
    if (SyringeBOTReady):
      if not(SyringeBOTSendNow==""):
-       syringe.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code and we are processing give the priority to the immediate sending
+       SyringeBOT.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code and we are processing give the priority to the immediate sending
        #print('sent M105')
        SyringeBOTSendNow=""
      else:  
-       syringe.write((Gcode[SyringeBOTQueueIndex]+'\n').encode())
+       SyringeBOT.write((Gcode[SyringeBOTQueueIndex]+'\n').encode())
        #print("   Sent ",Gcode[SyringeBOTQueueIndex])
        SyringeBOTReady=False
        SyringeBOTQueueIndex+=1
@@ -1059,11 +1069,11 @@ def SyringeCycle(): #listen and send messages to SyringeBOT
          SyringeBOTWorking=False
          Gcode=[]
  elif not(SyringeBOTSendNow==""):
-       syringe.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
+       SyringeBOT.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
        #print('sent M105')
        SyringeBOTSendNow=""
         
- if connected: threading.Timer(0.05, SyringeCycle).start() #call itself
+ if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
 
 def HookEventsCycle():
   global connected,SyringeBOT_IS_BUSY,T_Actual
@@ -1089,7 +1099,7 @@ def HookEventsCycle():
 
 #MAIN CYCLE
 def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
-  global syringe,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
+  global SyringeBOT,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
   global logfile
   global HasSyringeBOT
   global SyringeBOTWorking,SyringeBOTQueueIndex,SyringeBOTQueue,SyringeBOTSendNow 
@@ -1139,7 +1149,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
      if conf.USB_types[sensor]=="SyringeBOT": continue
      try:
       if (conf.USB_deviceready[sensor]):
-       if USB_handles[sensor].in_waiting:
+       if USB_handles[sensor].in_waiting:#ERROR HERE MainCycle list index out of range  line  1143
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
