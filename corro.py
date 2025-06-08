@@ -907,6 +907,7 @@ def ConnectSyringeBOT(USB,USBrate):
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
+    global USB_handles
     SyringeBOT_IS_INITIALIZED=False
     ResetChart()
     if DoNotConnect:
