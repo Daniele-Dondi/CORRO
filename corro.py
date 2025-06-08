@@ -576,7 +576,6 @@ def Parse(line,variables):    #parse macro line and execute statements
         return "Error"
 
 def ExecuteMacro(num):
-       ###########################################################################################################################################################################
        if(debug): print('executing macro:',macrolist[num])
        with open('macros/'+macrolist[num]+'.txt') as macro_file: 
         lines=macro_file.readlines() #read the entire file and put lines into an array
@@ -654,7 +653,6 @@ def ExecuteMacro(num):
               return "Error"    
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
-       ###########################################################################################################################################################################
 
 
 def Macro(num,*args): #run, delete or edit a macro 
@@ -943,6 +941,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_types[device]=="SyringeBOT":
                  ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
+                 conf.USB_deviceready[device]=HasSyringeBOT
          else:
           try:
            USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
@@ -964,18 +963,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.config(width=chart_w,height=chart_h)
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
-        print(Sensors_var_names)
         #create buttons to enable/disable plots
-##        if HasSyringeBOT:
-##         Charts_enabled=[False]*(len(Sensors_var_names)+1)
-##         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
-##         Plot_B.append(btn)
-##         btn.pack()
-##         Charts_enabled[0]=True
-##         ex=1
-##        else:
-##         Charts_enabled=[False]*(len(Sensors_var_names))
-##         ex=0
         Charts_enabled=[False]*len(Sensors_var_names)
         cntr=0
         for device in range(len(conf.USB_names)):
@@ -1062,7 +1050,6 @@ def SyringeBOTCycle(): #listen and send messages to SyringeBOT
          Gcode=[]
  elif not(SyringeBOTSendNow==""):
        SyringeBOT.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
-       #print('sent M105')
        SyringeBOTSendNow=""
         
  if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
