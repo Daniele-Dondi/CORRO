@@ -937,9 +937,9 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global DoNotConnect
     global chart_h
 
-    ensure_directory_exists("log")
-    LoadConfFile('startup.conf')    
     if connected == 0:  #if it is not connected, connect
+        ensure_directory_exists("log")    
+        LoadConfFile('startup.conf')
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_types[device]=="SyringeBOT":
                  ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
