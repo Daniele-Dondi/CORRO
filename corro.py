@@ -576,7 +576,6 @@ def Parse(line,variables):    #parse macro line and execute statements
         return "Error"
 
 def ExecuteMacro(num):
-       ###########################################################################################################################################################################
        if(debug): print('executing macro:',macrolist[num])
        with open('macros/'+macrolist[num]+'.txt') as macro_file: 
         lines=macro_file.readlines() #read the entire file and put lines into an array
@@ -654,7 +653,6 @@ def ExecuteMacro(num):
               return "Error"    
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
-       ###########################################################################################################################################################################
 
 
 def Macro(num,*args): #run, delete or edit a macro 
@@ -924,11 +922,13 @@ def ConnectSyringeBOT(USB,USBrate):
      tkinter.messagebox.showerror("ERROR", "SyringeBOT unit not connected! \ncheck connections\nand restart")
      print("ERROR Connect(): ",e)
      HasSyringeBOT=False
+     USB_handles.append("")
      w2.pack_forget()
     else:
      connected = 1
      HasSyringeBOT=True
      threading.Timer(0.1, SyringeBOTCycle).start()  #call SyringeBOT cycle
+    conf.USB_last_values.append("0")
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
     global connected,robot,SyringeBOT,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
@@ -943,6 +943,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_types[device]=="SyringeBOT":
                  ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
+                 conf.USB_deviceready[device]=HasSyringeBOT
          else:
           try:
            USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
@@ -964,29 +965,18 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.config(width=chart_w,height=chart_h)
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
-        print(Sensors_var_names)
         #create buttons to enable/disable plots
-##        if HasSyringeBOT:
-##         Charts_enabled=[False]*(len(Sensors_var_names)+1)
-##         btn=Button(GRP, text="T", command=lambda j=0 : Enable_Disable_plot(j),bg=graph_colors[0],fg="white",bd=4)
-##         Plot_B.append(btn)
-##         btn.pack()
-##         Charts_enabled[0]=True
-##         ex=1
-##        else:
-##         Charts_enabled=[False]*(len(Sensors_var_names))
-##         ex=0
         Charts_enabled=[False]*len(Sensors_var_names)
         cntr=0
         for device in range(len(conf.USB_names)):
-         if conf.USB_deviceready[device]:
-          for variable in range(int(conf.USB_num_vars[device])):
+         for variable in range(int(conf.USB_num_vars[device])):
+          if conf.USB_deviceready[device]:                  
            var_name=Sensors_var_names[cntr]
            btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr)% len(graph_colors)],fg="white",bd=4)
            Plot_B.append(btn)
            btn.pack()
            Charts_enabled[cntr]=True
-           cntr+=1
+          cntr+=1
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
@@ -1062,7 +1052,6 @@ def SyringeBOTCycle(): #listen and send messages to SyringeBOT
          Gcode=[]
  elif not(SyringeBOTSendNow==""):
        SyringeBOT.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
-       #print('sent M105')
        SyringeBOTSendNow=""
         
  if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
@@ -1098,7 +1087,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   global oldprogress,graph_color_index
   global USB_handles
   if connected == 1:
-   w.delete("all") #clear canvas
+   w.delete("all") #clear graph canvas
    graph_color_index=0
    log_text=""
    if HasSyringeBOT:
@@ -1138,10 +1127,9 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
              w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
    for sensor in range(len(conf.USB_names)):  #read values from all sensors connected to USB
-     if conf.USB_types[sensor]=="SyringeBOT": continue
      try:
       if (conf.USB_deviceready[sensor]):
-       if USB_handles[sensor].in_waiting:#ERROR HERE MainCycle list index out of range  line  1143
+       if USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
@@ -1150,7 +1138,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
           for value in V:
             values+=str(abs(float(value)))+" "
           values=values.strip()
-          conf.USB_last_values[sensor]=values
+          conf.USB_last_values[sensor]=values 
         #elif debug:
         # print("no data received from sensor ",sensor)       
        conf.USB_var_points[sensor].append(conf.USB_last_values[sensor]+" ")
