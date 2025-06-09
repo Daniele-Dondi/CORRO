@@ -887,6 +887,7 @@ def Draw_Chart(data):  #update graph
 
 def Enable_Disable_plot(j):
    global Charts_enabled,Plot_B
+   print(j,len(Charts_enabled))
    Charts_enabled[j]=not(Charts_enabled[j])
    if Charts_enabled[j]:
     Plot_B[j].config(relief=RAISED)           
@@ -968,11 +969,13 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         #create buttons to enable/disable plots
         Charts_enabled=[False]*len(Sensors_var_names)
         cntr=0
+        j=0
         for device in range(len(conf.USB_names)):
          for variable in range(int(conf.USB_num_vars[device])):
           if conf.USB_deviceready[device]:                  
            var_name=Sensors_var_names[cntr]
-           btn=Button(GRP, text=var_name, command=lambda j=cntr : Enable_Disable_plot(j),bg=graph_colors[(cntr)% len(graph_colors)],fg="white",bd=4)
+           btn=Button(GRP, text=var_name, command=lambda : Enable_Disable_plot(j),bg=graph_colors[(cntr)% len(graph_colors)],fg="white",bd=4)
+           j+=1
            Plot_B.append(btn)
            btn.pack()
            Charts_enabled[cntr]=True
