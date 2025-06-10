@@ -940,22 +940,25 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")    
         LoadConfFile('startup.conf')
+        print(conf.USB_deviceready)
+        1/0
         for device in range(len(conf.USB_names)): #connect all the sensors
-         if conf.USB_types[device]=="SyringeBOT":
-                 ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
-                 conf.USB_deviceready[device]=HasSyringeBOT
-         else:
-          try:
-           USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
-           conf.USB_deviceready[device]=True
-           if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
-           conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
-          except Exception as e:
-           print(e)       
-           conf.USB_deviceready[device]=False       
-           tkinter.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
+         if conf.USB_deviceready[device]:
+          if conf.USB_types[device]=="SyringeBOT":
+                  ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
+                  conf.USB_deviceready[device]=HasSyringeBOT
           else:
-           connected=1
+           try:
+            USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
+            #conf.USB_deviceready[device]=True
+            if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
+            conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
+           except Exception as e:
+            print(e)       
+            conf.USB_deviceready[device]=False       
+            tkinter.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
+           else:
+            connected=1
         if connected==0:
                 tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in Configurator")
                 return
