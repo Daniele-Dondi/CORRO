@@ -302,6 +302,10 @@ def StartConfigurator(window):
 
     def SaveData():
         SaveConfFile(CurrentFileName)
+
+    def SaveAndExit():
+        SaveConfFile(CurrentFileName)
+        Close()
          
     def SaveAsData():
      filetypes=(('SyringeBOT cconfiguration files','*.conf'),('All files','*.*'))
@@ -320,6 +324,7 @@ def StartConfigurator(window):
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='Open',command=LoadAllData)
     file_menu.add_command(label='Save',command=SaveData)
+    file_menu.add_command(label='Save & Exit',command=SaveAndExit)
     file_menu.add_command(label='Save As',command=SaveAsData)
     file_menu.add_separator()
     file_menu.add_command(label='Clear all data',command=ClearAllData)
@@ -1141,7 +1146,7 @@ def StartConfigurator(window):
         DeviceUSB.set(parms[2])
         USBBaudRate.set(parms[3])
         Protocol.set(parms[4])
-        SensorEnabled=parms[5]
+        SensorEnabled.set(parms[5])
         DevEnabled.select()
         NumVariables.delete(0,tk.END); NumVariables.insert(0,str(parms[6]))
         VarNames.delete(0,tk.END); VarNames.insert(0,str(parms[7]))
@@ -1310,7 +1315,7 @@ def StartConfigurator(window):
     ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts()); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
     ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
     protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","Read/Write","Writeonly"),state="readonly"); Protocol.pack(); Protocol.bind("<<ComboboxSelected>>", DeviceTypecallback)
-    SensorEnabled=tk.BooleanVar(value=True); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.select(); DevEnabled.pack()
+    SensorEnabled=tk.BooleanVar(); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.select(); DevEnabled.pack()
     ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=0, to=10000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
     ttk.Label(tab4,text ="Variable names (base name or space separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
