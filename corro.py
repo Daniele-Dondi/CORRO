@@ -906,11 +906,7 @@ def ConnectSyringeBOT(USB,USBrate):
     global DoNotConnect
     global chart_h
     global USB_handles
-    SyringeBOT_IS_INITIALIZED=False
-    ResetChart()
-    if DoNotConnect:
-            connected=1
-            return
+
     try:
      SyringeBOT = serial.Serial(USB,USBrate)
      USB_handles.append(SyringeBOT)
@@ -936,7 +932,11 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
-
+    SyringeBOT_IS_INITIALIZED=False
+    ResetChart()
+    if DoNotConnect:
+            connected=1
+            return
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")    
         LoadConfFile('startup.conf')
