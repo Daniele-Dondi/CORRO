@@ -36,13 +36,10 @@ import serial
 from os import listdir
 from os.path import isfile, join
 import modules.configurator as conf
-##import modules.wizard 
-##import modules.listserialports
-##import modules.buildvercalculator
 from modules.wizard import *
 from modules.listserialports import *
 from modules.buildvercalculator import *
-
+import traceback
 
 
 #global vars
@@ -850,8 +847,8 @@ def Draw_Chart(data):  #update graph
     try:
         color=graph_colors[graph_color_index % len(graph_colors)]
         xtextpos=20+graph_color_index*50
-        graph_color_index+=1
-        if Charts_enabled[graph_color_index-1]==False: return        
+        if Charts_enabled[graph_color_index-1]==False: return
+        graph_color_index+=1        
         if len(data)<2: return #no data to plot          
         try:
          maximum=max(data)
@@ -883,7 +880,8 @@ def Draw_Chart(data):  #update graph
           pp.append(round(chart_h-data[index-1]*(chart_h-20)/maximum))
          w.create_line(pp,fill=color)
     except Exception as e:
-         print("Draw_Chart error ",e)   
+         print("Draw_Chart error ",e)
+         print(traceback.format_exc())
 
 def Enable_Disable_plot(j):
    global Charts_enabled,Plot_B
@@ -906,7 +904,6 @@ def ConnectSyringeBOT(USB,USBrate):
     global DoNotConnect
     global chart_h
     global USB_handles
-
     try:
      SyringeBOT = serial.Serial(USB,USBrate)
      USB_handles.append(SyringeBOT)
@@ -940,7 +937,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")    
         LoadConfFile('startup.conf')
-        print(conf.USB_deviceready)
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_deviceready[device]:
           if conf.USB_types[device]=="SyringeBOT":
@@ -969,6 +965,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
         Charts_enabled=[False]*len(Sensors_var_names)
+        print(Sensors_var_names)
         cntr=0
         j=0
         for device in range(len(conf.USB_names)):
@@ -1133,7 +1130,9 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
    for sensor in range(len(conf.USB_names)):  #read values from all sensors connected to USB
      try:
       if (conf.USB_deviceready[sensor]):
-       if USB_handles[sensor].in_waiting:
+       if conf.USB_types[sensor]=="SyringeBOT":
+               conf.USB_last_values[sensor]=T_Actual
+       elif USB_handles[sensor].in_waiting:
         data=USB_handles[sensor].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
@@ -1145,8 +1144,8 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
           conf.USB_last_values[sensor]=values 
         #elif debug:
         # print("no data received from sensor ",sensor)       
-       conf.USB_var_points[sensor].append(conf.USB_last_values[sensor]+" ")
-       log_text+="\t"+conf.USB_last_values[sensor].replace(" ","\t")
+       conf.USB_var_points[sensor].append(str(conf.USB_last_values[sensor])+" ")
+       log_text+="\t"+str(conf.USB_last_values[sensor]).replace(" ","\t")
        for datum in range(int(conf.USB_num_vars[sensor])):
           Draw_Chart([float(e.split(' ')[datum]) for e in conf.USB_var_points[sensor]])
      except Exception as e:
