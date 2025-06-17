@@ -1117,7 +1117,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
            SyringeBOTSendNow='M105' #send immediate gcode to SyringeBOT
            Temp_points.append(float(T_Actual))
            log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
-           Draw_Chart(Temp_points)
+           #Draw_Chart(Temp_points)
            try:
             MAX_Temp=max(Temp_points)
            except:
