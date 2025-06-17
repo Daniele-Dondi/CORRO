@@ -847,8 +847,8 @@ def Draw_Chart(data):  #update graph
     try:
         color=graph_colors[graph_color_index % len(graph_colors)]
         xtextpos=20+graph_color_index*50
+        graph_color_index+=1                
         if Charts_enabled[graph_color_index-1]==False: return
-        graph_color_index+=1        
         if len(data)<2: return #no data to plot          
         try:
          maximum=max(data)
@@ -964,8 +964,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         #create buttons to enable/disable plots
-        Charts_enabled=[False]*len(Sensors_var_names)
-        print(Sensors_var_names)
         cntr=0
         j=0
         for device in range(len(conf.USB_names)):
@@ -976,7 +974,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            j+=1
            Plot_B.append(btn)
            btn.pack()
-           Charts_enabled[cntr]=True
+           Charts_enabled.append(True)
           cntr+=1
         threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
@@ -1088,8 +1086,6 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   global oldprogress,graph_color_index
   global USB_handles
   if connected == 1:
-   w.delete("all") #clear graph canvas
-   graph_color_index=0
    log_text=""
    if HasSyringeBOT:
            if SyringeBOTWorking:
@@ -1127,32 +1123,37 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
              setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
              w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
-   for sensor in range(len(conf.USB_names)):  #read values from all sensors connected to USB
+   for device in range(len(conf.USB_names)):  #read values from all sensors connected to USB
      try:
-      if (conf.USB_deviceready[sensor]):
-       if conf.USB_types[sensor]=="SyringeBOT":
-               conf.USB_last_values[sensor]=T_Actual
-       elif USB_handles[sensor].in_waiting:
-        data=USB_handles[sensor].readline()
+      if (conf.USB_deviceready[device]):
+       if conf.USB_types[device]=="SyringeBOT":
+               conf.USB_last_values[device]=T_Actual
+       elif USB_handles[device].in_waiting:
+        data=USB_handles[device].readline()
         stringa=data.decode("utf-8").strip()
         V=stringa.split('\t')
         values=""
-        if len(V)==conf.USB_num_vars[sensor]: #keep data only if they correspond to the number of real variables, to avoid misreadings
+        if len(V)==conf.USB_num_vars[device]: #keep data only if they correspond to the number of real variables, to avoid misreadings
           for value in V:
             values+=str(abs(float(value)))+" "
           values=values.strip()
-          conf.USB_last_values[sensor]=values 
+          conf.USB_last_values[device]=values 
         #elif debug:
-        # print("no data received from sensor ",sensor)       
-       conf.USB_var_points[sensor].append(str(conf.USB_last_values[sensor])+" ")
-       log_text+="\t"+str(conf.USB_last_values[sensor]).replace(" ","\t")
-       for datum in range(int(conf.USB_num_vars[sensor])):
-          Draw_Chart([float(e.split(' ')[datum]) for e in conf.USB_var_points[sensor]])
+        # print("no data received from device ",device)       
+       conf.USB_var_points[device].append(str(conf.USB_last_values[device])+" ")
+       log_text+="\t"+str(conf.USB_last_values[device]).replace(" ","\t")
      except Exception as e:
        a,b,tb=sys.exc_info()
        print("MainCycle",e," line ",tb.tb_lineno)
-       
-   logfile.write(str(DT.datetime.now())+log_text+"\n") 
+   logfile.write(str(DT.datetime.now())+log_text+"\n")               
+   #DRAW GRAPHS
+   w.delete("all") #clear graph canvas
+   graph_color_index=0       
+   for device in range(len(conf.USB_names)):
+    if (conf.USB_deviceready[device]):       
+     for datum in range(int(conf.USB_num_vars[device])):
+      Draw_Chart([float(e.split(' ')[datum]) for e in conf.USB_var_points[device]])
+    
    if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
 def DeleteTemperatureEvent(t):
