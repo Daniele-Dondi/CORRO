@@ -970,7 +970,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          for variable in range(int(conf.USB_num_vars[device])):
           if conf.USB_deviceready[device]:                  
            var_name=Sensors_var_names[cntr]
-           btn=Button(GRP, text=var_name, command=lambda num=j: Enable_Disable_plot(num),bg=graph_colors[(cntr)% len(graph_colors)],fg="white",bd=4)
+           btn=Button(GRP, text=var_name, command=lambda num=j: Enable_Disable_plot(num),bg=graph_colors[(j)% len(graph_colors)],fg="white",bd=4)
            j+=1
            Plot_B.append(btn)
            btn.pack()
