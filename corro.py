@@ -921,7 +921,7 @@ def ConnectSyringeBOT(USB,USBrate):
      connected = 1
      HasSyringeBOT=True
      threading.Timer(0.1, SyringeBOTCycle).start()  #call SyringeBOT cycle
-    conf.USB_last_values.append("0")
+    #conf.USB_last_values.append("0")
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
     global connected,robot,SyringeBOT,logfile,HasRobot,HasSyringeBOT,SyringeBOT_IS_INITIALIZED
@@ -947,7 +947,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
             #conf.USB_deviceready[device]=True
             if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
-            conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
+            #conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
            except Exception as e:
             print(e)       
             conf.USB_deviceready[device]=False       
@@ -1001,11 +1001,14 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       b_clock.pack_forget()
       Temperature_Hook=False
       b_temp.pack_forget()          
-      #if HasSyringeBOT: SyringeBOT.close()
-      for device in range(len(conf.USB_names)):
+      if HasSyringeBOT: SyringeBOT.close()
+      try:
+       for device in range(len(conf.USB_names)):
         if conf.USB_deviceready[device]:
             conf.USB_deviceready[device]=False    
             USB_handles[device].close()
+      except:
+        pass
       USB_handles=[] #remove all handles
       HasSyringeBOT=False
       for btn in Plot_B:

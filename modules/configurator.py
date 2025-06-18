@@ -203,6 +203,7 @@ def SplitDevicesArray():
         USB_var_names.append(VarNames)
         USB_var_points.append([])
         USB_deviceready.append(SensorEnabled)
+        USB_last_values.append(("0.0 "*int(NumVariables)).strip())
 
 def LoadConfFile(filename):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
