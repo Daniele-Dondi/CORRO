@@ -178,7 +178,12 @@ class Pour(tk.Frame):
         self.CheckUnit()
 
     def MaxCharsInList(self,List):
-     return max([len(List[i]) for i in range(len(List))])
+        maxlength=8
+        try:
+            maxlength=max([len(List[i]) for i in range(len(List))])
+        except:
+            pass
+        return maxlength
 
     def CheckInput(self):
         Input=self.Source.get()
@@ -329,7 +334,12 @@ class Heat(tk.Frame):
         messagebox.showerror("Warning", "The reactor will be hot after this step")
     
     def MaxCharsInList(self,List):
-     return max([len(List[i]) for i in range(len(List))])
+        maxlength=8
+        try:
+            maxlength=max([len(List[i]) for i in range(len(List))])
+        except:
+            pass
+        return maxlength        
 
 
 class Wash(tk.Frame):
@@ -454,7 +464,12 @@ class Wash(tk.Frame):
          self.StatusLabel.config(text="---")   
     
     def MaxCharsInList(self,List):
-     return max([len(List[i]) for i in range(len(List))])
+        maxlength=8
+        try:
+            maxlength=max([len(List[i]) for i in range(len(List))])
+        except:
+            pass
+        return maxlength        
 
 class Wait(tk.Frame):
     def __init__(self,container):
