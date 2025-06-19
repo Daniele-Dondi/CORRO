@@ -1148,9 +1148,13 @@ def StartConfigurator(window):
         USBBaudRate.set(parms[3])
         Protocol.set(parms[4])
         SensorEnabled.set(parms[5])
-        DevEnabled.select()
+        #DevEnabled.select()
+        DevEnabled.update()
         NumVariables.delete(0,tk.END); NumVariables.insert(0,str(parms[6]))
+        NumVariables.update()
         VarNames.delete(0,tk.END); VarNames.insert(0,str(parms[7]))
+        VarNames.update()
+        print(VarNames.get(),parms[7])
 
     def LoadDeviceParameters():
          if not(len(DevicesArray)>CurrentDevice-1): return
@@ -1219,8 +1223,12 @@ def StartConfigurator(window):
         global CurrentDevice,DefaultDeviceParameters
         if len(DevicesArray)==CurrentDevice-1:
          if GetTab4Variables()==DefaultDeviceParameters:
+               print("ij")
                return False
-         else: return True
+         else:
+             print("de")
+             return True
+        print(GetTab4Variables(),DevicesArray[CurrentDevice-1])    
         return not(GetTab4Variables()==DevicesArray[CurrentDevice-1])        
 
     def CheckDeviceParameters():
@@ -1254,7 +1262,6 @@ def StartConfigurator(window):
         return True
 
     def DeviceTypecallback(eventObject):
-        print(Protocol.get())
         if "Read" in Protocol.get():
             NumVariables.config(state="normal")
             VarNames.config(state="normal")
@@ -1316,7 +1323,7 @@ def StartConfigurator(window):
     ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts()); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
     ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
     protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","Read/Write","Writeonly"),state="readonly"); Protocol.pack(); Protocol.bind("<<ComboboxSelected>>", DeviceTypecallback)
-    SensorEnabled=tk.BooleanVar(); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.select(); DevEnabled.pack()
+    SensorEnabled=tk.BooleanVar(); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.pack()
     ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=0, to=10000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
     ttk.Label(tab4,text ="Variable names (base name or space separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
