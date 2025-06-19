@@ -1148,17 +1148,19 @@ def StartConfigurator(window):
         USBBaudRate.set(parms[3])
         Protocol.set(parms[4])
         SensorEnabled.set(parms[5])
-        #DevEnabled.select()
         DevEnabled.update()
         NumVariables.delete(0,tk.END); NumVariables.insert(0,str(parms[6]))
         NumVariables.update()
         VarNames.delete(0,tk.END); VarNames.insert(0,str(parms[7]))
         VarNames.update()
-        print(VarNames.get(),parms[7])
 
     def LoadDeviceParameters():
-         if not(len(DevicesArray)>CurrentDevice-1): return
+         global DevicesArray,CurrentDevice
+         if (len(DevicesArray)<CurrentDevice-1): return
+         tabControl.unbind("<<NotebookTabChanged>>")
          SetTab4Variables(DevicesArray[CurrentDevice-1])
+         tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
+         
 
     def SaveDeviceParameters():
         global CurrentDevice,FileIsModified
@@ -1223,12 +1225,9 @@ def StartConfigurator(window):
         global CurrentDevice,DefaultDeviceParameters
         if len(DevicesArray)==CurrentDevice-1:
          if GetTab4Variables()==DefaultDeviceParameters:
-               print("ij")
                return False
          else:
-             print("de")
              return True
-        print(GetTab4Variables(),DevicesArray[CurrentDevice-1])    
         return not(GetTab4Variables()==DevicesArray[CurrentDevice-1])        
 
     def CheckDeviceParameters():
