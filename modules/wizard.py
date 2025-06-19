@@ -70,6 +70,9 @@ class Pour(tk.Frame):
     def GetValues(self):
         return [self.Label1.cget("text"), self.Label2.cget("text"), self.Label3.cget("text"),  self.Amount.get(), self.Units.get(), self.Source.get(), self.Destination.get(), self.StatusLabel.cget("text")]
 
+    def RetrieveConnections(self):
+        return [self.Source.get(), self.Destination.get()]
+
     def SetValues(self,parms):
         self.Label1.config(text=parms[0])
         self.Label2.config(text=parms[1])
@@ -295,6 +298,9 @@ class Heat(tk.Frame):
     def GetValues(self):
         return [self.Source.get(), self.Temperature.get(), self.Time.get(), self.Checked.get(), self.EndTemperature.get()]
 
+    def RetrieveConnections(self):
+        return [self.Source.get()]
+
     def SetValues(self,parms):
         self.Source.set(parms[0])
         self.Temperature.delete(0,tk.END)
@@ -435,6 +441,9 @@ class Wash(tk.Frame):
     def GetValues(self):
         return [self.Source.get(), self.Destination.get(), self.Cycles.get(), self.Volume.get()]
 
+    def RetrieveConnections(self):
+        return [self.Source.get(), self.Destination.get()]
+
     def SetValues(self,parms):
         self.Source.set(parms[0])
         self.Destination.set(parms[1])
@@ -505,6 +514,9 @@ class Wait(tk.Frame):
     def GetValues(self):
         return [self.Time.get(), self.Units.get()]
 
+    def RetrieveConnections(self):
+        return []
+    
     def SetValues(self,parms):
         self.Time.delete(0,tk.END)
         self.Time.insert(0,str(parms[0]))
@@ -568,6 +580,9 @@ class IF(tk.Frame):
     def GetValues(self):
         return [self.Time.get(), self.Units.get()]
 
+    def RetrieveConnections(self):
+        return []
+
     def SetValues(self,parms):
         return
 ##        self.Time.set(parms[0])  #####
@@ -605,6 +620,9 @@ class ELSE(tk.Frame):
     def GetValues(self):
         return []
 
+    def RetrieveConnections(self):
+        return []
+
     def SetValues(self,parms):
         return
 
@@ -638,6 +656,9 @@ class ENDIF(tk.Frame):
         return "OK"
 
     def GetValues(self):
+        return []
+
+    def RetrieveConnections(self):
         return []
 
     def SetValues(self,parms):
@@ -687,6 +708,9 @@ class LOOP(tk.Frame):
     def GetValues(self): #######
         return [self.Condition.get(), self.Units.get()]
 
+    def RetrieveConnections(self):
+        return []
+
     def SetValues(self,parms): #######
         self.Condition.delete(0,tk.END)
         self.Condition.insert(0,str(parms[0]))
@@ -723,6 +747,9 @@ class ENDLOOP(tk.Frame):
     def GetValues(self):
         return []
 
+    def RetrieveConnections(self):
+        return []
+    
     def SetValues(self,parms):
         return
 
@@ -743,7 +770,7 @@ class REM(tk.Frame):
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="COMMENT")
         self.Label1.pack(side="left")
-        self.Remark=tk.Entry(self.Line1,state="normal",width=50)
+        self.Remark=tk.Entry(self.Line1,state="normal",width=50,bg="lightblue")
         self.Remark.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
@@ -758,6 +785,9 @@ class REM(tk.Frame):
 
     def GetValues(self):
         return [self.Remark.get()]
+
+    def RetrieveConnections(self):
+        return []
 
     def SetValues(self,parms):
         self.Remark.delete(0,tk.END)
@@ -986,6 +1016,38 @@ def StartWizard(window):
         make_draggable(Obj)
         ActionsArray.append(Obj)
         return Obj
+
+    def CheckIfConnectionsArePresent():
+        ReactantsUsed=[]
+        ApparatusUsed=[]
+        Sorted=GetYStack()
+        for Action in Sorted:
+            Object=Action[1]
+            connections=Object.RetrieveConnections()
+            for connection in connections:
+                if "Reactant" in connection:
+                 if connection not in ReactantsUsed:
+                     ReactantsUsed.append(connection)
+                if "Apparatus" in connection:
+                 if connection not in ApparatusUsed:
+                     ApparatusUsed.append(connection)
+        MissingConnections=[]
+        AvailableReactants=GetReactantsNames()
+        for reactant in ReactantsUsed:
+            if not(reactant in AvailableReactants):
+                print(reactant,"is missing")
+                MissingConnections.append(reactant)
+        AvailableApparatus=GetApparatusNames()
+        for apparatus in ApparatusUsed:
+            if apparatus[-3:]==" IN":
+                apparatus=apparatus[:-3]
+            elif apparatus[-4:]==" OUT":
+                apparatus=apparatus[:-4]
+            if not(apparatus in AvailableApparatus):
+                print(apparatus,"is missing")
+                MissingConnections.append(apparatus)
+        return MissingConnections
+                
     
     def CheckProcedure():
         global EmptyVolume
@@ -1021,6 +1083,11 @@ def StartWizard(window):
             if Volume>BiggestVol: return BiggestSyr
             return ListOfSyringes[0] #it should not happen
         
+        Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
+        if not(len(Missing)==0):
+            missinglist="\n".join(Missing)
+            messagebox.showerror("ERROR", "Cannot execute procedure. \nThe following connections are missing:\n"+missinglist)
+            return
         ReactantsUsed=[]
         VolumesOfReactantsUsed=[]
         ApparatusUsed=[]
@@ -1029,7 +1096,8 @@ def StartWizard(window):
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
-        print(NumActions," Actions")
+        print(NumActions," Operations")
+            
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)

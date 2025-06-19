@@ -82,7 +82,7 @@ def GetMaxVolumeApparatus(Name):
     if Name[-1:]=="T": Name=Name[:-4] #removes OUT
     else: Name=Name[:-3] #removes IN
     try:    
-       NamesArray=["Apparatus"+str(i+1)+": "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
+       NamesArray=["Apparatus: "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
        MaxVol=float(ApparatusArray[NamesArray.index(Name)][8])
     except:
        MaxVol=0.0
@@ -91,7 +91,7 @@ def GetMaxVolumeApparatus(Name):
 def GetMolarityOfInput(Name):
     global ReactantsArray
     try:    
-       NamesArray=["Reactant"+str(i+1)+": "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
+       NamesArray=["Reactant: "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
        Molarity=float(ReactantsArray[NamesArray.index(Name)][10].split(":")[1].split()[0])
     except:
        Molarity=0.0
@@ -100,7 +100,7 @@ def GetMolarityOfInput(Name):
 def GetMMOfInput(Name):
     global ReactantsArray
     try:    
-       NamesArray=["Reactant"+str(i+1)+": "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
+       NamesArray=["Reactant: "+ReactantsArray[i][0] for i in range(len(ReactantsArray))]
        MM=float(ReactantsArray[NamesArray.index(Name)][3])
     except:
        MM=0.0
@@ -172,13 +172,13 @@ def GetSyringeOutletvolume(num):
 def GetReactantsNames():
     value=[]
     for element in ReactantsArray:
-        value.append(element[0])
+        value.append("Reactant: "+element[0])
     return value
 
-def ApparatusNames():
+def GetApparatusNames():
     value=[]
     for element in ApparatusArray:
-        value.append(element[0])
+        value.append("Apparatus: "+element[0])
     return value
 
 def GetReactantsArray():
@@ -539,15 +539,16 @@ def StartConfigurator(window):
         return 0
 
     def CheckReactantParameters():
-        global ReactantsArray
+        global ReactantsArray,CurrentReactant
         Name=ReactantName.get()
         if Name=="":
             messagebox.showerror("ERROR", "Reactant name cannot be empty. Insert a valid name and retry.")
             return False
-        for R_Name in ReactantsArray:
-         if Name in R_Name[0]:
-            messagebox.showerror("ERROR", "Duplicated reactant name.")
-            return False
+        for R_num,Reactant in enumerate(ReactantsArray):
+         if Name in Reactant:
+          if not(R_num==CurrentReactant-1):
+             messagebox.showerror("ERROR", "Duplicated reactant name.")
+             return False
         if ReactantType.get()=="":
             messagebox.showerror("ERROR", "Reactant type cannot be empty. Insert a valid type and retry.")
             return False
