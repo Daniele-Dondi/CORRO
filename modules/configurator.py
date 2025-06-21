@@ -57,6 +57,9 @@ def InitAllData():
 
 InitAllData()
 
+def GetAllSensorsVarNames():
+    return " ".join(USB_var_names).split()
+
 def GetAllReactorApparatus():
     global ApparatusArray
     outlist=[]

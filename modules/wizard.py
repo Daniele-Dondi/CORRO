@@ -559,10 +559,12 @@ class IF(tk.Frame):
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="IF")
         self.Label1.pack(side="left")
-        self.Time=tk.Entry(self.Line1,state="normal",width=10)
-        self.Time.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
-        self.Units.pack(side="left")
+        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=4,state = 'readonly')
+        self.Variable.pack(side="left")
+        self.Condition=ttk.Combobox(self.Line1, values = ["<",">","=","<>",">=","<="], width=4,state = 'readonly')
+        self.Condition.pack(side="left")        
+        self.Value=tk.Entry(self.Line1,state="normal",width=10)
+        self.Value.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
@@ -578,15 +580,15 @@ class IF(tk.Frame):
         return self.Action
 
     def GetValues(self):
-        return [self.Time.get(), self.Units.get()]
+        return [self.Value.get(), self.Variable.get()]
 
     def RetrieveConnections(self):
         return []
 
     def SetValues(self,parms):
         return
-##        self.Time.set(parms[0])  #####
-##        self.Units.set(parms[1])
+##        self.Value.set(parms[0])  #####
+##        self.Variable.set(parms[1])
 
     def CheckValues(self):
         self.Action="OK"        
@@ -666,6 +668,57 @@ class ENDIF(tk.Frame):
 
     def CheckValues(self):
         return
+
+class GET(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=65
+        self.BeginBlock=False
+        self.Container=False 
+##        self.Content=[]     
+##        self.MustBeAfter=0
+##        self.MustBeBefore=0
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1.pack_propagate(False)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="Get Value")
+        self.Label1.pack(side="left")
+        self.Value=tk.Entry(self.Line1,state="normal",width=10)
+        self.Value.pack(side="left")
+        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=4,state = 'readonly')
+        self.Variable.pack(side="left")
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
+
+    def GetValues(self):
+        return [self.Value.get(), self.Variable.get()]
+
+    def RetrieveConnections(self):
+        return []
+
+    def SetValues(self,parms):
+        return
+##        self.Value.set(parms[0])  #####
+##        self.Variable.set(parms[1])
+
+    def CheckValues(self):
+        self.Action="OK" 
 
 class LOOP(tk.Frame):
     def __init__(self,container):
@@ -991,6 +1044,8 @@ def StartWizard(window):
             Obj=ENDLOOP(frame2)
         elif ObjType=="REM":
             Obj=REM(frame2)
+        elif ObjType=="GET":
+            Obj=GET(frame2)
         elif ObjType=="IF Block":
             Obj1=CreateNewObject("IF")
             Obj2=CreateNewObject("ELSE")            
@@ -1317,7 +1372,6 @@ def StartWizard(window):
 
     def DeleteAllProcedures():
         global ActionsArray
-        print(ActionsArray)
         while len(ActionsArray)>0:
             DeleteObjByIdentifier(ActionsArray[0])
         ActionsArray=[]
@@ -1368,7 +1422,9 @@ def StartWizard(window):
     tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")
     tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")
     tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
-    tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")      
+    tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
+    tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
+    tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")      
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
