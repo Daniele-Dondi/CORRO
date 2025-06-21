@@ -852,10 +852,12 @@ class Grid(tk.Toplevel):
     
 
 ###################### end of classes ######################
-ActionsArray=[]    
-CurrentY=2
-AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
-EmptyVolume=10 #Extra volume to be used to remove all reactors content
+def InitVars():
+    global ActionsArray, CurrentY, AvailableMacros, EmptyVolume
+    ActionsArray=[]
+    CurrentY=2
+    AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+    EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def CreateCode(*args):
     numvars=-1
@@ -916,7 +918,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
 
 
 def StartWizard(window):
-    
+    InitVars()
     LoadConfFile('startup.conf')
 
     def make_draggable(widget):
@@ -1231,6 +1233,7 @@ def StartWizard(window):
             
 
     def AskLoadModules():
+        global ActionsArray
         filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
         filename = filedialog.askopenfilename(filetypes=filetypes)
         if filename=="": return
@@ -1243,6 +1246,7 @@ def StartWizard(window):
         LoadModules(filename)
 
     def AskImportModules():
+        global ActionsArray
         if len(ActionsArray)>0:
             MsgBox = tk.messagebox.askquestion ('Append modules','Import modules will add modules to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
@@ -1312,10 +1316,14 @@ def StartWizard(window):
         WizardWindow.destroy()
 
     def DeleteAllModules():
+        global ActionsArray
+        print(ActionsArray)
         while len(ActionsArray)>0:
             DeleteObjByIdentifier(ActionsArray[0])
+        ActionsArray=[]
 
     def New():
+        global ActionsArray
         if len(ActionsArray)>0:
             MsgBox = tk.messagebox.askquestion ('New procedure','Are you sure you want to delete all?',icon = 'warning')
             if MsgBox == 'yes':
