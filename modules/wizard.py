@@ -1203,64 +1203,64 @@ def StartWizard(window):
         except:
             return -1
 
-    def LoadModules(filename):
+    def LoadProcedures(filename):
         fin=open(filename, 'rb')
-        ModulesArray=pickle.load(fin)
+        ProceduresArray=pickle.load(fin)
         fin.close()
-        CreatedModules=[]
-        for Module in ModulesArray:
-            ObjType=Module[0]
-            ObjValues=Module[1]
-            ObjXPos=Module[2]
-            ObjYPos=Module[3]
+        CreatedProcedures=[]
+        for Procedure in ProceduresArray:
+            ObjType=Procedure[0]
+            ObjValues=Procedure[1]
+            ObjXPos=Procedure[2]
+            ObjYPos=Procedure[3]
             Obj=CreateNewObject(ObjType)
-            CreatedModules.append(Obj)
+            CreatedProcedures.append(Obj)
             Obj.SetValues(ObjValues)
             Obj.place(x=ObjXPos)
-        for i,Module in enumerate(ModulesArray):
-            IsContainer=Module[4]
-            ObjContent=Module[5]
-            ObjBefore=Module[6]
-            ObjAfter=Module[7]
+        for i,Procedure in enumerate(ProceduresArray):
+            IsContainer=Procedure[4]
+            ObjContent=Procedure[5]
+            ObjBefore=Procedure[6]
+            ObjAfter=Procedure[7]
             if IsContainer:
                 if len(ObjContent)>0:
                     for Item in ObjContent:
-                        CreatedModules[i].Content.append(CreatedModules[Item])
+                        CreatedProcedures[i].Content.append(CreatedProcedures[Item])
                 if not(ObjBefore==-1):
-                    CreatedModules[i].MustBeBefore=CreatedModules[ObjBefore]
+                    CreatedProcedures[i].MustBeBefore=CreatedProcedures[ObjBefore]
                 if not(ObjAfter==-1):
-                    CreatedModules[i].MustBeAfter=CreatedModules[ObjAfter]
+                    CreatedProcedures[i].MustBeAfter=CreatedProcedures[ObjAfter]
             
 
-    def AskLoadModules():
+    def AskLoadProcedures():
         global ActionsArray
-        filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
+        filetypes = (('SyringeBOT Procedure files', '*.Procedures'),('All files', '*.*'))
         filename = filedialog.askopenfilename(filetypes=filetypes)
         if filename=="": return
         if len(ActionsArray)>0:
-            MsgBox = tk.messagebox.askquestion ('Load modules','By loading, current modules will be deleted. Proceed anyway?',icon = 'warning')
+            MsgBox = tk.messagebox.askquestion ('Load Procedures','By loading, current Procedures will be deleted. Proceed anyway?',icon = 'warning')
             if MsgBox == 'yes':
-                DeleteAllModules()
+                DeleteAllProcedures()
             else:
                 return
-        LoadModules(filename)
+        LoadProcedures(filename)
 
-    def AskImportModules():
+    def AskImportProcedures():
         global ActionsArray
         if len(ActionsArray)>0:
-            MsgBox = tk.messagebox.askquestion ('Append modules','Import modules will add modules to the current project. Proceed?',icon = 'warning')
+            MsgBox = tk.messagebox.askquestion ('Append Procedures','Import Procedures will add Procedures to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
-                filetypes = (('SyringeBOT module files', '*.modules'),('All files', '*.*'))
+                filetypes = (('SyringeBOT Procedure files', '*.Procedures'),('All files', '*.*'))
                 filename = filedialog.askopenfilename(filetypes=filetypes)
                 if filename=="": return
-                LoadModules(filename)                
+                LoadProcedures(filename)                
 
-    def SaveModules(filename):
+    def SaveProcedures(filename):
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
         #print(NumActions," Actions")
-        ModulesArray=[]
+        ProceduresArray=[]
         for Action in Sorted:
             Actions=[]
             Object=Action[1]
@@ -1300,22 +1300,22 @@ def StartWizard(window):
                 Actions.append(-1)
                 Actions.append(-1)
                 pass
-            ModulesArray.append(Actions)
+            ProceduresArray.append(Actions)
         fout=open(filename, 'wb')
-        pickle.dump(ModulesArray,fout)
+        pickle.dump(ProceduresArray,fout)
         fout.close()
 
-    def AskSaveModules():
-     filetypes=(('SyringeBOT module files','*.modules'),('All files','*.*'))
+    def AskSaveProcedures():
+     filetypes=(('SyringeBOT Procedure files','*.Procedures'),('All files','*.*'))
      filename=filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
-     if not ".modules" in filename: filename+=".modules"
-     SaveModules(filename)
+     if not ".Procedures" in filename: filename+=".Procedures"
+     SaveProcedures(filename)
 
     def Close():
         WizardWindow.destroy()
 
-    def DeleteAllModules():
+    def DeleteAllProcedures():
         global ActionsArray
         print(ActionsArray)
         while len(ActionsArray)>0:
@@ -1327,7 +1327,7 @@ def StartWizard(window):
         if len(ActionsArray)>0:
             MsgBox = tk.messagebox.askquestion ('New procedure','Are you sure you want to delete all?',icon = 'warning')
             if MsgBox == 'yes':
-                DeleteAllModules()
+                DeleteAllProcedures()
 
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
@@ -1337,9 +1337,9 @@ def StartWizard(window):
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
-    file_menu.add_command(label='Load modules',command=AskLoadModules)
-    file_menu.add_command(label='Append modules',command=AskImportModules)    
-    file_menu.add_command(label='Save modules',command=AskSaveModules)
+    file_menu.add_command(label='Load Procedures',command=AskLoadProcedures)
+    file_menu.add_command(label='Append Procedures',command=AskImportProcedures)    
+    file_menu.add_command(label='Save Procedures',command=AskSaveProcedures)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
     settings_menu = Menu(menubar,tearoff=0)
