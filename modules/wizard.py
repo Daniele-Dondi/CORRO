@@ -917,19 +917,19 @@ def GetAvailMacros():
             function_header=[]
             first_line = f.readline().lower()
             if "function" in first_line:
-                line = ";"
-                while ";" in line:
-                    line = f.readline()
+                line = f.readline()
+                while line.find(";")==0:
                     function_header.append(line)
                     for function_input in function_inputs:
                      if function_input in line:
                         num_vars+=1
+                    line = f.readline()
             AvailableMacros.append([file[:-4],num_vars,function_header]) #remove .txt from name
     except Exception as e:
      print(e)
      messagebox.showerror("ERROR", "MACRO directory unreachable")
     #AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
-    print(AvailableMacros)
+    #print(AvailableMacros)
     return AvailableMacros
         
 def InitVars():
@@ -937,15 +937,14 @@ def InitVars():
     ActionsArray=[]
     AvailableMacros=GetAvailMacros()
     CurrentY=2
-
     EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def CreateCode(*args):
     numvars=-1
     for macro in AvailableMacros:
         if macro[0]==args[0]:
-            macroname=macro[1]
-            numvars=macro[2]
+            macroname=macro[0]
+            numvars=macro[1]
             break
     if numvars==-1:
         print("Macro",args[0],"not found! cannot compile code. Check the list of available macros")
