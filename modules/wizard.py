@@ -682,7 +682,7 @@ class GET(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1=tk.Frame(self,height=40,width=500,bg="gold")
         self.Line1.pack_propagate(False)
         self.Line1.pack()
         self.Line2=tk.Frame(self)
