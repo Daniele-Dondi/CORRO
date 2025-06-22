@@ -721,6 +721,81 @@ class GET(tk.Frame):
     def CheckValues(self):
         self.Action="OK" 
 
+class MACRO(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=125
+        self.BeginBlock=False
+        self.Container=False 
+        self.MacroNames=[AvailableMacros[i][0] for i in range(len(AvailableMacros))]
+        self.MacroNumVars=[AvailableMacros[i][1] for i in range(len(AvailableMacros))]
+        self.MacroHeader=[AvailableMacros[i][2] for i in range(len(AvailableMacros))]
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self,height=40,width=500,bg="lime")
+        self.Line1.pack_propagate(False)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self,bg="lime")
+        self.Line2.pack()
+        self.Line3=tk.Frame(self)
+        self.Line3.pack()        
+        self.Label1=tk.Label(self.Line1, text="Call Macro")
+        self.Label1.pack(side="left")
+        self.Variable=ttk.Combobox(self.Line1, values = self.MacroNames, width=self.MaxCharsInList(self.MacroNames)+2,state = 'readonly')
+        self.Variable.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Variable.pack(side="left")
+        self.Value=tk.Entry(self.Line1,state="normal",width=10)
+        self.Value.pack(side="left")
+        self.description = tk.Text(self.Line2, wrap="word", height=4, width=90)
+        self.description.config(state='disabled')
+        self.description.pack(side="left", fill="both", expand=True)
+        self.scrollbar = tk.Scrollbar(self.Line2, orient="vertical", command=self.description.yview)
+        self.scrollbar.pack(side="right", fill="y")
+        self.description.config(yscrollcommand=self.scrollbar.set)        
+        self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
+        self.Check.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line3,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.Action
+
+    def GetValues(self):
+        return [self.Value.get(), self.Variable.get()]
+
+    def RetrieveConnections(self):
+        return []
+
+    def InputTypecallback(self,event):
+        self.description.config(state='normal')
+        self.description.delete(1.0,tk.END)
+        self.description.insert('end', self.MacroHeader[self.Variable.current()])
+        self.description.config(state='disabled')
+
+
+    def MaxCharsInList(self,List):
+        maxlength=8
+        try:
+            maxlength=max([len(List[i]) for i in range(len(List))])
+        except:
+            pass
+        return maxlength    
+
+    def SetValues(self,parms):
+        return
+##        self.Value.set(parms[0])  #####
+##        self.Variable.set(parms[1])
+
+    def CheckValues(self):
+        self.Action="OK" 
+
 class LOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
@@ -904,8 +979,10 @@ class Grid(tk.Toplevel):
         self.Row+=1
         
     
-
-###################### end of classes ######################
+################################################################## end of classes ##################################################################
+################################################################## end of classes ##################################################################
+################################################################## end of classes ##################################################################
+        
 def GetAvailMacros():
     function_inputs=["$"+str(i)+"$" for i in range(1,21)]
     AvailableMacros=[]
@@ -914,12 +991,12 @@ def GetAvailMacros():
         if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
            with open('macros'+os.sep+file) as f:
             num_vars=0
-            function_header=[]
+            function_header=""
             first_line = f.readline().lower()
             if "function" in first_line:
                 line = f.readline()
                 while line.find(";")==0:
-                    function_header.append(line)
+                    function_header+=line
                     for function_input in function_inputs:
                      if function_input in line:
                         num_vars+=1
@@ -1071,6 +1148,8 @@ def StartWizard(window):
             Obj=ENDLOOP(frame2)
         elif ObjType=="REM":
             Obj=REM(frame2)
+        elif ObjType=="Macro":
+            Obj=MACRO(frame2)            
         elif ObjType=="GET":
             Obj=GET(frame2)
         elif ObjType=="IF Block":
@@ -1452,7 +1531,7 @@ def StartWizard(window):
     tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
     tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
     tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")
-    tk.Button(frame1,text="Macro",command=lambda: CreateNewObject("Func")).pack(side="left")        
+    tk.Button(frame1,text="Macro",command=lambda: CreateNewObject("Macro")).pack(side="left")        
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
