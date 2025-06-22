@@ -1,8 +1,7 @@
 ;function
-;in $1$ the numner of washing cycles
+;in $1$ the number of washing cycles
 ;in $2$ the number of syringe
 ;record
-;eval $2$,5;syringe n.5
 eval $step$,$1$
 getsyringeparms $2$
 eval $valve1$,($2$-1)*2

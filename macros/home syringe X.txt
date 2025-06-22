@@ -1,4 +1,5 @@
 ;function
+;$1$: syringe num
 getsyringeparms $1$
 eval $valve1$,($1$-1)*2
 eval $valve2$,$valve1$+1

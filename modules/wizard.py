@@ -19,6 +19,7 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
+import os
 from modules.configurator import *
 
 class Pour(tk.Frame):
@@ -905,11 +906,38 @@ class Grid(tk.Toplevel):
     
 
 ###################### end of classes ######################
+def GetAvailMacros():
+    function_inputs=["$"+str(i)+"$" for i in range(1,21)]
+    AvailableMacros=[]
+    try:
+     for file in os.listdir("macros"):
+        if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
+           with open('macros'+os.sep+file) as f:
+            num_vars=0
+            function_header=[]
+            first_line = f.readline().lower()
+            if "function" in first_line:
+                line = ";"
+                while ";" in line:
+                    line = f.readline()
+                    function_header.append(line)
+                    for function_input in function_inputs:
+                     if function_input in line:
+                        num_vars+=1
+            AvailableMacros.append([file[:-4],num_vars,function_header]) #remove .txt from name
+    except Exception as e:
+     print(e)
+     messagebox.showerror("ERROR", "MACRO directory unreachable")
+    #AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+    print(AvailableMacros)
+    return AvailableMacros
+        
 def InitVars():
     global ActionsArray, CurrentY, AvailableMacros, EmptyVolume
     ActionsArray=[]
+    AvailableMacros=GetAvailMacros()
     CurrentY=2
-    AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+
     EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def CreateCode(*args):
@@ -1424,13 +1452,13 @@ def StartWizard(window):
     tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
     tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
     tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
-    tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")      
+    tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")
+    tk.Button(frame1,text="Macro",command=lambda: CreateNewObject("Func")).pack(side="left")        
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
     tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
     tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
-    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Func")).pack(side="left")    
 
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
     WizardWindow.mainloop()
