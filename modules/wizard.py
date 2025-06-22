@@ -748,7 +748,7 @@ class MACRO(tk.Frame):
         self.Variable.pack(side="left")
         self.Value=tk.Entry(self.Line1,state="normal",width=10)
         self.Value.pack(side="left")
-        self.description = tk.Text(self.Line2, wrap="word", height=4, width=90)
+        self.description = tk.Text(self.Line2, wrap="word", height=4, width=90,bg="lightgray")
         self.description.config(state='disabled')
         self.description.pack(side="left", fill="both", expand=True)
         self.scrollbar = tk.Scrollbar(self.Line2, orient="vertical", command=self.description.yview)
