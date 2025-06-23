@@ -730,6 +730,7 @@ class MACRO(tk.Frame):
         self.MacroNames=[AvailableMacros[i][0] for i in range(len(AvailableMacros))]
         self.MacroNumVars=[AvailableMacros[i][1] for i in range(len(AvailableMacros))]
         self.MacroHeader=[AvailableMacros[i][2] for i in range(len(AvailableMacros))]
+        self.Values=[]
         super().__init__(container)
         self.create_widgets()
 
@@ -746,8 +747,6 @@ class MACRO(tk.Frame):
         self.Variable=ttk.Combobox(self.Line1, values = self.MacroNames, width=self.MaxCharsInList(self.MacroNames)+2,state = 'readonly')
         self.Variable.bind("<<ComboboxSelected>>", self.InputTypecallback)
         self.Variable.pack(side="left")
-        self.Value=tk.Entry(self.Line1,state="normal",width=10)
-        self.Value.pack(side="left")
         self.description = tk.Text(self.Line2, wrap="word", height=4, width=90,bg="lightgray")
         self.description.config(state='disabled')
         self.description.pack(side="left", fill="both", expand=True)
@@ -778,6 +777,17 @@ class MACRO(tk.Frame):
         self.description.delete(1.0,tk.END)
         self.description.insert('end', self.MacroHeader[self.Variable.current()])
         self.description.config(state='disabled')
+        self.Check.pack_forget()
+        self.Delete.pack_forget()
+        for entryobject in self.Values:
+            entryobject.destroy()
+        self.Values=[]
+        for i in range(self.MacroNumVars[self.Variable.current()]):
+            self.Values.append(tk.Entry(self.Line1,state="normal",width=10))
+            self.Values[-1].pack(side="left")
+        self.Check.pack(side="left")
+        self.Delete.pack(side="left")
+            
 
 
     def MaxCharsInList(self,List):
