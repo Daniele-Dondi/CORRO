@@ -721,15 +721,16 @@ class GET(tk.Frame):
     def CheckValues(self):
         self.Action="OK" 
 
-class MACRO(tk.Frame):
+class Function(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=125
         self.BeginBlock=False
-        self.Container=False 
-        self.MacroNames=[AvailableMacros[i][0] for i in range(len(AvailableMacros))]
-        self.MacroNumVars=[AvailableMacros[i][1] for i in range(len(AvailableMacros))]
-        self.MacroHeader=[AvailableMacros[i][2] for i in range(len(AvailableMacros))]
+        self.Container=False
+        self.AvailableFunctions=AvailableCommands+AvailableMacros
+        self.FunctionNames=[self.AvailableFunctions[i][0] for i in range(len(self.AvailableFunctions))]
+        self.FunctionNumVars=[self.AvailableFunctions[i][1] for i in range(len(self.AvailableFunctions))]
+        self.FunctionHeader=[self.AvailableFunctions[i][2] for i in range(len(self.AvailableFunctions))]
         self.Values=[]
         super().__init__(container)
         self.create_widgets()
@@ -742,9 +743,9 @@ class MACRO(tk.Frame):
         self.Line2.pack()
         self.Line3=tk.Frame(self)
         self.Line3.pack()        
-        self.Label1=tk.Label(self.Line1, text="Call Macro")
+        self.Label1=tk.Label(self.Line1, text="Function")
         self.Label1.pack(side="left")
-        self.Variable=ttk.Combobox(self.Line1, values = self.MacroNames, width=self.MaxCharsInList(self.MacroNames)+2,state = 'readonly')
+        self.Variable=ttk.Combobox(self.Line1, values = self.FunctionNames, width=self.MaxCharsInList(self.FunctionNames)+2,state = 'readonly')
         self.Variable.bind("<<ComboboxSelected>>", self.InputTypecallback)
         self.Variable.pack(side="left")
         self.description = tk.Text(self.Line2, wrap="word", height=4, width=90,bg="lightgray")
@@ -775,15 +776,20 @@ class MACRO(tk.Frame):
     def InputTypecallback(self,event):
         self.description.config(state='normal')
         self.description.delete(1.0,tk.END)
-        self.description.insert('end', self.MacroHeader[self.Variable.current()])
+        self.description.insert('end', self.FunctionHeader[self.Variable.current()])
         self.description.config(state='disabled')
         self.Check.pack_forget()
         self.Delete.pack_forget()
         for entryobject in self.Values:
             entryobject.destroy()
         self.Values=[]
-        for i in range(self.MacroNumVars[self.Variable.current()]):
-            self.Values.append(tk.Entry(self.Line1,state="normal",width=10))
+        Num_Vars=self.FunctionNumVars[self.Variable.current()]
+        if Num_Vars>5:
+            entrywidth=5
+        else:
+            entrywidth=10
+        for i in range(Num_Vars):
+            self.Values.append(tk.Entry(self.Line1,state="normal",width=entrywidth))
             self.Values[-1].pack(side="left")
         self.Check.pack(side="left")
         self.Delete.pack(side="left")
@@ -1015,14 +1021,48 @@ def GetAvailMacros():
     except Exception as e:
      print(e)
      messagebox.showerror("ERROR", "MACRO directory unreachable")
-    #AvailableMacros=[['Pour','Pour.txt',5]] #name, macroname, number of arguments  $1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
-    #print(AvailableMacros)
     return AvailableMacros
+
+def GetAvailCommands():
+    AvailableCommands=[]
+    try:
+       command_header=""
+       command=""
+       FirstLine=False
+       with open('conf'+os.sep+"commands.txt") as f:
+           for line in f:
+            line = line.strip()
+            if len(line)>0:
+                if line.find("#")==0:
+                    if command=="": 1/0
+                    else:
+                        if FirstLine:
+                            num_vars=0
+                            try:
+                                num_vars=int(line[1:])
+                            except:
+                                command_header+=line[1:]+"\n"
+                            FirstLine=False
+                        else:
+                            command_header+=line[1:]+"\n"
+                else:
+                    command=line
+                    FirstLine=True
+            else:
+                if not(command==""):
+                    AvailableCommands.append([command,num_vars,command_header]) #remove .txt from name
+                    command=""
+                    command_header=""
+    except Exception as e:
+     print(e)
+     messagebox.showerror("ERROR", "Error reading commands.txt")
+    return AvailableCommands
         
 def InitVars():
-    global ActionsArray, CurrentY, AvailableMacros, EmptyVolume
+    global ActionsArray, CurrentY, AvailableMacros, AvailableCommands, EmptyVolume
     ActionsArray=[]
     AvailableMacros=GetAvailMacros()
+    AvailableCommands=GetAvailCommands()
     CurrentY=2
     EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
@@ -1158,8 +1198,8 @@ def StartWizard(window):
             Obj=ENDLOOP(frame2)
         elif ObjType=="REM":
             Obj=REM(frame2)
-        elif ObjType=="Macro":
-            Obj=MACRO(frame2)            
+        elif ObjType=="Function":
+            Obj=Function(frame2)            
         elif ObjType=="GET":
             Obj=GET(frame2)
         elif ObjType=="IF Block":
@@ -1541,7 +1581,7 @@ def StartWizard(window):
     tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
     tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
     tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")
-    tk.Button(frame1,text="Macro",command=lambda: CreateNewObject("Macro")).pack(side="left")        
+    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Function")).pack(side="left")        
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    

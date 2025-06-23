@@ -1,0 +1,126 @@
+log 
+#1
+#print string to log file
+#use: log text
+
+ask 
+#6
+#if ask, make question to user
+#use: ask $varname$,title,question,initialvalue,minvalue,maxvalue
+
+getsyringeparms 
+#1
+#load the values for the syringe  
+#use: getsyringeparms syringenumber
+
+eval 
+#2
+#calculate somethg
+#use: eval $varname$,math_expression
+
+getvalue 
+#2
+#retrieve a sensor variable
+#use: getvalue $varname$,sensor_value
+
+let 
+#2
+#variable assignment
+#use: let $varname$,value or variable
+
+createarray 
+#2
+#create an array of vars called base_varname1, 2, ...
+#use: createarray base_varname,number_of_elements_in_array
+
+getelement 
+#3
+#retrieve an element from array
+#use: getelement base_varname,store_var,number_of_element
+
+setelement 
+#3
+#set an element of an array
+#use: setelement base_varname,number_of_element,value
+
+exec 
+#2
+#execute some Python code
+#use: exec code!,varname1=$var1$,...
+
+macro 
+#10
+#call a macro
+#use: macro "macroname" var1,var2..
+
+echo 
+#1
+#echo to the CLI console
+#use: echo text $varname$
+
+hook 
+#2
+#create an hook (temperature or timer)
+#use: hook temp or time $value$ "macroname"
+#time is defined use the format xxhxxmxxs
+
+writegcode 
+#1
+#write the gcode recorded
+#use: writegcode filename
+
+readgcode 
+#1
+#read the gcode recorded
+#use: readgcode filename
+
+message 
+#1
+#show a messagebox
+#use: message text $varname$
+
+setglobal 
+#1
+#upload a variable in the global variable list
+#use: setglobal $varname$ [$varname2$]
+
+getglobal 
+#1
+#retrieve a variable from the global variable list   
+#use: setglobal $varname$ [$varname2$]
+         
+send
+#2
+#send commands to SyringeBOT
+#use: send command,where
+
+buffer
+#0
+#record all commands sent to SyringeBOT. Use print or play to send recorded command.
+
+record
+#0
+#record all commands sent to SyringeBOT. Use print or play to send recorded command.
+
+print
+#0
+#send to SyringeBOT commands recorded by record or buffer
+
+play
+#0
+#send to SyringeBOT commands recorded by record or buffer
+
+for
+#
+
+next
+#
+
+label
+#
+
+jump
+#
+
+if
+#
