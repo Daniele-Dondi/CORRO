@@ -1,22 +1,59 @@
 log 
 #1
 #print string to log file
+#variables contained in text will be replaced automatically
 #use: log text
+#
+#Example 1:
+#log sample taken
+#it writes 'sample taken' into the log queue
+#
+#Example 2:
+#eval $x$,1
+#log x=$x$
+#it writes 'x=1' in the log queue
 
 ask 
 #6
 #if ask, make question to user
 #use: ask $varname$,title,question,initialvalue,minvalue,maxvalue
+#The procedure creates a window with title title, 
+#outputs the text contained in question, 
+#sets the initial value to initialvalue and limits the input range from minvalue to maxvalue.
+#
+#Example:
+#ask $ML$,Syringe 1,Enter how many ml to put,10,10,60
+#macro "syr1_X_ml"$ML$
 
 getsyringeparms 
 #1
 #load the values for the syringe  
 #use: getsyringeparms syringenumber
+#
+#Parameters taken are syringe 0 to max sign distance (mm), syringe total volume (ml), 
+#volume of inlet tube and volume of outlet tube as loaded in Configurator. 
+#
+#The command creates and #assigns the following variables:
+#Variable Name	Meaning
+#$numsyringes$	Total number of syringes installed on Syringebot
+#$syringemax$	Max distance in mm for syringe syringenumber
+#$syringevol$	Max volume in ml for syringe syringenumber
+#$volinlet$	Volume in ml of the inlet tube
+#$voloutlet$	Volume in ml of the outlet tube
+#$axisname$	Axis to be moved for syringenumber
+#
+#After this command it is safe to proceed with the calculations for the syringe movements.
 
 eval 
 #2
 #calculate somethg
 #use: eval $varname$,math_expression
+#
+#Example:
+#ask $a$,a value,Enter the value of a,1,1,10
+#ask $b$,b value,Enter the value of b,1,1,10
+#eval $sum$,$a$+$b$
+#echo the sum of a and b is $sum$
 
 getvalue 
 #2
@@ -47,16 +84,35 @@ exec
 #2
 #execute some Python code
 #use: exec code!,varname1=$var1$,...
+#Code might contain variables ($..$), that allow exchange with the script
+#Code on multiple lines must be separated with /n
 
 macro 
 #10
 #call a macro
 #use: macro "macroname" var1,var2..
+#PLEASE NOTE THAT IN THIS FUNCTION BLOCK, AVAILABLE MACROS ARE LISTED ALREADY
+#
+#All the macro files are saved in the directory macros with the extensions .txt and they can be edited with a plain text editor. 
+#Macro macroname can contain spaces.
+#It is possible to pass parameters to a macro by indicating their values: var1,var2...
+#
+#Example:
+#macro "syr1_X_ml"20
+#If parameters are passed (var1,var2...) variables $1$, $2$, etc. will be automatically created and assigned.
+#In the example above, the macro syr1_X_ml is called and the value 20 is inserted in the variable $1$ of the macro
 
 echo 
 #1
 #echo to the CLI console
 #use: echo text $varname$
+#
+#Example:
+#ask $X$,Vial X position,Enter vial X position,1,1,8
+#ask $Y$,Vial Y position,Enter vial Y position,1,1,6
+#eval $X$,58-($X$-1)*15.71328
+#eval $Y$,121+($Y$-1)*14.8
+#echo X=$X$ Y=$Y$
 
 hook 
 #2
@@ -78,6 +134,10 @@ message
 #1
 #show a messagebox
 #use: message text $varname$
+#
+#Example:
+#eval $a$,1
+#message The value of a is $a$
 
 setglobal 
 #1
@@ -93,34 +153,122 @@ send
 #2
 #send commands to SyringeBOT
 #use: send command,where
+#
+#Example:
+#send G28 X Y,1
 
 buffer
 #0
 #record all commands sent to SyringeBOT. Use print or play to send recorded command.
+#
+#Example:
+#buffer
+#macro "syr1_X_ml"30
+#macro "syr1_X_ml"60
+#macro "syr1_X_ml"60
+#macro "purge syringe 1"
+#print
 
 record
 #0
 #record all commands sent to SyringeBOT. Use print or play to send recorded command.
+#
+#Example:
+#record
+#macro "syr1_X_ml"30
+#macro "syr1_X_ml"60
+#macro "syr1_X_ml"60
+#macro "purge syringe 1"
+#play
 
 print
 #0
 #send to SyringeBOT commands recorded by record or buffer
+#
+#Example:
+#buffer
+#macro "syr1_X_ml"30
+#macro "syr1_X_ml"60
+#macro "syr1_X_ml"60
+#macro "purge syringe 1"
+#print
 
 play
 #0
 #send to SyringeBOT commands recorded by record or buffer
+#
+#Example:
+#record
+#macro "syr1_X_ml"30
+#macro "syr1_X_ml"60
+#macro "syr1_X_ml"60
+#macro "purge syringe 1"
+#play
 
 for
+#2
+#For executes cycles over a variable for the number of cycles indicated. For must be always followed by next. 
+#Use: for $varname$ number_of_cycles_to_perform
+#A fixed value for cycles to perform could be substituted with a variable
+#Use: for $varname$ $num_cycles$
+#The for starts from the value indicated and goes DOWNWARD to 1.
 #
+#Example 1:
+#for $a$ 10
+#message cycle number $a$
+#next
+#
+#Example 2:
+#ask $cycles$,for,Enter how many cycles to perform,2,2,20
+#for $a$ $cycles$
+#message cycle number $a$ of $cycles$
+#next
 
 next
+#0
+#The next statement must be always connected to a for. It is possible to nest cycles.
 #
+#Example:
+#for $x$ 2
+#for $y$ 3
+#message This message will be showed 6 times
+#next
+#next
 
 label
+#1
+#Label creates a label used as an entry point for jump and if statements. The label name must not contain spaces.
+#Use: label labelname_without_spaces
 #
+#Example:
+#label cycle1
 
 jump
+#1
+#Jump is an unconditioned jump to a label. 
+#Use: jump labelname
 #
+#Example:
+#label labelname
+#;the code here is executed forever, but the watchdog will ask to continue or to stop after some seconds
+#jump labelname
 
 if
+#6
+#Use: if $varname$ label
+#Or
+#if $varname$ macro "macroname" var1,var2...
+#It jumps to the label if the $varname$ is true. 
+#In the second case it executes the macro “macroname” if $varname$ is true 
+#Use eventually an eval command before the if statement for calculating the value of the variable used.
 #
+#Example 1:
+#label loop
+#ask $a$,IF,Insert 1 to loop,0,0,1
+#eval $a$,$a$==1
+#if $a$ loop
+#
+#Example 2:
+#ask $a$,IF,Insert 1 to init,0,0,1
+#eval $a$,$a$==1
+#if $a$ macro “init”

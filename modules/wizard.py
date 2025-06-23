@@ -1029,7 +1029,7 @@ def GetAvailCommands():
        command_header=""
        command=""
        FirstLine=False
-       with open('conf'+os.sep+"commands.txt") as f:
+       with open('conf'+os.sep+"commands.txt", encoding='utf-8') as f:
            for line in f:
             line = line.strip()
             if len(line)>0:
