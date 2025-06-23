@@ -996,7 +996,7 @@ def GetAvailMacros():
             if "function" in first_line:
                 line = f.readline()
                 while line.find(";")==0:
-                    function_header+=line
+                    function_header+=line[1:]
                     for function_input in function_inputs:
                      if function_input in line:
                         num_vars+=1

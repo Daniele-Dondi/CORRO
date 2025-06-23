@@ -1,3 +1,16 @@
+;function
+;This macro
+;simply move
+;all the connected
+;servos
+;to their
+;zero degrees
+;position
+;
+;This could be useful
+;during the installation
+;and building of the syringebot
+;
 record
 for $i$ 16
 eval $servo$,16-$i$
