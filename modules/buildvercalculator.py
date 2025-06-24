@@ -36,11 +36,11 @@ def FilesHasBeenModified():
         pass
     CRCValues=[]
     TotalLines=0
-    directory = '*.py'  # Example to match text files
+    directory = '*.py'  # list python files
     for filename in glob.glob(directory):
         with open(filename,'r') as textfile: TotalLines+=len(textfile.readlines())
         CRCValues.append(CRC(filename))
-    directory = 'modules/*.py'  # Example to match text files
+    directory = 'modules/*.py'  # list python files in modules
     for filename in glob.glob(directory):
         with open(filename,'r') as textfile: TotalLines+=len(textfile.readlines())
         CRCValues.append(CRC(filename))
