@@ -1,3 +1,4 @@
+;this program creates droplets of liquid separated by gas for flow reactor
 buffer
 eval $numberofusedsyr$,2
 createarray syringesnum,$numberofusedsyr$

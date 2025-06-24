@@ -59,6 +59,13 @@ getvalue
 #2
 #retrieve a sensor variable
 #use: getvalue $varname$,sensor_value
+#
+#Example:
+#getvalue $v$,V2
+#message $v$
+#
+#Get the value of variable V2 and show it in the messagebox
+
 
 let 
 #2
@@ -151,14 +158,36 @@ message
 #message The value of a is $a$
 
 setglobal 
-#1
+#4
 #upload a variable in the global variable list
-#use: setglobal $varname$ [$varname2$]
+#use: setglobal $varname$ [$varname2$] ...
+#
+#Example:
+#eval $a$,1 ; load variables a and b
+#eval $b$,2
+#message $a$ $b$ ;show values
+#setglobal $a$ $b$ ;save globally
+#eval $a$,5 ;change values of a and b
+#eval $b$,6
+#message $a$ $b$ ;show the new values
+#getglobal $a$ $b$ ;retrieve the saved one globally
+#message $a$ $b$ ;show the global values
 
 getglobal 
-#1
+#4
 #retrieve a variable from the global variable list   
-#use: setglobal $varname$ [$varname2$]
+#use: getglobal $varname$ [$varname2$] ...
+#
+#Example:
+#eval $a$,1 ; load variables a and b
+#eval $b$,2
+#message $a$ $b$ ;show values
+#setglobal $a$ $b$ ;save globally
+#eval $a$,5 ;change values of a and b
+#eval $b$,6
+#message $a$ $b$ ;show the new values
+#getglobal $a$ $b$ ;retrieve the saved one globally
+#message $a$ $b$ ;show the global values
          
 send
 #2
