@@ -1,0 +1,10 @@
+createarray V,10; creates an array of 10 elements
+;elements of the array could also be accessed individually as $V1$, $V2$ etc.
+;or programatically with function get/setelements
+setelement V,5,84
+getelement V,$var$,5
+message the value of the 5th element of the array V is $var$
+
+
+
+

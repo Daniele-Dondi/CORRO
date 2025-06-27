@@ -76,16 +76,40 @@ createarray
 #2
 #create an array of vars called base_varname1, 2, ...
 #use: createarray base_varname,number_of_elements_in_array
+#
+#Example:
+#createarray V,10; creates an array of 10 elements
+#;elements of the array could also be accessed individually as $V1$, $V2$ etc.
+#;or programatically with function get/setelements
+#setelement V,5,84
+#getelement V,$var$,5
+#message the value of the 5th element of the array V is $var$
 
 getelement 
 #3
 #retrieve an element from array
 #use: getelement base_varname,store_var,number_of_element
+#
+#Example:
+#createarray V,10; creates an array of 10 elements
+#;elements of the array could also be accessed individually as $V1$, $V2$ etc.
+#;or programatically with function get/setelements
+#setelement V,5,84
+#getelement V,$var$,5
+#message the value of the 5th element of the array V is $var$
 
 setelement 
 #3
 #set an element of an array
 #use: setelement base_varname,number_of_element,value
+#
+#Example:
+#createarray V,10; creates an array of 10 elements
+#;elements of the array could also be accessed individually as $V1$, $V2$ etc.
+#;or programatically with function get/setelements
+#setelement V,5,84
+#getelement V,$var$,5
+#message the value of the 5th element of the array V is $var$
 
 exec 
 #2
@@ -137,15 +161,14 @@ hook
 #hook temp >100 "temp_reached"
 #;it will call macro when temperature is greater than 100 °C
 
-
 writegcode 
 #1
-#write the gcode recorded
+#write the gcode recorded to a file
 #use: writegcode filename
 
 readgcode 
 #1
-#read the gcode recorded
+#read the gcode from a file
 #use: readgcode filename
 
 message 

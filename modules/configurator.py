@@ -197,9 +197,9 @@ def SplitSyringesArray():
     global SyringesArray,ValvesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     for element in SyringesArray:
         SyringeVolumes.append(element[0])
-        SyringeInletVolumes.append(element[1])
-        SyringeOutletVolumes.append(element[2])
-        SyringemmToMax.append(element[3])
+        SyringemmToMax.append(element[1])        
+        SyringeInletVolumes.append(element[2])
+        SyringeOutletVolumes.append(element[3])
         ValvesArray.append(element[4:])
 
 def SplitDevicesArray():

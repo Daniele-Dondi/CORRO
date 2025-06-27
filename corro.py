@@ -47,7 +47,7 @@ connected = 0
 GO_Fullscreen=False #if True, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
-ShowMacrosPalettes=False
+ShowMacrosPalettes=True
 #USB sensors control vars
 Sensors_var_names=[]
 Sensors_var_values=[]
@@ -141,7 +141,8 @@ def GraphZoom_Unzoom():
     Zoom_B.config(text="View Last")       
 
 def readConfigurationFiles():
-    global SyringemmToMax,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
+    #global SyringemmToMax,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,
+    global SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
     global HasRobot,HasSyringeBOT
     
     try:
@@ -163,7 +164,6 @@ def readConfigurationFiles():
         MaskMacros=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-binds.txt"
  
         LoadConfFile('startup.conf')
-
 
     except Exception as e:
      print(e)       
@@ -314,7 +314,7 @@ def GetVarValue(var_name,variables): #retrieve a value of var_name
 
 def Parse(line,variables):    #parse macro line and execute statements
     global logfile,IsBuffered0,Gcode,debug,cmdfile,SyringeBOT_IS_INITIALIZED
-    global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration.txt
+    #global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro
     global Sensors_var_names,Sensors_var_values
     global global_vars
@@ -357,13 +357,14 @@ def Parse(line,variables):    #parse macro line and execute statements
       commands=line.split(' ',1)
       commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
       commands[1]=int(commands[1])-1 #Syringe n is in n-1 position inside the array
-      RefreshVarValues("$syringemax$",SyringemmToMax[commands[1]],variables)
-      RefreshVarValues("$syringevol$",SyringeVolumes[commands[1]],variables)
-      RefreshVarValues("$volinlet$",SyringeInletVolumes[commands[1]],variables) 
-      RefreshVarValues("$voloutlet$",SyringeOutletVolumes[commands[1]],variables) 
+      RefreshVarValues("$syringemax$",conf.SyringemmToMax[commands[1]],variables)
+      RefreshVarValues("$syringevol$",conf.SyringeVolumes[commands[1]],variables)
+      RefreshVarValues("$volinlet$",conf.SyringeInletVolumes[commands[1]],variables) 
+      RefreshVarValues("$voloutlet$",conf.SyringeOutletVolumes[commands[1]],variables) 
       RefreshVarValues("$axisname$",axisnames[commands[1]],variables)
-      RefreshVarValues("$numsyringes$",len(SyringeVolumes),variables)
-     except:
+      RefreshVarValues("$numsyringes$",len(conf.SyringeVolumes),variables)
+     except Exception as e:
+      print(e)       
       tkinter.messagebox.showerror("ERROR in getsyringeparms method","use: getsyringeparms syringenumber")
       return "Error"
     elif line.find('eval')==0: #we've to calculate somethg
@@ -460,7 +461,8 @@ def Parse(line,variables):    #parse macro line and execute statements
            print("Macro ended with an error")      
            return "Error"
        except ValueError:  tkinter.messagebox.showerror("ERROR in macro call",'macro '+commands[1]+' does not exist')
-      except:
+      except Exception as e:
+       print(e)       
        tkinter.messagebox.showerror("ERROR in macro call",'use: macro "macroname" var1,var2..')
        return "Error"
     elif line.find('echo')==0: #we've to echo to the console
@@ -574,7 +576,11 @@ def Parse(line,variables):    #parse macro line and execute statements
 
 def ExecuteMacro(num):
        if(debug): print('executing macro:',macrolist[num])
-       with open('macros/'+macrolist[num]+'.txt') as macro_file: 
+       with open('macros/'+macrolist[num]+'.txt') as macro_file:
+        watchdog=0 #this is used to avoid infinite loops
+        variables=[] #macro's internal variables
+        stack=[] #stack keeps line numbers for cycles
+        labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions        
         lines=macro_file.readlines() #read the entire file and put lines into an array
         i=0
         for j in range(len(lines)): #analyze all macro code and record the labels line position
@@ -654,10 +660,6 @@ def ExecuteMacro(num):
 
 def Macro(num,*args): #run, delete or edit a macro 
     global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY
-    watchdog=0 #this is used to avoid infinite loops
-    variables=[] #macro's internal variables
-    stack=[] #stack keeps line numbers for cycles
-    labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions
     for ar in args:  #we have some variables passed to the macro
       par=ar.split(',')
       for x in range(0,len(par)):
