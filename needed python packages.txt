@@ -1,4 +1,5 @@
 pip install pillow
 pip install image
 pip install pyserial
-imagetk
+raspberry 
+sudo apt-get install python3-pil python3-pil.imagetk
