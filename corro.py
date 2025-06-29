@@ -325,7 +325,8 @@ def Parse(line,variables):    #parse macro line and execute statements
       commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
       if(debug): print(commands[1])
       logfile.write(str(DT.datetime.now())+"\t"+commands[1]+"\n")  
-     except:
+     except Exception as e:
+      print(e)
       tkinter.messagebox.showerror("ERROR in log method","use: log text")
       return "Error"
     elif (line.find('buffer')==0)or(line.find('record')==0): #buffer all commands, send later. Used for long gcode sequence where send will fail
@@ -373,7 +374,8 @@ def Parse(line,variables):    #parse macro line and execute statements
        commands[0]=commands[0][5:] # remove eval
        x = eval(SubstituteVarValues(commands[1],variables)) #substitute variable names with values
        RefreshVarValues(commands[0],x,variables)
-      except:
+      except Exception as e:
+       print(e)
        tkinter.messagebox.showerror("ERROR in eval method","use: eval $varname$,math_expression")
        return "Error"
     elif line.find('getvalue')==0: #we've to retrieve a sensor variable
@@ -454,9 +456,9 @@ def Parse(line,variables):    #parse macro line and execute statements
        commands=line.split('"',2)
        try:
         num=macrolist.index(commands[1])
-        if commands[2]!="": Macro(num,SubstituteVarValues(commands[2],variables))
+        if commands[2]!="": err=ExecuteMacro(num,SubstituteVarValues(commands[2],variables))
         else:
-         err=Macro(num)
+         err=ExecuteMacro(num)
          if err=="Error":
            print("Macro ended with an error")      
            return "Error"
@@ -574,11 +576,18 @@ def Parse(line,variables):    #parse macro line and execute statements
         print('unknown command')
         return "Error"
 
-def ExecuteMacro(num):
+def ExecuteMacro(num,*args):
+       global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY        
        if(debug): print('executing macro:',macrolist[num])
        with open('macros/'+macrolist[num]+'.txt') as macro_file:
         watchdog=0 #this is used to avoid infinite loops
         variables=[] #macro's internal variables
+        try:
+         for ar in args:  #we have some variables passed to the macro, convert them into $1$, $2$ ...
+          par=ar.split(',')
+          for x in range(0,len(par)):
+            RefreshVarValues('$'+str(x+1)+'$',par[x],variables)
+        except: pass
         stack=[] #stack keeps line numbers for cycles
         labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions        
         lines=macro_file.readlines() #read the entire file and put lines into an array
@@ -660,34 +669,24 @@ def ExecuteMacro(num):
 
 def Macro(num,*args): #run, delete or edit a macro 
     global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY
-    for ar in args:  #we have some variables passed to the macro
-      par=ar.split(',')
-      for x in range(0,len(par)):
-          RefreshVarValues('$'+str(x+1)+'$',par[x],variables)
     if IsEditingMacro==0:
      if IsDeletingMacro==0:
       if connected==0:   
         MsgBox = tkinter.messagebox.askquestion ('Not Connected','SyringeBOT is not connected. Connect now?',icon = 'error')
         if MsgBox == 'yes':
             Connect()
-            try:
-             num=macrolist.index("INIT_ALL")
-            except:
-             tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.")
-             return
-            Macro(num)
             return
       if connected==1:   #we are connected
        if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
         if not(macrolist[num])=="INIT_ALL": #only call to INIT_ALL is allowed
          MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
          return
-        else:
+        else: # we are executing INIT_ALL
          SyringeBOT_IS_INITIALIZED=True #we set True because we are executing INIT_ALL
        if SyringeBOT_IS_BUSY==True:
         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
         return
-       ExecuteMacro(num)
+       ExecuteMacro(num,args)
       else:  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
      else:  #delete macro
       MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
@@ -935,6 +934,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     ResetChart()
     if DoNotConnect:
             connected=1
+            logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The replace is needed for Windows to avoid invalid characters
             return
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")    
@@ -1294,15 +1294,21 @@ else:
           Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
 if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
-Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
-if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
-Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
+##Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
+##if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
+##Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
 GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
 Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
 Button(GRP, text="reset chart", command=ResetChart).pack();
 Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
 Zoom_B.pack()
+try:
+ num=macrolist.index("INIT_ALL")
+except:
+ tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
+
+
 '''
 K = Frame(F)
 K.pack(side="bottom")
