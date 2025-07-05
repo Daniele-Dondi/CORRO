@@ -50,7 +50,6 @@ AutoInit=False #if True, after the connection starts immediately SyringeBOT init
 ShowMacrosPalettes=True
 #USB sensors control vars
 Sensors_var_names=[]
-Sensors_var_values=[]
 Charts_enabled=[]
 Plot_B=[] #array of plot buttons
 #SyringeBOT handles and USB parameters
@@ -290,7 +289,16 @@ def MacroEditor(macronumber): #edit a macro or create a new one
      Button(t, text="SAVE",command=lambda: SaveMacro(a.get("1.0",END),macronumber,t)).pack()
      Button(t, text="CANCEL",command=lambda: t.destroy()).pack()
      t.grab_set()
-     
+
+def Stringify(item):
+    if isinstance(item, (float, int)):
+        return str(item)
+    elif isinstance(item, str):
+        return item
+    else:
+        return '0'  # fallback
+
+    
 def SubstituteVarValues(line,variables): #substitute var names $var$ with their values
     global macrout
     for var in range(0,len(variables),2):
@@ -316,7 +324,7 @@ def Parse(line,variables):    #parse macro line and execute statements
     global logfile,IsBuffered0,Gcode,debug,cmdfile,SyringeBOT_IS_INITIALIZED
     #global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro
-    global Sensors_var_names,Sensors_var_values
+    global Sensors_var_names
     global global_vars
     if line=="": return
     if line.find('log')==0: #print string to log file
@@ -382,6 +390,7 @@ def Parse(line,variables):    #parse macro line and execute statements
       try:
        commands=line.split(',',1)
        commands[0]=commands[0][9:] # remove getvalue
+       Sensors_var_values=" ".join([Stringify(e) for e in conf.USB_last_values]).split()
        x = Sensors_var_values[Sensors_var_names.index(commands[1])]
        RefreshVarValues(commands[0],x,variables)
       except Exception as e:
@@ -930,6 +939,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global Temperature_Hook,Time_Hook
     global DoNotConnect
     global chart_h
+    global Sensors_var_names
     SyringeBOT_IS_INITIALIZED=False
     ResetChart()
     if DoNotConnect:
