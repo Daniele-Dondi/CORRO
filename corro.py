@@ -749,7 +749,7 @@ def Close():
  if connected != 0:
      tkinter.messagebox.showerror("ERROR","Disconnect first")
  else:
-  MsgBox = tkinter.messagebox.askquestion ('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
+  MsgBox = tkinter.messagebox.askquestion('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
   if MsgBox == 'yes':  
      #insert here the save config file  TODO
      if NewColorAssignment==1:
@@ -1090,7 +1090,10 @@ def HookEventsCycle():
                b_clock.pack_forget()                              
                print("Time Hook: executing macro "+Time_Hook_Macro)
                Macro(macrolist.index(Time_Hook_Macro))
-  if (connected): threading.Timer(1, HookEventsCycle).start() #call itself       
+  if (connected): threading.Timer(1, HookEventsCycle).start() #call itself
+
+def ConvertVoltageTopH(value):
+        return str(round(-6.89751896*float(value)+30.59142546,2))
 
 #MAIN CYCLE
 def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
@@ -1138,11 +1141,13 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
              setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
              w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
+   Var_Names_Index=0      
    for device in range(len(conf.USB_names)):  #read values from all sensors connected to USB
      try:
       if (conf.USB_deviceready[device]):
        if conf.USB_types[device]=="SyringeBOT":
                conf.USB_last_values[device]=T_Actual
+               Var_Names_Index+=1
        elif USB_handles[device].in_waiting:
         data=USB_handles[device].readline()
         stringa=data.decode("utf-8").strip()
@@ -1150,6 +1155,9 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
         values=""
         if len(V)==conf.USB_num_vars[device]: #keep data only if they correspond to the number of real variables, to avoid misreadings
           for value in V:
+            Var_Names_Index+=1
+            if Sensors_var_names[Var_Names_Index-1]=="pH":
+                    value=ConvertVoltageTopH(value)
             values+=str(abs(float(value)))+" "
           values=values.strip()
           conf.USB_last_values[device]=values 
