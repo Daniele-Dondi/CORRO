@@ -512,7 +512,7 @@ def Parse(line,variables):    #parse macro line and execute statements
          if 's' in time:
           seconds=int(time.split('s',1)[0])
          datet=DT.datetime.now()         
-         new_datet=datet+datetime.timedelta(hours=hours,minutes=minutes,seconds=seconds)
+         new_datet=datet+DT.timedelta(hours=hours,minutes=minutes,seconds=seconds)
          Time_Hook=True
          Time_Hook_Value=new_datet
          Time_Hook_Macro=macro_command
@@ -520,7 +520,8 @@ def Parse(line,variables):    #parse macro line and execute statements
        else:
          a=1/0      
        if(debug): print(commands[1])
-      except:
+      except Exception as e:
+       print(e) 
        tkinter.messagebox.showerror("ERROR in hook method",'use: hook temp or time $value$ "macroname"\nif time is defined use the format xxhxxmxxs')
        return "Error"
     elif line.find('writegcode')==0: #we've to write the gcode recorded

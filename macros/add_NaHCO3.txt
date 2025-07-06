@@ -1,0 +1,11 @@
+getvalue $pH$,pH
+eval $test$,$pH$>7.5
+if $test$ add_bicarbonate
+jump end
+label add_bicarbonate
+message adding bicarbonate
+label end
+hook time 60s "add_NaHCO3"
+
+
+
