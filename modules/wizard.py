@@ -86,6 +86,7 @@ class Pour(tk.Frame):
         self.StatusLabel.config(text=parms[7])
     
     def CheckValues(self):
+        self.Action=[]        
         self.CheckInput()
         self.CheckUnit()
         Input=self.Source.get()
@@ -93,7 +94,6 @@ class Pour(tk.Frame):
         Quantity=self.Amount.get()
         Amount=Quantity #we keep Amount with the current units, Quantity will be transformed in mL
         Unit=self.Units.get()
-        self.Action=[]
         if Input=="" or Output=="" or Quantity=="" or Unit=="":
             self.StatusLabel.config(text="---")
             self.AlertButtonMinVol.pack_forget()        
@@ -189,8 +189,9 @@ class Pour(tk.Frame):
             pass
         return maxlength
 
-    def CheckInput(self):
+    def CheckInput(self): 
         Input=self.Source.get()
+        Output=self.Destination.get()
         PossibleUnits=["mL","L"]
         if "Reactant" in Input:
             M=GetMolarityOfInput(Input)
@@ -221,7 +222,8 @@ class Pour(tk.Frame):
         if len(SyrNums)==0: #database has changed meanwhile
             self.Source.set("")
             self.Destination.set("")
-            return
+            print("ERROR: Cannot find connections to "+Input)
+            return "ERROR: Cannot find connections to "+Input
         for SyringeNum in SyrNums:
             AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
             for Output in AvailableOutputs:
@@ -230,8 +232,11 @@ class Pour(tk.Frame):
         PossibleOutputs=[OutputsList[i][0] for i in range(len(OutputsList))]
         PossibleOutputs.sort()
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
-        if not self.Destination.get() in PossibleOutputs:
-            self.Destination.set("")        
+        if not Output in PossibleOutputs:
+            self.Destination.set("")
+            print("ERROR: Cannot find connections to "+Output)
+            return "ERROR: Cannot find connections to "+Output
+            
     
     def InputTypecallback(self,event):
         self.CheckInput()
@@ -1301,7 +1306,6 @@ def StartWizard(window):
             missinglist="\n".join(Missing)
             response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
             if response:  # True if "Yes" is clicked
-                print("You clicked Yes!")
                 if len(Missing)>1:
                     plural="s"
                 else:
