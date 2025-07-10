@@ -34,13 +34,13 @@ getsyringeparms
 #volume of inlet tube and volume of outlet tube as loaded in Configurator. 
 #
 #The command creates and #assigns the following variables:
-#Variable Name	Meaning
-#$numsyringes$  Total number of syringes installed on Syringebot
-#$syringemax$   Max distance in mm for syringe syringenumber
-#$syringevol$   Max volume in ml for syringe syringenumber
-#$volinlet$     Volume in ml of the inlet tube
-#$voloutlet$    Volume in ml of the outlet tube
-#$axisname$     Axis to be moved for syringenumber
+#Variable Name     Meaning
+#$numsyringes$     Total number of syringes installed on Syringebot
+#$syringemax$      Distance in mm from 0 to max signs for syringe syringenumber
+#$syringevol$      Max volume in ml for syringe syringenumber
+#$volinlet$        Volume in ml of the inlet tube
+#$voloutlet$       Volume in ml of the outlet tube
+#$axisname$        Axis named related to syringe syringenumber
 #
 #After this command it is safe to proceed with the calculations for the syringe movements.
 
@@ -323,7 +323,7 @@ if
 #if $varname$ macro "macroname" var1,var2...
 #It jumps to the label if the $varname$ is true. 
 #In the second case it executes the macro “macroname” if $varname$ is true 
-#Use eventually an eval command before the if statement for calculating the value of the variable used.
+#Consider using an eval command before the if statement to compute the value of the variable being used.
 #
 #Example 1:
 #label loop

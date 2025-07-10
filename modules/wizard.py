@@ -1299,7 +1299,26 @@ def StartWizard(window):
         Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
         if not(len(Missing)==0):
             missinglist="\n".join(Missing)
-            messagebox.showerror("ERROR", "Cannot execute procedure. \nThe following connections are missing:\n"+missinglist)
+            response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
+            if response:  # True if "Yes" is clicked
+                print("You clicked Yes!")
+                if len(Missing)>1:
+                    plural="s"
+                else:
+                    plural=""
+                MissingObjects=Grid(window)
+                MissingObjects.WriteOnHeader("Number of missing object"+plural)
+                MissingObjects.WriteOnHeader("Object missing (Reagent, Connection, Apparatus)")
+##                for reactant in ReactantsUsed:
+##                    MissingObjects.WriteOnHeader(reactant)
+##                for apparatus in ApparatusUsed:
+##                    MissingObjects.WriteOnHeader(apparatus)
+                MissingObjects.CloseHeader()
+                for i,Missed in enumerate(Missing):
+                    MissingObjects.AddItemToRow(str(i+1))
+                    MissingObjects.AddItemToRow(Missed)
+                    MissingObjects.NextRow()
+                
             return
         ReactantsUsed=[]
         VolumesOfReactantsUsed=[]
@@ -1547,9 +1566,9 @@ def StartWizard(window):
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
-    file_menu.add_command(label='Load Procedures',command=AskLoadProcedures)
-    file_menu.add_command(label='Append Procedures',command=AskImportProcedures)    
-    file_menu.add_command(label='Save Procedures',command=AskSaveProcedures)
+    file_menu.add_command(label='Load Procedure',command=AskLoadProcedures)
+    file_menu.add_command(label='Append Procedure',command=AskImportProcedures)    
+    file_menu.add_command(label='Save Procedure',command=AskSaveProcedures)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
     settings_menu = Menu(menubar,tearoff=0)
@@ -1557,6 +1576,7 @@ def StartWizard(window):
     WizardWindow.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
     menubar.add_cascade(label="Settings",menu=settings_menu)
+    menubar.add_cascade(label="Process Check",command=CheckProcedure)
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
