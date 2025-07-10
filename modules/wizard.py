@@ -234,8 +234,8 @@ class Pour(tk.Frame):
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
         if not Output in PossibleOutputs:
             self.Destination.set("")
-            print("ERROR: Cannot find connections to "+Output)
-            return "ERROR: Cannot find connections to "+Output
+            print("ERROR: Cannot find connections from "+Input+" to "+Output)
+            return "ERROR: Cannot find connections from "+Input+" to "+Output
             
     
     def InputTypecallback(self,event):
