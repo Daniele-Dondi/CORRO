@@ -1350,7 +1350,7 @@ else:
   if len(macrolist)>28:
           ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
           if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
-          Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
+          #Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
 if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
 ##Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
