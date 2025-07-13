@@ -354,10 +354,15 @@ def Parse(line,variables):    #parse macro line and execute statements
       commands[0]=commands[0][4:] # remove ask
       for c in range(len(commands)-1):
           commands[c+1]=SubstituteVarValues(commands[c+1],variables)
-      x = tkinter.simpledialog.askfloat(commands[1], commands[2]+' ['+str(commands[4])+' ... '+str(commands[5]+']'),initialvalue=float(commands[3]), minvalue=float(commands[4]), maxvalue=float(commands[5]))
+      newWin = Tk()
+      #But make it invisible
+      newWin.withdraw()    
+      x = tkinter.simpledialog.askfloat(commands[1], commands[2]+' ['+str(commands[4])+' ... '+str(commands[5]+']'),initialvalue=float(commands[3]), minvalue=float(commands[4]), maxvalue=float(commands[5]),parent=newWin)
+      newWin.destroy()
       if x==None: return "Cancel"
       RefreshVarValues(commands[0],x,variables)
-     except:
+     except Exception as e:
+      if (debug): print(e)       
       tkinter.messagebox.showerror("ERROR in ask method","use: ask $varname$,title,question,initialvalue,minvalue,maxvalue")
       return "Error"
     elif line.find('getsyringeparms')==0: #load the values for the syringe  
@@ -1116,10 +1121,10 @@ def HookEventsCycle():
   if Triggered:
           if Temperature_Hook:
                print("Temp Hook: executing macro "+Temperature_Hook_Macro)
-               Macro(macrolist.index(Temperature_Hook_Macro))
+               ExecuteMacro(macrolist.index(Temperature_Hook_Macro))
           else:
                print("Time Hook: executing macro "+Time_Hook_Macro)
-               Macro(macrolist.index(Time_Hook_Macro))
+               ExecuteMacro(macrolist.index(Time_Hook_Macro))
   if (connected) and not(Triggered): threading.Timer(1, HookEventsCycle).start() #call itself
 
 def ConvertVoltageTopH(value):
