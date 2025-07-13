@@ -1011,7 +1011,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            btn.pack()
            Charts_enabled.append(True)
           cntr+=1
-        ##threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
             logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The replace is needed for Windows to avoid invalid characters
@@ -1027,6 +1026,13 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
         except Exception as e:
            print(e)     
            tkinter.messagebox.showerror("ERROR", "Error writing log file")
+        if AutoInit and HasSyringeBOT:
+           time.sleep(0.5)
+           try:
+             num=macrolist.index("INIT_ALL")
+             Macro(num)
+           except:
+            tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
     else:  #if it is connected, disconnect
      MsgBox = tkinter.messagebox.askquestion ('Disconnect','Are you sure you want to disconnect?',icon = 'warning')
      if MsgBox == 'yes':
