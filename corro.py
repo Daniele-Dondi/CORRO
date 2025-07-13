@@ -267,7 +267,7 @@ def SaveMacro(text,macronumber,window): #save a macro
          else: break
         macronumber=len(macrolist)
         macrolist.append(filename)
-        macrob.append(Button(Z, text=filename,command=lambda j=macronumber : Macro(j)))
+        macrob.append(Button(Z, text=filename,command=lambda j=macronumber : UserClickedMacro(j)))
         macrob[len(macrob)-1].pack()
     text_file = open("macros/"+macrolist[macronumber]+".txt", "w")
     text_file.write(text)
