@@ -487,8 +487,12 @@ def Parse(line,variables):    #parse macro line and execute statements
     elif line.find('hook')==0: #we've to create an hook (temperature or timer)
       try:
        commands=line.split(' ')
-       macro_command=line.split('"')[1]
-       num=macrolist.index(macro_command) #if macro does not exist we'll receive an error       
+       try:
+         macro_command=line.split('"')[1]
+         num=macrolist.index(macro_command) #if macro does not exist we'll receive an error
+       except:
+         if (debug): print("No macro indicated, we have to wait")
+         macro_command=""
        if commands[1]=="temp":
          Temperature_Hook_Value=commands[2]
          Temperature_Hook_Value=SubstituteVarValues(Temperature_Hook_Value,variables) #eventually substitute var names with their values
@@ -498,27 +502,39 @@ def Parse(line,variables):    #parse macro line and execute statements
          Temperature_Hook=True      
          b_temp.pack()     
        elif commands[1]=="time":
-         time=commands[2]
-         time=SubstituteVarValues(time,variables) #eventually substitute var names with their values
+         timer=commands[2]
+         timer=SubstituteVarValues(timer,variables) #eventually substitute var names with their values
          hours=0
          minutes=0
          seconds=0
-         if 'h' in time:
-          hours=int(time.split('h',1)[0])
-          time=time.split('h')[1]
-         if 'm' in time:
-          minutes=int(time.split('m',1)[0])
-          time=time.split('m')[1]            
-         if 's' in time:
-          seconds=int(time.split('s',1)[0])
+         if 'h' in timer:
+          hours=int(timer.split('h',1)[0])
+          timer=timer.split('h')[1]
+         if 'm' in timer:
+          minutes=int(timer.split('m',1)[0])
+          timer=timer.split('m')[1]            
+         if 's' in timer:
+          seconds=int(timer.split('s',1)[0])
          datet=DT.datetime.now()         
          new_datet=datet+DT.timedelta(hours=hours,minutes=minutes,seconds=seconds)
          Time_Hook=True
          Time_Hook_Value=new_datet
          Time_Hook_Macro=macro_command
-         b_clock.pack() 
+         b_clock.pack()
        else:
-         a=1/0      
+         a=1/0
+       if macro_command=="":
+               if (debug): print("WAIT CYCLE")
+               while not(HookTriggered()):
+                       time.sleep(1)
+                       if not(Temperature_Hook) and not(Time_Hook):
+                               if (debug): print("user blocked the event")
+                               return "Cancel"
+                               break
+                       if (debug): print("waiting for hook...")
+               if (debug): print("Let us go!")
+       else:
+               threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling         
        if(debug): print(commands[1])
       except Exception as e:
        print(e) 
@@ -696,7 +712,8 @@ def Macro(num,*args): #run, delete or edit a macro
        if SyringeBOT_IS_BUSY==True:
         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
         return
-       ExecuteMacro(num,args)
+       #ExecuteMacro(num,args)
+       threading.Timer(0.1, ExecuteMacro, args=(num,args)).start()
       else:  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
      else:  #delete macro
       MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
@@ -989,7 +1006,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            btn.pack()
            Charts_enabled.append(True)
           cntr+=1
-        threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
+        ##threading.Timer(0.1, HookEventsCycle).start()  #call HooksEventsCycle and start cycling
         threading.Timer(0.1, MainCycle).start()  #call MainCycle and start cycling
         try:
             logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The replace is needed for Windows to avoid invalid characters
@@ -1071,27 +1088,39 @@ def SyringeBOTCycle(): #listen and send messages to SyringeBOT
         
  if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
 
-def HookEventsCycle():
+def HookTriggered():
   global connected,SyringeBOT_IS_BUSY,T_Actual
   global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro,macrolist
+  Result=False
   if not(SyringeBOT_IS_BUSY):
         #check hooks
         if Temperature_Hook:
            if ((Temperature_Hook_Value[0]=="<") and (float(T_Actual)<float(Temperature_Hook_Value[1:]))) or ((Temperature_Hook_Value[0]==">") and (float(T_Actual)>float(Temperature_Hook_Value[1:]))):
-               Temperature_Hook=False
-               b_temp.pack_forget()               
-               print("Temp Hook: executing macro "+Temperature_Hook_Macro)
-               Macro(macrolist.index(Temperature_Hook_Macro))
+               Temperature_Hook=False # event is triggered
+               b_temp.pack_forget()
+               Result=True
         if Time_Hook:
            datet=DT.datetime.now()
            now = int(datet.timestamp())
            alarm = int(Time_Hook_Value.timestamp())
            if (now>=alarm):
-               Time_Hook=False
-               b_clock.pack_forget()                              
+               Time_Hook=False # event is triggered
+               b_clock.pack_forget()
+               Result=True
+  return Result
+               
+def HookEventsCycle():
+  global connected,SyringeBOT_IS_BUSY,T_Actual
+  global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro,macrolist
+  Triggered=HookTriggered()
+  if Triggered:
+          if Temperature_Hook:
+               print("Temp Hook: executing macro "+Temperature_Hook_Macro)
+               Macro(macrolist.index(Temperature_Hook_Macro))
+          else:
                print("Time Hook: executing macro "+Time_Hook_Macro)
                Macro(macrolist.index(Time_Hook_Macro))
-  if (connected): threading.Timer(1, HookEventsCycle).start() #call itself
+  if (connected) and not(Triggered): threading.Timer(1, HookEventsCycle).start() #call itself
 
 def ConvertVoltageTopH(value):
         return str(round(-6.89751896*float(value)+30.59142546,2))

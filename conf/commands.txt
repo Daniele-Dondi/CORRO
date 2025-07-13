@@ -149,17 +149,30 @@ hook
 #2
 #create an hook (temperature or timer)
 #use: hook temp or time $value$ "macroname"
+#or
+#use: hook temp or time $value$
+#
 #time is defined use the format xxhxxmxxs
+#
+#In the first case a macro is called, 
+#in the second case the execution is paused up to the event is completed.
+#
+#Please note that when CORRO is waiting for events,
+#Temperature or Time buttons will appear on the main window.
+#By clicking them is possible to cancel the event
 #
 #Example 1:
 #eval $pause$,1
 #hook time $pause$s "titration ASK2"
-#;it will wait 1s and then call macro
+#;it will wait 1 second and then call macro
 #
 #Example 2:
-#eval $pause$,1
 #hook temp >100 "temp_reached"
-#;it will call macro when temperature is greater than 100 °C
+#;it will call the macro when temperature is greater than 100 °C
+#
+#Example 3:
+#hook 1m10s
+#;it will pause the execution of the script for 1 minute and 10 seconds
 
 writegcode 
 #1
