@@ -220,22 +220,22 @@ class Pour(tk.Frame):
         SyrNums=WhichSyringeIsConnectedTo(Input)
         OutputsList=[]
         if len(SyrNums)==0: #database has changed meanwhile
-            self.Source.set("")
-            self.Destination.set("")
-            print("ERROR: Cannot find connections to "+Input)
-            return "ERROR: Cannot find connections to "+Input
+            #self.Source.set("")
+            #self.Destination.set("")
+            print("Cannot find any connections to "+Input)
+            return "Cannot find any connections to "+Input
         for SyringeNum in SyrNums:
             AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
-            for Output in AvailableOutputs:
-                if Output not in OutputsList:
-                    OutputsList.append(Output)
+            for Out in AvailableOutputs:
+                if Out not in OutputsList:
+                    OutputsList.append(Out)
         PossibleOutputs=[OutputsList[i][0] for i in range(len(OutputsList))]
         PossibleOutputs.sort()
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
         if not Output in PossibleOutputs:
             self.Destination.set("")
-            print("ERROR: Cannot find connections from ",Input," to ",Output)
-            return "ERROR: Cannot find connections from "+str(Input)+" to "+str(Output)
+            print("Cannot find connections from ",Input," to ",Output)
+            return "Cannot find connections from "+str(Input)+" to "+str(Output)
             
     
     def InputTypecallback(self,event):
@@ -1238,6 +1238,7 @@ def StartWizard(window):
     def CheckIfConnectionsArePresent():
         ReactantsUsed=[]
         ApparatusUsed=[]
+        MissingConnections=[]        
         Sorted=GetYStack()
         for Action in Sorted:
             Object=Action[1]
@@ -1249,7 +1250,12 @@ def StartWizard(window):
                 if "Apparatus" in connection:
                  if connection not in ApparatusUsed:
                      ApparatusUsed.append(connection)
-        MissingConnections=[]
+            try:
+                result=Object.CheckInput()
+                if len(result)>0:
+                    MissingConnections.append(result)
+            except:
+                pass
         AvailableReactants=GetReactantsNames()
         for reactant in ReactantsUsed:
             if not(reactant in AvailableReactants):
