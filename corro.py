@@ -70,7 +70,6 @@ DoNotConnect=False #if True no module connections is done
 WatchdogMax=2000 #max number of instructions before a message asking if there is an infinite loop
 T_Actual = 0
 T_SetPoint = 0
-Temp_points=[] #array of temperature points
 MAX_Temp=10
 macrolist = [] #list of avail macros
 macrob=[]      #macro button array
@@ -93,7 +92,7 @@ SyringeBOT_IS_BUSY=False
 SyringeBOT_WAS_BUSY=False
 SyringeBOT_IS_INITIALIZED=False
 oldprogress=0 #progress in printing
-#following parameters will be read from configuration.txt file
+#following parameters will be read from configurator
 #NumSyringes=0 #Number of installed syringes
 ##SyringemmToMax=[] #Syringe height of graduated part in millimeters
 ##SyringeVolumes=[] #Syringe max volume in milliliters
@@ -116,7 +115,6 @@ global_vars=[]
 
 BuildVersion=GetBuildVersion()
 
-#print(AvailableSerialPorts())
 
 def on_closing():
         Close()
@@ -126,8 +124,6 @@ def keypress(event):  #keyboard shortcuts
         Close()
 
 def ResetChart():
-  global Temp_points
-  Temp_points=[]
   for device in range(len(conf.USB_names)):
    conf.USB_var_points[device]=[]
 
@@ -140,7 +136,6 @@ def GraphZoom_Unzoom():
     Zoom_B.config(text="View Last")       
 
 def readConfigurationFiles():
-    #global SyringemmToMax,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,
     global SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
     global HasRobot,HasSyringeBOT
     
@@ -322,7 +317,6 @@ def GetVarValue(var_name,variables): #retrieve a value of var_name
 
 def Parse(line,variables):    #parse macro line and execute statements
     global logfile,IsBuffered0,Gcode,debug,cmdfile,SyringeBOT_IS_INITIALIZED
-    #global SyringemmToMax, SyringeVolumes, SyringeInletVolumes, SyringeOutletVolumes #global parameters for syringes taken from configuration
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro
     global Sensors_var_names
     global global_vars
@@ -1136,6 +1130,14 @@ def HookEventsCycle():
 def ConvertVoltageTopH(value):
         return str(round(-6.89751896*float(value)+30.59142546,2))
 
+def ResetChartsIfWeHaveTooManyPoints():
+  maxvalues=5000      
+  for device in range(len(conf.USB_names)):
+          if len(conf.USB_var_points[device])>maxvalues:
+                  ResetChart()
+                  if debug: print("More than ",maxvalues," points in the graph. Chart resetted.")
+                  break
+
 #MAIN CYCLE
 def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
   global SyringeBOT,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
@@ -1145,6 +1147,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
   global oldprogress,graph_color_index
   global USB_handles
   if connected == 1:
+   ResetChartsIfWeHaveTooManyPoints()       #to avoid memory overload
    log_text=""
    if HasSyringeBOT:
            if SyringeBOTWorking:
@@ -1168,19 +1171,8 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
                   logfile.write(str(DT.datetime.now())+"\tProcess finished\n")
                 SyringeBOT_IS_BUSY=False
                 SyringeBOT_WAS_BUSY=False
-
            SyringeBOTSendNow='M105' #send immediate gcode to SyringeBOT
-           Temp_points.append(float(T_Actual))
            log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
-           #Draw_Chart(Temp_points)
-           try:
-            MAX_Temp=max(Temp_points)
-           except:
-            MAX_Temp=0.01       
-           Y2=float(T_SetPoint)
-           if (Y2!=0)and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the setpoint value
-             setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
-             w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
    ########################################################################################################################################  
    Var_Names_Index=0      
    for device in range(len(conf.USB_names)):  #read values from all sensors connected to USB
@@ -1188,6 +1180,12 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
       if (conf.USB_deviceready[device]):
        if conf.USB_types[device]=="SyringeBOT":
                conf.USB_last_values[device]=T_Actual
+               if T_Actual>MAX_Temp:
+                       MAX_Temp=T_Actual
+               if (float(T_SetPoint))and(MAX_Temp!=0) :          #if temperature setpoint is enabled, draw a dashed line at the setpoint value
+                 Y2=float(T_SetPoint)
+                 setpointp=round(chart_h-Y2*(chart_h-20)/MAX_Temp)
+                 w.create_line(0,setpointp,chart_w,setpointp,dash=(4, 2))
                Var_Names_Index+=1
        elif USB_handles[device].in_waiting:
         data=USB_handles[device].readline()
