@@ -334,7 +334,7 @@ if
 #Use: if $varname$ label
 #Or
 #if $varname$ macro "macroname" var1,var2...
-#It jumps to the label if the $varname$ is true. 
+#It jumps to the label if $varname$ is true. 
 #In the second case it executes the macro “macroname” if $varname$ is true 
 #Consider using an eval command before the if statement to compute the value of the variable being used.
 #
