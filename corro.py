@@ -18,23 +18,16 @@
 
 import PIL.Image
 from PIL import ImageTk
-from threading import Timer
 import tkinter
 import threading
-import math
 from tkinter import *
-from tkinter import messagebox
 from tkinter import filedialog
-from tkinter import simpledialog
-from tkinter import dialog
 from tkinter import ttk
 import sys
 import time
 import datetime as DT
 import os
 import serial
-from os import listdir
-from os.path import isfile, join
 import modules.configurator as conf
 from modules.wizard import *
 from modules.listserialports import *

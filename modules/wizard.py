@@ -1071,7 +1071,7 @@ def InitVars():
     CurrentY=2
     EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
-def CreateCode(*args):
+def CreateMacroCode(*args):
     numvars=-1
     for macro in AvailableMacros:
         if macro[0]==args[0]:
@@ -1090,7 +1090,7 @@ def CreateCode(*args):
             code+=str(var)
             if i<len(args)-1:
                 code+=','
-    print(code)
+    return code
 
 def ReorderObjects():
     global CurrentY
@@ -1309,7 +1309,6 @@ def StartWizard(window):
         
         Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
         if not(len(Missing)==0):
-            missinglist="\n".join(Missing)
             response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
             if response:  # True if "Yes" is clicked
                 if len(Missing)>1:
@@ -1335,6 +1334,7 @@ def StartWizard(window):
         ApparatusUsed=[]
         VolumesInApparatus=[]
         StepByStepOps=[]
+        CompiledCode=[]
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
@@ -1374,8 +1374,8 @@ def StartWizard(window):
                  SyringeToUse=int(ChooseProperSyringe(AvailableSyringes,Quantity))
                  V_in=ValvePositionFor(SyringeToUse,Input)
                  V_out=ValvePositionFor(SyringeToUse,Output)
-                 V_waste=ValvePositionFor(SyringeToUse,'Air/Waste')
-                 CreateCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste)
+                 V_waste=ValvePositionFor(SyringeToUse,'Air/Waste') 
+                 CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
                  
             if ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
@@ -1387,24 +1387,31 @@ def StartWizard(window):
                         V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                         V_waste=ValvePositionFor(BestOutputSyringe,'Air/Waste')
                         V_out=V_waste
-                        CreateCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste)
+                        CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste))
                 except:
                     print("error wash 3")
                 for i in range(int(Cycles)):
                     V_in=ValvePositionFor(BestInputSyringe,Source)
                     V_out=ValvePositionFor(BestInputSyringe,Destination+" IN")
                     V_waste=ValvePositionFor(BestInputSyringe,'Air/Waste')
-                    CreateCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste)
+                    CompiledCode.append(CreateMacroCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste))
                     V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                     V_out=ValvePositionFor(BestOutputSyringe,'Air/Waste')
                     V_waste=V_out
-                    CreateCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste)
+                    CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste))
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
+            if ObjType=="Heat":
+                Apparatus,Temperature,Time,Wait4Cooling=Action
+                CompiledCode.append(CreateMacroCode("SetTemp",Temperature))
+                CompiledCode.append("hook temp >"+str(Temperature))
+                CompiledCode.append("hook time >"+str(Time)+"m")
+                if Wait4Cooling:
+                    CompiledCode.append("hook temp <30")
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
-        #print(StepByStepOps)
+        print("Compiled script= ",CompiledCode)
         StepByStepWindow=Grid(window)
         StepByStepWindow.WriteOnHeader("#")
         StepByStepWindow.WriteOnHeader("Action")

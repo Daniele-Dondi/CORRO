@@ -171,7 +171,7 @@ hook
 #;it will call the macro when temperature is greater than 100 °C
 #
 #Example 3:
-#hook 1m10s
+#hook time 1m10s
 #;it will pause the execution of the script for 1 minute and 10 seconds
 
 writegcode 
