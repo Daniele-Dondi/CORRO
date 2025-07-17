@@ -503,7 +503,7 @@ class Wait(tk.Frame):
         self.Label1.pack(side="left")
         self.Time=tk.Entry(self.Line1,state="normal",width=10)
         self.Time.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
+        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h"), width=4,state = 'readonly')
         self.Units.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
@@ -540,11 +540,11 @@ class Wait(tk.Frame):
             self.StatusLabel.config(text="Invalid values")
             return
         else:
-            if Units=="m": Time*=60
-            if Units=="h": Time*=3600
-            if Units=="d": Time*=86400
+##            if Units=="m": Time*=60
+##            if Units=="h": Time*=3600
+##            if Units=="d": Time*=86400
             self.StatusLabel.config(text="Valid values")
-            self.Action=[Time]
+            self.Action=[Time,Units]
 
 class IF(tk.Frame):
     def __init__(self,container):
@@ -1403,6 +1403,7 @@ def StartWizard(window):
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
+                
             if ObjType=="Heat":
                 Apparatus,Temperature,Time,Wait4Cooling,EndTemperature=Action
                 CompiledCode.append(CreateMacroCode("SetTemp",Temperature))
@@ -1410,6 +1411,10 @@ def StartWizard(window):
                 CompiledCode.append("hook time >"+str(Time)+"m")
                 if Wait4Cooling:
                     CompiledCode.append("hook temp <"+str(EndTemperature))
+
+            if ObjType=="Wait":
+                    Time,Units=Action
+                    CompiledCode.append("hook time >"+str(Time)+str(Units))
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         print("Compiled script= ",CompiledCode)
