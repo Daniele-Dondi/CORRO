@@ -320,6 +320,7 @@ class Heat(tk.Frame):
     def CheckValues(self):
         Apparatus=self.Source.get()
         Temperature=self.Temperature.get()
+        EndTemperature=self.EndTemperature.get()
         Time=self.Time.get()
         Wait4Cooling=self.Checked.get()
         self.Action=[]        
@@ -336,7 +337,7 @@ class Heat(tk.Frame):
             return
         else:
             self.StatusLabel.config(text="Valid values")
-            self.Action=[Apparatus,Temperature,Time,Wait4Cooling]
+            self.Action=[Apparatus,Temperature,Time,Wait4Cooling,EndTemperature]
             if Wait4Cooling==0:
                 self.HighTempAlertButton.pack(side="left")
             else:
@@ -1403,12 +1404,12 @@ def StartWizard(window):
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
             if ObjType=="Heat":
-                Apparatus,Temperature,Time,Wait4Cooling=Action
+                Apparatus,Temperature,Time,Wait4Cooling,EndTemperature=Action
                 CompiledCode.append(CreateMacroCode("SetTemp",Temperature))
                 CompiledCode.append("hook temp >"+str(Temperature))
                 CompiledCode.append("hook time >"+str(Time)+"m")
                 if Wait4Cooling:
-                    CompiledCode.append("hook temp <30")
+                    CompiledCode.append("hook temp <"+str(EndTemperature))
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         print("Compiled script= ",CompiledCode)
