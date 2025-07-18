@@ -1,0 +1,18 @@
+if $test$; 1
+ if $test2$; 2
+ endif; 2
+else; 1
+ if $test$; 3
+  if $test4$; 4
+  endif; 4
+ else; 3
+  if $test$; 5
+  else; 5
+   if $tet$; 6
+   endif; 6
+  endif: 5
+ endif; 3
+endif; 1
+
+
+

@@ -601,7 +601,7 @@ def ExecuteMacro(num,*args):
         watchdog=0 #this is used to avoid infinite loops
         variables=[] #macro's internal variables
         try:
-         for ar in args:  #we have some variables passed to the macro, convert them into $1$, $2$ ...
+         for ar in args:  #if we have some variables passed to the macro, convert them into $1$, $2$ ...
           par=ar.split(',')
           for x in range(0,len(par)):
             RefreshVarValues('$'+str(x+1)+'$',par[x],variables)
@@ -610,7 +610,7 @@ def ExecuteMacro(num,*args):
         labels=[] #labels are special variables containing line numbers to be used for goto and jump instructions        
         lines=macro_file.readlines() #read the entire file and put lines into an array
         i=0
-        for j in range(len(lines)): #analyze all macro code and record the labels line position
+        for j in range(len(lines)): #analyze all macro code and record the labels line position and clean lines (remove comments, remove CR LF)
          line=lines[j]
          line = line.split(";", 1)[0] #remove comments (present eventually after ;)
          line=line.strip()  #remove cr/lf
@@ -621,6 +621,47 @@ def ExecuteMacro(num,*args):
              tkinter.messagebox.showerror("Duplicated label","Error: a label name is duplicated")      
              tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
              return
+        #analize if blocks (an if block is an if/else/endif statements block)
+        IfBlockCounter=0
+        IfBlockPosition=[]
+        IfBlockType=[]
+        IfStack=[]
+        IfError=False 
+        for LineNumber,line in enumerate(lines):
+          isif=line.find('if')==0      
+          if (isif) and (len(line.split())==2):
+            IfBlockCounter+=1
+            IfBlockPosition.append(LineNumber)
+            IfBlockType.append("IF "+str(IfBlockCounter))
+            IfStack.append(str(IfBlockCounter))
+          if line.find('else')==0:
+            try:
+              name="ELSE "+IfStack[-1]
+              if name in IfStack: 1/0 #we already having another else at the same level, it means if with two else
+              IfBlockPosition.append(LineNumber)
+              IfBlockType.append(name)
+            except:
+              IfError=True
+              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: else without if in line "+str(LineNumber))
+              break
+          if line.find('endif')==0:
+            try:
+              IfBlockPosition.append(LineNumber)
+              IfBlockType.append("ENDIF "+IfStack[-1])
+              IfStack.pop()
+              if IfBlockCounter<0:
+                tkinter.messagebox.showerror("IF BLOCK ERROR","Error: endif without if in line "+str(LineNumber))
+                IfError=True
+                break
+            except:
+              IfError=True
+              break
+          if IfError: break
+        if len(IfStack)>0:
+          tkinter.messagebox.showerror("IF BLOCK ERROR","Error: if without endif")
+          return
+        if IfError: return
+        print(IfBlockPosition,IfBlockType)
         while (i<len(lines)):
          line=lines[i]
          i=i+1
