@@ -682,9 +682,6 @@ class GET(tk.Frame):
         self.Height=65
         self.BeginBlock=False
         self.Container=False 
-##        self.Content=[]     
-##        self.MustBeAfter=0
-##        self.MustBeBefore=0
         super().__init__(container)
         self.create_widgets()
 
@@ -1118,7 +1115,8 @@ def GetYStack():
         Result.append([item.winfo_y(),item])
     try:
      Result.sort() #now we have the array of objects ordered w. respect to Y pos
-    except:
+    except Exception as e:
+     print(e)   
      pass
     return Result
 
@@ -1134,34 +1132,49 @@ def StartWizard(window):
     InitVars()
     LoadConfFile('startup.conf')
 
+    global selected_objects
+    selected_objects=[]
+
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
         widget.bind("<B1-Motion>", on_drag_motion)
         widget.bind("<ButtonRelease-1>", on_mouse_up)
 
     def on_drag_start(event):
+        global selected_objects
         widget = event.widget
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
-##        try:
-##         if widget.Container:
-##            for Contained in widget.Content:
-##                Contained.event_generate("<Button-1>")
-##                #Contained.invoke(on_drag_start(event)
-##        except:
-##            pass
+        selected_objects.append(widget)
+        try:
+         if widget.Container:
+            for Contained in widget.Content:
+                Contained._drag_start_x = event.x
+                Contained._drag_start_y = event.y
+                Contained.lift()
+                selected_objects.append(Contained)
+        except Exception as e:
+            pass
         widget.lift()
 
     def on_drag_motion(event):
-        widget = event.widget
-        x = widget.winfo_x() - widget._drag_start_x + event.x
-        y = widget.winfo_y() - widget._drag_start_y + event.y
-        widget.place(x=x, y=y)
+        global selected_objects
+        # Move all selected objects
+        for widget in selected_objects:
+            x = widget.winfo_x() - widget._drag_start_x + event.x
+            y = widget.winfo_y() - widget._drag_start_y + event.y
+            widget.place(x=x, y=y)            
 
     def on_mouse_up(event): #stop dragging
-        widget = event.widget
+      global selected_objects  
+      for num,widget in enumerate(selected_objects):
         x = widget.winfo_x() - widget._drag_start_x + event.x
-        y = widget.winfo_y() - widget._drag_start_y + event.y
+        if num==0:
+            y = widget.winfo_y() - widget._drag_start_y + event.y
+        else:
+            y+=1
+        widget.place(x=x, y=y)
+        widget.update()
         try:
             ybefore=0
             yafter=0
@@ -1178,20 +1191,17 @@ def StartWizard(window):
                         y=yafter+2
                 except:
                     pass
-                Sorted=GetYStack()
+                Sorted=GetYStack()  #debugààààààààààààà
+                #print(Sorted)
                 if yafter==0:
                     Y_min=y
                     Y_max=ybefore
                 else:
                     Y_min=after
                     Y_max=y
-                #print()
-                #print(Y_min,Y_max)
-                #print(Sorted)
                 for element in Sorted:
                     Y_element=element[0]
                     obj=element[1]
-                    #print(Y_element,Y_min,Y_max)
                     if (Y_element>Y_min)and(Y_element<Y_max): #we check elements contained in the moved container object
                         #print("c ",Y_element)
                         try:
@@ -1218,14 +1228,11 @@ def StartWizard(window):
                         except:
                             pass
         except:
-            #print("e1")
             pass
-        #print("<<<",y)
         widget.place(x=x, y=y)
         widget.update()
-        Sorted=GetYStack()
-        #print(Sorted)
-        ReorderObjects()
+      selected_objects=[]
+      ReorderObjects()
 
     def CreateNewObject(ObjType):
         global ActionsArray,CurrentY
