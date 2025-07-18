@@ -224,7 +224,7 @@ getglobal
 #message $a$ $b$ ;show the new values
 #getglobal $a$ $b$ ;retrieve the saved one globally
 #message $a$ $b$ ;show the global values
-         
+
 send
 #2
 #send commands to SyringeBOT
@@ -331,11 +331,19 @@ jump
 
 if
 #6
-#Use: if $varname$ label
-#Or
-#if $varname$ macro "macroname" var1,var2...
-#It jumps to the label if $varname$ is true. 
-#In the second case it executes the macro “macroname” if $varname$ is true 
+#There are three different uses of if.
+#1) if $varname$ label
+#2) if $varname$ macro "macroname" var1,var2...
+#3) if $varname$
+#3) else
+#3) endif
+#
+#How it works:
+#
+#1) It jumps to the label if $varname$ is true. 
+#2) It executes the macro “macroname” if $varname$ is true 
+#3) The third method is called IF BLOCK. Each IF should end with the corresponding ENDIF. The ELSE statement is optional.
+#
 #Consider using an eval command before the if statement to compute the value of the variable being used.
 #
 #Example 1:
@@ -348,3 +356,31 @@ if
 #ask $a$,IF,Insert 1 to init,0,0,1
 #eval $a$,$a$==1
 #if $a$ macro “init”
+#
+#Example 3:
+#ask $grade$,How good are you?,Enter how many marks you obtained,0,0,100
+#eval $test$,$grade$>=90
+#if $test$
+#    message "Excellent work!"
+#else
+#    eval $test$,$grade$>=75
+#    if $test$
+#        message "Good job!"
+#    else
+#        eval $test$,$grade$>=60
+#        if $test$
+#            message "You passed."
+#        else
+#            message "Better luck next time."
+#        endif
+#    endif
+#endif
+
+else
+#
+#see if command, case n.3
+
+endif
+#
+#see if command, case n.3
+

@@ -626,10 +626,8 @@ def ExecuteMacro(num,*args):
         IfBlockPosition=[]
         IfBlockType=[]
         IfStack=[]
-        IfError=False 
         for LineNumber,line in enumerate(lines):
-          isif=line.find('if')==0      
-          if (isif) and (len(line.split())==2):
+          if (line.find('if')==0) and (len(line.split())==2):
             IfBlockCounter+=1
             IfBlockPosition.append(LineNumber)
             IfBlockType.append("IF "+str(IfBlockCounter))
@@ -637,30 +635,23 @@ def ExecuteMacro(num,*args):
           if line.find('else')==0:
             try:
               name="ELSE "+IfStack[-1]
-              if name in IfStack: 1/0 #we already having another else at the same level, it means if with two else
+              if name in IfBlockType: 1/0 #we already having another else at the same level, it means if with two else
               IfBlockPosition.append(LineNumber)
               IfBlockType.append(name)
             except:
-              IfError=True
-              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: else without if in line "+str(LineNumber))
-              break
+              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: ELSE without IF in line "+str(LineNumber))
+              return
           if line.find('endif')==0:
             try:
               IfBlockPosition.append(LineNumber)
               IfBlockType.append("ENDIF "+IfStack[-1])
               IfStack.pop()
-              if IfBlockCounter<0:
-                tkinter.messagebox.showerror("IF BLOCK ERROR","Error: endif without if in line "+str(LineNumber))
-                IfError=True
-                break
             except:
-              IfError=True
-              break
-          if IfError: break
+              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: ENDIF without IF in line "+str(LineNumber))
+              return
         if len(IfStack)>0:
-          tkinter.messagebox.showerror("IF BLOCK ERROR","Error: if without endif")
+          tkinter.messagebox.showerror("IF BLOCK ERROR","Error: IF without ENDIF")
           return
-        if IfError: return
         print(IfBlockPosition,IfBlockType)
         while (i<len(lines)):
          line=lines[i]
@@ -676,7 +667,9 @@ def ExecuteMacro(num,*args):
          islabel=line.find('label')==0
          isjump=line.find('jump')==0
          isif=line.find('if')==0
-         if (isfor|isnext|islabel|isjump|isif): #in the case of for/next, label, jump and if statements, the code is analyzed in this section and not in the command parser
+         iselse=line.find('else')==0
+         isendif=line.find('endif')==0
+         if (isfor|isnext|islabel|isjump|isif|iselse|isendif): #in the case of for/next, label, jump and if statements, the code is analyzed in this section and not in the command parser
           if isfor: #for
            stack.append(i)
            var=line.split(' ',2)
@@ -704,7 +697,26 @@ def ExecuteMacro(num,*args):
             return
           elif isif: #if statement
            label=line.split(' ',2)
-           if (SubstituteVarValues(label[1],variables))=="True":
+           condition=(SubstituteVarValues(label[1],variables))=="True"
+           if condition:
+             print("condition is true")
+           else:
+             print("condition is false")
+           if i-1 in IfBlockPosition: #we are in an if block statement
+             if condition:
+               pass
+             else: #the condition is false. We have to jump to else if it is, otherwise to the corresponding endif
+               IfStatementNumber=IfBlockType[IfBlockPosition.index(i-1)].split()[1] #retrieve the number of the IF BLOCK
+               print(IfStatementNumber)
+               try:
+                 print("ELSE",IfBlockPosition[IfBlockType.index("ELSE "+str(IfStatementNumber))]) #search (eventually) the ELSE statement
+                 i=int(IfBlockPosition[IfBlockType.index("ELSE "+str(IfStatementNumber))])+1 #jump to the line after the corresponding ELSE
+                 print("jump to ",i)
+               except: # ELSE not found, let'sfind the corresponding ENDIF
+                 print("ENDIF",IfBlockPosition[IfBlockType.index("ENDIF "+str(IfStatementNumber))])
+                 i=int(IfBlockPosition[IfBlockType.index("ENDIF "+str(IfStatementNumber))]) #jump to the corresponding ENDIF
+                 print("jump to ",i)
+           elif condition: #we are in a if label or if macro, not IF BLOCK
             if label[2].find('macro')==0: #if macro is present we are going to execute a macro
              Parse(label[2],variables)
             else:                         #otherwise we are going to jump to a label
@@ -714,6 +726,10 @@ def ExecuteMacro(num,*args):
               tkinter.messagebox.showerror("ERROR in if","label not defined")
               tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
               return
+          elif iselse: #command else of an IF BLOCK. If we read this, it means we are in the end of the true condition, so we have to jump to the end of the corresponding ENDIF
+            IfStatementNumber=IfBlockType[IfBlockPosition.index(i-1)].split()[1] #retrieve the number of the corresponding IF statement
+            i=int(IfBlockPosition[IfBlockType.index("ENDIF "+str(IfStatementNumber))]) #jump to the corresponding ENDIF
+            print("jumping to ",i)
          else:
           exitcode=Parse(line,variables) #no flow commands are present, executes the statement present in the line
           if exitcode=="Error": #execute code contained in line. In the case of error abort macro execution
