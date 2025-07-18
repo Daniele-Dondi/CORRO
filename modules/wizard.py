@@ -1056,7 +1056,7 @@ def GetAvailCommands():
                     FirstLine=True
             else:
                 if not(command==""):
-                    AvailableCommands.append([command,num_vars,command_header]) #remove .txt from name
+                    AvailableCommands.append([command,num_vars,command_header])
                     command=""
                     command_header=""
     except Exception as e:
@@ -1093,7 +1093,7 @@ def CreateMacroCode(*args):
                 code+=','
     return code
 
-def ReorderObjects():
+def ReorderObjects(): #set the x position (indentation) of the object
     global CurrentY
     CurrentY=2
     Sorted=GetYStack()
@@ -1163,6 +1163,8 @@ def StartWizard(window):
         x = widget.winfo_x() - widget._drag_start_x + event.x
         y = widget.winfo_y() - widget._drag_start_y + event.y
         try:
+            ybefore=0
+            yafter=0
             if widget.Container:
                 try:
                     ybefore=widget.MustBeBefore.winfo_y()
@@ -1176,10 +1178,53 @@ def StartWizard(window):
                         y=yafter+2
                 except:
                     pass
+                Sorted=GetYStack()
+                if yafter==0:
+                    Y_min=y
+                    Y_max=ybefore
+                else:
+                    Y_min=after
+                    Y_max=y
+                #print()
+                #print(Y_min,Y_max)
+                #print(Sorted)
+                for element in Sorted:
+                    Y_element=element[0]
+                    obj=element[1]
+                    #print(Y_element,Y_min,Y_max)
+                    if (Y_element>Y_min)and(Y_element<Y_max): #we check elements contained in the moved container object
+                        #print("c ",Y_element)
+                        try:
+                            if obj.Container:
+                                #print("container contained")
+                                mate_obj=obj.MustBeAfter
+                                y_mate=mate_obj.winfo_y()
+                                #print("mate",y_mate,y)
+                                if y_mate<y:
+                                    y=y_mate-5
+                                    #print("newy",y)
+                                try:
+                                    if mate_obj.Container:
+                                        #print("CCCCC")
+                                        mate_obj=mate_obj.MustBeAfter
+                                        y_mate=mate_obj.winfo_y()
+                                        #print("mate",y_mate,y)
+                                        if y_mate<y:
+                                            y=y_mate-5
+                                            #print("newy",y)
+                                except:
+                                    pass
+                                        
+                        except:
+                            pass
         except:
+            #print("e1")
             pass
+        #print("<<<",y)
         widget.place(x=x, y=y)
         widget.update()
+        Sorted=GetYStack()
+        #print(Sorted)
         ReorderObjects()
 
     def CreateNewObject(ObjType):
@@ -1623,7 +1668,6 @@ def StartWizard(window):
     tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
     tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
     tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
-    tk.Button(frame1,text="CALC",command=lambda: CreateNewObject("CALC")).pack(side="left")
     tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Function")).pack(side="left")        
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
