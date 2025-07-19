@@ -1146,16 +1146,34 @@ def StartWizard(window):
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
         selected_objects.append(widget)
+        widget.lift()        
         try:
          if widget.Container:
-            for Contained in widget.Content:
-                Contained._drag_start_x = event.x
-                Contained._drag_start_y = event.y
-                Contained.lift()
-                selected_objects.append(Contained)
+            Sorted=GetYStack()                   
+            Min_Y=widget.winfo_y()
+            Max_Y=-1000
+            for Contained in widget.Content: #retrieve y min and max of the container
+              try:  
+                ytmp=Contained.winfo_y()
+                if ytmp>Max_Y: Max_Y=ytmp
+                if ytmp<Min_Y: Min_Y=ytmp
+              except:
+                pass
+            for element in Sorted: #put in the selection all the objects within the container
+              try:
+                Y_pos=element[0]                  
+                obj=element[1]
+                if Y_pos>=Min_Y and Y_pos<=Max_Y:
+                    selected_objects.append(obj)
+                    obj._drag_start_x = event.x
+                    obj._drag_start_y = event.y
+                    obj.lift()
+              except:
+                pass
         except Exception as e:
+            print(e)
             pass
-        widget.lift()
+
 
     def on_drag_motion(event):
         global selected_objects
@@ -1166,7 +1184,7 @@ def StartWizard(window):
             widget.place(x=x, y=y)            
 
     def on_mouse_up(event): #stop dragging
-      global selected_objects  
+      global selected_objects
       for num,widget in enumerate(selected_objects):
         x = widget.winfo_x() - widget._drag_start_x + event.x
         if num==0:
@@ -1175,6 +1193,7 @@ def StartWizard(window):
             y+=1
         widget.place(x=x, y=y)
         widget.update()
+      if len(selected_objects)==1:  
         try:
             ybefore=0
             yafter=0
