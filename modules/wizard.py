@@ -544,9 +544,6 @@ class Wait(tk.Frame):
             self.StatusLabel.config(text="Invalid values")
             return
         else:
-##            if Units=="m": Time*=60
-##            if Units=="h": Time*=3600
-##            if Units=="d": Time*=86400
             self.StatusLabel.config(text="Valid values")
             self.Action=[Time,Units]
 
@@ -557,8 +554,6 @@ class IF(tk.Frame):
         self.BeginIndent=True
         self.Container=True 
         self.Content=[]     
-        self.MustBeAfter=0
-        self.MustBeBefore=0
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -613,8 +608,6 @@ class ELSE(tk.Frame):
         self.BeginIndent=True        
         self.EndIntend=True        
         self.Container=True 
-        self.MustBeAfter=0     
-        self.MustBeBefore=0
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -653,8 +646,6 @@ class ENDIF(tk.Frame):
         self.Height=65
         self.EndIntend=True
         self.Container=True 
-        self.MustBeAfter=0     
-        self.MustBeBefore=0
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -832,8 +823,6 @@ class LOOP(tk.Frame):
         self.BeginIndent=True
         self.Container=True 
         self.Content=[]     
-        self.MustBeAfter=0
-        self.MustBeBefore=0
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -885,8 +874,6 @@ class ENDLOOP(tk.Frame):
         self.Height=65
         self.EndIntend=True
         self.Container=True 
-        self.MustBeAfter=0     
-        self.MustBeBefore=0
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -1261,62 +1248,6 @@ def StartWizard(window):
             y+=1
         widget.place(x=x, y=y)
         widget.update()
-      if len(selected_objects)==1:  
-        try:
-            ybefore=0
-            yafter=0
-            if widget.Container:
-                try:
-                    ybefore=widget.MustBeBefore.winfo_y()
-                    if y>ybefore:
-                        y=ybefore-2
-                except:
-                    pass
-                try:
-                    yafter=widget.MustBeAfter.winfo_y()
-                    if y<yafter:
-                        y=yafter+2
-                except:
-                    pass
-                Sorted=GetYStack()
-                if yafter==0:
-                    Y_min=y
-                    Y_max=ybefore
-                else:
-                    Y_min=after
-                    Y_max=y
-                for element in Sorted:
-                    Y_element=element[0]
-                    obj=element[1]
-                    if (Y_element>Y_min)and(Y_element<Y_max): #we check elements contained in the moved container object
-                        #print("c ",Y_element)
-                        try:
-                            if obj.Container:
-                                #print("container contained")
-                                mate_obj=obj.MustBeAfter
-                                y_mate=mate_obj.winfo_y()
-                                #print("mate",y_mate,y)
-                                if y_mate<y:
-                                    y=y_mate-5
-                                    #print("newy",y)
-                                try:
-                                    if mate_obj.Container:
-                                        #print("CCCCC")
-                                        mate_obj=mate_obj.MustBeAfter
-                                        y_mate=mate_obj.winfo_y()
-                                        #print("mate",y_mate,y)
-                                        if y_mate<y:
-                                            y=y_mate-5
-                                            #print("newy",y)
-                                except:
-                                    pass
-                                        
-                        except:
-                            pass
-        except:
-            pass
-        widget.place(x=x, y=y)
-        widget.update()
       selected_objects=[]
       IndentObjects()
 
@@ -1358,10 +1289,6 @@ def StartWizard(window):
             Obj2.Last=Obj3
             Obj3.First=Obj1
             Obj3.Last=Obj3
-            Obj1.MustBeBefore=Obj2
-            Obj2.MustBeBefore=Obj3
-            Obj2.MustBeAfter=Obj1            
-            Obj3.MustBeAfter=Obj2            
             return
         elif ObjType=="LOOP Block":
             Obj1=CreateNewObject("LOOP")
@@ -1371,8 +1298,6 @@ def StartWizard(window):
             Obj2.First=Obj1
             Obj2.Last=Obj2
             Obj1.Content.append(Obj2)
-            Obj1.MustBeBefore=Obj2
-            Obj2.MustBeAfter=Obj1            
             return
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
@@ -1467,10 +1392,6 @@ def StartWizard(window):
                 MissingObjects=Grid(window)
                 MissingObjects.WriteOnHeader("Number of missing object"+plural)
                 MissingObjects.WriteOnHeader("Object missing (Reagent, Connection, Apparatus)")
-##                for reactant in ReactantsUsed:
-##                    MissingObjects.WriteOnHeader(reactant)
-##                for apparatus in ApparatusUsed:
-##                    MissingObjects.WriteOnHeader(apparatus)
                 MissingObjects.CloseHeader()
                 for i,Missed in enumerate(Missing):
                     MissingObjects.AddItemToRow(str(i+1))
