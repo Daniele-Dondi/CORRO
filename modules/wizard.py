@@ -1132,9 +1132,54 @@ def StartWizard(window):
     InitVars()
     LoadConfFile('startup.conf')
 
-    global selected_objects
+    global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
     selected_objects=[]
+    Selecting_Objects=False
+    
 
+    def drag_start_canvas(event):
+        global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
+        if selected_objects: return
+        print("canvas drag")
+        Selecting_Objects=True
+        Selection_start_X=my_canvas.canvasx(event.x)
+        Selection_start_Y=my_canvas.canvasy(event.y)
+        my_canvas.rect=my_canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)        
+
+    def drag_motion_canvas(event):
+        global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
+        if Selecting_Objects:
+            Selection_end_X=my_canvas.canvasx(event.x)
+            Selection_end_Y=my_canvas.canvasy(event.y)
+            my_canvas.coords(my_canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
+            
+
+    def on_mouse_up_canvas(event):
+        global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
+        if Selecting_Objects:
+            print("Stop selecting objects")
+            print(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
+            Selecting_Objects=False
+            if Selection_start_Y<Selection_end_Y:
+                Min_Y=Selection_start_Y
+                Max_Y=Selection_end_Y
+            else:
+                Min_Y=Selection_end_Y
+                Max_Y=Selection_start_Y                
+            Sorted=GetYStack()                   
+            for element in Sorted: #put in the selection all the objects within the container
+              try:
+                Y_pos=element[0]                  
+                obj=element[1]
+                if Y_pos>=Min_Y and Y_pos<=Max_Y:
+                    selected_objects.append(obj)
+                    obj._drag_start_x = event.x
+                    obj._drag_start_y = event.y
+                    obj.lift()
+              except:
+                pass
+            print(selected_objects)
+        
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
         widget.bind("<B1-Motion>", on_drag_motion)
@@ -1142,6 +1187,7 @@ def StartWizard(window):
 
     def on_drag_start(event):
         global selected_objects
+        print("object drag")
         widget = event.widget
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
@@ -1176,6 +1222,8 @@ def StartWizard(window):
 
 
     def on_drag_motion(event):
+        global Selecting_Objects
+        if Selecting_Objects: return
         global selected_objects
         # Move all selected objects
         for widget in selected_objects:
@@ -1210,8 +1258,7 @@ def StartWizard(window):
                         y=yafter+2
                 except:
                     pass
-                Sorted=GetYStack()  #debugààààààààààààà
-                #print(Sorted)
+                Sorted=GetYStack()
                 if yafter==0:
                     Y_min=y
                     Y_max=ybefore
@@ -1682,6 +1729,11 @@ def StartWizard(window):
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
     my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
     my_canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+    my_canvas.bind_all("<Button-1>", drag_start_canvas)
+    my_canvas.bind_all("<B1-Motion>", drag_motion_canvas)
+    my_canvas.bind_all("<ButtonRelease-1>", on_mouse_up_canvas)    
+    
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     my_canvas.create_window((0,0),window=frame2, anchor="nw")    
