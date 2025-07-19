@@ -27,6 +27,7 @@ class Pour(tk.Frame):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
+        self.Container=False
         self.MacroName="Pour" #bind to macro name in macros folder
         super().__init__(container)
         self.create_widgets()
@@ -247,6 +248,7 @@ class Heat(tk.Frame):
         self.Action=[]
         self.AvailableApparatus=GetAllHeatingApparatus()
         self.Height=75
+        self.Container=False
         super().__init__(container)
         self.create_widgets()
 
@@ -370,6 +372,7 @@ class Wash(tk.Frame):
         self.Action=[]
         self.Height=75
         self.MaxVol=0
+        self.Container=False
         super().__init__(container)
         self.create_widgets()
 
@@ -491,6 +494,7 @@ class Wait(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=50
+        self.Container=False
         super().__init__(container)
         self.create_widgets()
 
@@ -908,6 +912,7 @@ class REM(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=55
+        self.Container=False
         super().__init__(container)
         self.create_widgets()
 
@@ -996,7 +1001,7 @@ class Grid(tk.Toplevel):
         self.Line=""        
         self.Column=0
         self.Row+=1
-        
+
     
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
@@ -1133,8 +1138,13 @@ def StartWizard(window):
     LoadConfFile('startup.conf')
 
     global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
+    Selection_start_X=0
+    Selection_start_Y=0
+    Selection_end_X=0
+    Selection_end_Y=0
     selected_objects=[]
     Selecting_Objects=False
+    
     
 
     def drag_start_canvas(event):
@@ -1144,15 +1154,14 @@ def StartWizard(window):
         Selecting_Objects=True
         Selection_start_X=my_canvas.canvasx(event.x)
         Selection_start_Y=my_canvas.canvasy(event.y)
-        my_canvas.rect=my_canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)        
+        canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)
 
     def drag_motion_canvas(event):
         global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if Selecting_Objects:
             Selection_end_X=my_canvas.canvasx(event.x)
             Selection_end_Y=my_canvas.canvasy(event.y)
-            my_canvas.coords(my_canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
-            
+            canvas.coords(canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
 
     def on_mouse_up_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
@@ -1160,25 +1169,26 @@ def StartWizard(window):
             print("Stop selecting objects")
             print(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
             Selecting_Objects=False
-            if Selection_start_Y<Selection_end_Y:
-                Min_Y=Selection_start_Y
-                Max_Y=Selection_end_Y
-            else:
-                Min_Y=Selection_end_Y
-                Max_Y=Selection_start_Y                
-            Sorted=GetYStack()                   
-            for element in Sorted: #put in the selection all the objects within the container
-              try:
-                Y_pos=element[0]                  
-                obj=element[1]
-                if Y_pos>=Min_Y and Y_pos<=Max_Y:
-                    selected_objects.append(obj)
-                    obj._drag_start_x = event.x
-                    obj._drag_start_y = event.y
-                    obj.lift()
-              except:
-                pass
-            print(selected_objects)
+            canvas.delete(canvas.rect)
+##            if Selection_start_Y<Selection_end_Y:
+##                Min_Y=Selection_start_Y
+##                Max_Y=Selection_end_Y
+##            else:
+##                Min_Y=Selection_end_Y
+##                Max_Y=Selection_start_Y                
+##            Sorted=GetYStack()                   
+##            for element in Sorted: #put in the selection all the objects within the container
+##              try:
+##                Y_pos=element[0]                  
+##                obj=element[1]
+##                if Y_pos>=Min_Y and Y_pos<=Max_Y:
+##                    selected_objects.append(obj)
+##                    obj._drag_start_x = event.x
+##                    obj._drag_start_y = event.y
+##                    obj.lift()
+##              except:
+##                pass
+##            print(selected_objects)
         
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -1721,7 +1731,8 @@ def StartWizard(window):
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
-    frame3.pack(side="bottom")  
+    frame3.pack(side="bottom")
+    
     my_canvas = Canvas(WizardWindow)
     my_canvas.pack(side=LEFT,fill=BOTH,expand=1)
     y_scrollbar = ttk.Scrollbar(WizardWindow,orient=VERTICAL,command=my_canvas.yview)
@@ -1729,14 +1740,18 @@ def StartWizard(window):
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
     my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
     my_canvas.bind_all("<MouseWheel>", on_mousewheel)
-
     my_canvas.bind_all("<Button-1>", drag_start_canvas)
     my_canvas.bind_all("<B1-Motion>", drag_motion_canvas)
-    my_canvas.bind_all("<ButtonRelease-1>", on_mouse_up_canvas)    
-    
+    my_canvas.bind_all("<ButtonRelease-1>", on_mouse_up_canvas)
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
-    my_canvas.create_window((0,0),window=frame2, anchor="nw")    
+    frame2.pack()
+    my_canvas.create_window((0,0),window=frame2, anchor="nw")
+    
+    # Create a canvas inside the frame
+    canvas = Canvas(frame2,height=10000,width=1000,bg="white")
+    canvas.pack()
+
   
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
