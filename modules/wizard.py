@@ -554,11 +554,13 @@ class IF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.BeginBlock=True
+        self.BeginIndent=True
         self.Container=True 
         self.Content=[]     
         self.MustBeAfter=0
         self.MustBeBefore=0
+        self.First=0
+        self.Last=0
         super().__init__(container)
         self.create_widgets()
 
@@ -608,11 +610,13 @@ class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.BeginBlock=True        
-        self.EndBlock=True        
+        self.BeginIndent=True        
+        self.EndIntend=True        
         self.Container=True 
         self.MustBeAfter=0     
         self.MustBeBefore=0
+        self.First=0
+        self.Last=0
         super().__init__(container)
         self.create_widgets()
 
@@ -647,10 +651,12 @@ class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.EndBlock=True
+        self.EndIntend=True
         self.Container=True 
         self.MustBeAfter=0     
         self.MustBeBefore=0
+        self.First=0
+        self.Last=0
         super().__init__(container)
         self.create_widgets()
 
@@ -684,7 +690,7 @@ class GET(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.BeginBlock=False
+        self.BeginIndent=False
         self.Container=False 
         super().__init__(container)
         self.create_widgets()
@@ -732,7 +738,7 @@ class Function(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=125
-        self.BeginBlock=False
+        self.BeginIndent=False
         self.Container=False
         self.AvailableFunctions=AvailableCommands+AvailableMacros
         self.FunctionNames=[self.AvailableFunctions[i][0] for i in range(len(self.AvailableFunctions))]
@@ -823,11 +829,13 @@ class LOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.BeginBlock=True
+        self.BeginIndent=True
         self.Container=True 
         self.Content=[]     
         self.MustBeAfter=0
-        self.MustBeBefore=0     
+        self.MustBeBefore=0
+        self.First=0
+        self.Last=0
         super().__init__(container)
         self.create_widgets()
 
@@ -875,10 +883,12 @@ class ENDLOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=65
-        self.EndBlock=True
+        self.EndIntend=True
         self.Container=True 
         self.MustBeAfter=0     
         self.MustBeBefore=0
+        self.First=0
+        self.Last=0
         super().__init__(container)
         self.create_widgets()
 
@@ -1095,7 +1105,7 @@ def CreateMacroCode(*args):
                 code+=','
     return code
 
-def ReorderObjects(): #set the x position (indentation) of the object
+def IndentObjects(): #set the x position (indentation) of the object
     global CurrentY
     CurrentY=2
     Sorted=GetYStack()
@@ -1103,12 +1113,12 @@ def ReorderObjects(): #set the x position (indentation) of the object
     for element in Sorted:
         Item=element[1]
         try:
-            if Item.EndBlock: x-=20            
+            if Item.EndIntend: x-=20            
         except:
             pass
         Item.place(x=x, y=CurrentY)
         try:
-            if Item.BeginBlock: x+=20
+            if Item.BeginIndent: x+=20
         except:
             pass
         CurrentY+=int(Item.Height)
@@ -1130,7 +1140,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
     num=ActionsArray.index(ObjIdentifier)
     ActionsArray.pop(num)
     ObjIdentifier.destroy()
-    ReorderObjects()
+    IndentObjects()
 
 
 def StartWizard(window):
@@ -1206,15 +1216,15 @@ def StartWizard(window):
         try:
          if widget.Container:
             Sorted=GetYStack()                   
-            Min_Y=widget.winfo_y()
-            Max_Y=-1000
-            for Contained in widget.Content: #retrieve y min and max of the container
-              try:  
-                ytmp=Contained.winfo_y()
-                if ytmp>Max_Y: Max_Y=ytmp
-                if ytmp<Min_Y: Min_Y=ytmp
-              except:
-                pass
+            Min_Y=widget.First.winfo_y()
+            Max_Y=widget.Last.winfo_y()
+##            for Contained in widget.Content: #retrieve y min and max of the container
+##              try:  
+##                ytmp=Contained.winfo_y()
+##                if ytmp>Max_Y: Max_Y=ytmp
+##                if ytmp<Min_Y: Min_Y=ytmp
+##              except:
+##                pass
             for element in Sorted: #put in the selection all the objects within the container
               try:
                 Y_pos=element[0]                  
@@ -1308,7 +1318,7 @@ def StartWizard(window):
         widget.place(x=x, y=y)
         widget.update()
       selected_objects=[]
-      ReorderObjects()
+      IndentObjects()
 
     def CreateNewObject(ObjType):
         global ActionsArray,CurrentY
@@ -1342,6 +1352,12 @@ def StartWizard(window):
             Obj3=CreateNewObject("ENDIF")
             Obj1.Content.append(Obj2)
             Obj1.Content.append(Obj3)
+            Obj1.First=Obj1
+            Obj1.Last=Obj3
+            Obj2.First=Obj1
+            Obj2.Last=Obj3
+            Obj3.First=Obj1
+            Obj3.Last=Obj3
             Obj1.MustBeBefore=Obj2
             Obj2.MustBeBefore=Obj3
             Obj2.MustBeAfter=Obj1            
@@ -1350,6 +1366,10 @@ def StartWizard(window):
         elif ObjType=="LOOP Block":
             Obj1=CreateNewObject("LOOP")
             Obj2=CreateNewObject("ENDLOOP")
+            Obj1.First=Obj1
+            Obj1.Last=Obj2
+            Obj2.First=Obj1
+            Obj2.Last=Obj2
             Obj1.Content.append(Obj2)
             Obj1.MustBeBefore=Obj2
             Obj2.MustBeAfter=Obj1            
@@ -1601,16 +1621,16 @@ def StartWizard(window):
         for i,Procedure in enumerate(ProceduresArray):
             IsContainer=Procedure[4]
             ObjContent=Procedure[5]
-            ObjBefore=Procedure[6]
-            ObjAfter=Procedure[7]
+            first=Procedure[6]
+            last=Procedure[7]
             if IsContainer:
                 if len(ObjContent)>0:
                     for Item in ObjContent:
                         CreatedProcedures[i].Content.append(CreatedProcedures[Item])
-                if not(ObjBefore==-1):
-                    CreatedProcedures[i].MustBeBefore=CreatedProcedures[ObjBefore]
-                if not(ObjAfter==-1):
-                    CreatedProcedures[i].MustBeAfter=CreatedProcedures[ObjAfter]
+                if not(first==-1):
+                    CreatedProcedures[i].First=CreatedProcedures[first]
+                if not(last==-1):
+                    CreatedProcedures[i].Last=CreatedProcedures[last]
             
 
     def AskLoadProcedures():
@@ -1662,19 +1682,22 @@ def StartWizard(window):
                     Actions.append([])
                     pass
                 try:
-                    before_y=Object.MustBeBefore.winfo_y()
-                    before=GetObjectPosition(before_y,Sorted)
-                    Actions.append(before)
+                    first=Object.First
+                    Actions.append(GetObjectPosition(first.winfo_y(),Sorted))
                 except:
                     Actions.append(-1)
                     pass
                 try:
-                    after_y=Object.MustBeAfter.winfo_y()
-                    after=GetObjectPosition(after_y,Sorted)
-                    Actions.append(after)
+                    last=Object.Last
+                    Actions.append(GetObjectPosition(last.winfo_y(),Sorted))
                 except:
                     Actions.append(-1)
                     pass
+             else:
+                Actions.append(False)
+                Actions.append([])                
+                Actions.append(-1)
+                Actions.append(-1)
             except:
                 Actions.append(False)
                 Actions.append([])                
