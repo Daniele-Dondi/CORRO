@@ -1141,6 +1141,7 @@ def StartWizard(window):
     Selection_end_Y=0
     selected_objects=[]
     Selecting_Objects=False
+
     
 
     def drag_start_canvas(event):
@@ -1150,14 +1151,45 @@ def StartWizard(window):
         Selecting_Objects=True
         Selection_start_X=canvas.canvasx(event.x)
         Selection_start_Y=canvas.canvasy(event.y)
-        canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)
+        Selection_end_X=Selection_start_X
+        Selection_end_Y=Selection_start_Y
+        SelTopButton.place(x=Selection_start_X,y=Selection_start_Y)
+        SelTopButton.config(height=1,width=1)
+        SelTopButton.lift()
+        SelBottomButton.place(x=Selection_start_X,y=Selection_start_Y)
+        SelBottomButton.config(height=1,width=1)
+        SelBottomButton.lift()
+        SelLeftButton.place(x=Selection_start_X,y=Selection_start_Y)
+        SelLeftButton.config(height=1,width=1)
+        SelLeftButton.lift()
+        SelRightButton.place(x=Selection_start_X,y=Selection_start_Y)
+        SelRightButton.config(height=1,width=1)
+        SelRightButton.lift()
+        try:
+            canvas.delete(canvas.rect)
+        except:
+            pass        
+        #canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)
 
     def drag_motion_canvas(event):
         global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if Selecting_Objects:
             Selection_end_X=canvas.canvasx(event.x)
             Selection_end_Y=canvas.canvasy(event.y)
-            canvas.coords(canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
+            SelTopButton.config(width=abs(Selection_start_X-Selection_end_X))
+            SelBottomButton.config(width=abs(Selection_start_X-Selection_end_X))
+            SelBottomButton.place(y=Selection_end_Y)
+            if Selection_start_X>Selection_end_X:
+                SelTopButton.place(x=Selection_end_X)
+                SelBottomButton.place(x=Selection_end_X)
+            SelLeftButton.config(height=abs(Selection_start_Y-Selection_end_Y))
+            SelRightButton.config(height=abs(Selection_start_Y-Selection_end_Y))
+            SelRightButton.place(x=Selection_end_X)
+            if Selection_start_Y>Selection_end_Y:
+                SelLeftButton.place(y=Selection_end_Y)
+                SelRightButton.place(y=Selection_end_Y)
+
+            #canvas.coords(canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
 
     def on_mouse_up_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
@@ -1165,13 +1197,14 @@ def StartWizard(window):
             print("Stop selecting objects")
             print(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
             Selecting_Objects=False
-            canvas.delete(canvas.rect)
-##            if Selection_start_Y<Selection_end_Y:
-##                Min_Y=Selection_start_Y
-##                Max_Y=Selection_end_Y
-##            else:
-##                Min_Y=Selection_end_Y
-##                Max_Y=Selection_start_Y                
+            SelTopButton.place_forget()
+            SelBottomButton.place_forget()
+            SelLeftButton.place_forget()
+            SelRightButton.place_forget()
+            Min_Y=min(Selection_start_Y,Selection_end_Y)
+            Max_Y=max(Selection_start_Y,Selection_end_Y)
+            Min_X=min(Selection_start_X,Selection_end_X)
+            if Min_X>500: return #we never catched the blocks
 ##            Sorted=GetYStack()                   
 ##            for element in Sorted: #put in the selection all the objects within the container
 ##              try:
@@ -1185,6 +1218,7 @@ def StartWizard(window):
 ##              except:
 ##                pass
 ##            print(selected_objects)
+            canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y,outline="blue", width=2)            
         
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -1692,6 +1726,13 @@ def StartWizard(window):
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     frame2.pack()
+    
+    pixel = PhotoImage(width=1, height=1)        
+    SelTopButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelBottomButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelLeftButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelRightButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     
     # Create a canvas inside the frame
