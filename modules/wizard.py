@@ -1068,7 +1068,7 @@ def InitVars():
     ActionsArray=[]
     AvailableMacros=GetAvailMacros()
     AvailableCommands=GetAvailCommands()
-    CurrentY=2
+    CurrentY=10
     EmptyVolume=10 #Extra volume to be used to remove all reactors content
 
 def CreateMacroCode(*args):
@@ -1094,7 +1094,7 @@ def CreateMacroCode(*args):
 
 def IndentObjects(): #set the x position (indentation) of the object
     global CurrentY
-    CurrentY=2
+    CurrentY=10
     Sorted=GetYStack()
     x=10    
     for element in Sorted:
@@ -1135,18 +1135,28 @@ def StartWizard(window):
     LoadConfFile('startup.conf')
 
     global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
+    global Dragging_Objects
     Selection_start_X=0
     Selection_start_Y=0
     Selection_end_X=0
     Selection_end_Y=0
     selected_objects=[]
     Selecting_Objects=False
+    Dragging_Objects=False
 
-    
+    def Remove_Selection_Reactangle():
+        try:
+            canvas.delete(canvas.rect)
+        except:
+            pass        
+        #canvas.rect
 
     def drag_start_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
-        if selected_objects: return
+        global Dragging_Objects
+        print("canvas")
+        if Dragging_Objects: return
+        selected_objects=[]
         print("canvas drag")
         Selecting_Objects=True
         Selection_start_X=canvas.canvasx(event.x)
@@ -1165,11 +1175,7 @@ def StartWizard(window):
         SelRightButton.place(x=Selection_start_X,y=Selection_start_Y)
         SelRightButton.config(height=1,width=1)
         SelRightButton.lift()
-        try:
-            canvas.delete(canvas.rect)
-        except:
-            pass        
-        #canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)
+        Remove_Selection_Reactangle()
 
     def drag_motion_canvas(event):
         global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
@@ -1205,20 +1211,32 @@ def StartWizard(window):
             Max_Y=max(Selection_start_Y,Selection_end_Y)
             Min_X=min(Selection_start_X,Selection_end_X)
             if Min_X>500: return #we never catched the blocks
-##            Sorted=GetYStack()                   
-##            for element in Sorted: #put in the selection all the objects within the container
-##              try:
-##                Y_pos=element[0]                  
-##                obj=element[1]
-##                if Y_pos>=Min_Y and Y_pos<=Max_Y:
-##                    selected_objects.append(obj)
-##                    obj._drag_start_x = event.x
-##                    obj._drag_start_y = event.y
-##                    obj.lift()
-##              except:
-##                pass
-##            print(selected_objects)
-            canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y,outline="blue", width=2)            
+            Sorted=GetYStack()
+            for element in Sorted:
+                Y_pos=element[0]                  
+                obj=element[1]
+                if Y_pos>=Min_Y and Y_pos<=Max_Y:
+                    if obj.Container: # if in our selection we included a container, we might need to expand the selection if we never taken all the contained objects
+                        contained_Min_Y=obj.First.winfo_y()
+                        contained_Max_Y=obj.Last.winfo_y()
+                        Min_Y=min(contained_Min_Y,Min_Y)
+                        Max_Y=max(contained_Max_Y,Max_Y)
+            for element in Sorted: #put in the selection all the objects within the container
+              try:
+                Y_pos=element[0]                  
+                obj=element[1]
+                if Y_pos>=Min_Y and Y_pos<=Max_Y:
+                    selected_objects.append(obj)
+                    obj._drag_start_x = event.x
+                    obj._drag_start_y = event.y
+                    obj.lift()
+              except:
+                pass
+            Selecting_Objects=False
+            if len(selected_objects)>0:
+                canvas.rect=canvas.create_rectangle(2,Min_Y,600,Max_Y,outline="blue", width=2)
+            else:
+                Remove_Selection_Reactangle()
         
     def make_draggable(widget):
         widget.bind("<Button-1>", on_drag_start)
@@ -1227,8 +1245,20 @@ def StartWizard(window):
 
     def on_drag_start(event):
         global selected_objects
+        global Dragging_Objects
+        Dragging_Objects=True
         print("object drag")
+        Remove_Selection_Reactangle()    
         widget = event.widget
+        if widget in selected_objects: #if the user clicked in one of the selected object we have to move the selected block. Otherwise, let's go with single object
+            print("cdsafdsafdalkfjoaejgfoirewhgoi0ji")
+            for obj in selected_objects:
+                obj._drag_start_x = event.x
+                obj._drag_start_y = event.y
+                obj.lift()
+            return
+        else:
+            selected_objects=[]
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
         selected_objects.append(widget)
@@ -1266,6 +1296,7 @@ def StartWizard(window):
 
     def on_mouse_up(event): #stop dragging
       global selected_objects
+      global Dragging_Objects
       for num,widget in enumerate(selected_objects):
         x = widget.winfo_x() - widget._drag_start_x + event.x
         if num==0:
@@ -1275,6 +1306,7 @@ def StartWizard(window):
         widget.place(x=x, y=y)
         widget.update()
       selected_objects=[]
+      Dragging_Objects=False
       IndentObjects()
 
     def CreateNewObject(ObjType):
