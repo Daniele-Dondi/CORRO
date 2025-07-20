@@ -1154,10 +1154,8 @@ def StartWizard(window):
     def drag_start_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         global Dragging_Objects
-        print("canvas")
         if Dragging_Objects: return
         selected_objects=[]
-        print("canvas drag")
         Selecting_Objects=True
         Selection_start_X=canvas.canvasx(event.x)
         Selection_start_Y=canvas.canvasy(event.y)
@@ -1195,13 +1193,9 @@ def StartWizard(window):
                 SelLeftButton.place(y=Selection_end_Y)
                 SelRightButton.place(y=Selection_end_Y)
 
-            #canvas.coords(canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
-
     def on_mouse_up_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if Selecting_Objects:
-            print("Stop selecting objects")
-            print(Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
             Selecting_Objects=False
             SelTopButton.place_forget()
             SelBottomButton.place_forget()
@@ -1233,7 +1227,10 @@ def StartWizard(window):
               except:
                 pass
             Selecting_Objects=False
-            if len(selected_objects)>0:
+            if len(selected_objects)>0: # adjust rectangle size to fit the selected objects
+                Min_Y=selected_objects[0].winfo_y()-1
+                lastobj=selected_objects[-1]                
+                Max_Y=lastobj.winfo_y()+lastobj.Height-2
                 canvas.rect=canvas.create_rectangle(2,Min_Y,600,Max_Y,outline="blue", width=2)
             else:
                 Remove_Selection_Reactangle()
@@ -1247,11 +1244,9 @@ def StartWizard(window):
         global selected_objects
         global Dragging_Objects
         Dragging_Objects=True
-        print("object drag")
         Remove_Selection_Reactangle()    
         widget = event.widget
         if widget in selected_objects: #if the user clicked in one of the selected object we have to move the selected block. Otherwise, let's go with single object
-            print("cdsafdsafdalkfjoaejgfoirewhgoi0ji")
             for obj in selected_objects:
                 obj._drag_start_x = event.x
                 obj._drag_start_y = event.y
