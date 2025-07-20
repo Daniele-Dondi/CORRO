@@ -604,7 +604,7 @@ class IF(tk.Frame):
 class ELSE(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=65
+        self.Height=45
         self.BeginIndent=True        
         self.EndIntend=True        
         self.Container=True 
@@ -614,7 +614,7 @@ class ELSE(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=40,width=500,bg="lightgreen")
+        self.Line1=tk.Frame(self,height=20,width=500,bg="lightgreen")
         self.Line1.pack_propagate(False)        
         self.Line1.pack()
         self.Line2=tk.Frame(self)
@@ -643,7 +643,7 @@ class ELSE(tk.Frame):
 class ENDIF(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=65
+        self.Height=45
         self.EndIntend=True
         self.Container=True 
         self.First=0
@@ -652,7 +652,7 @@ class ENDIF(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=40,width=500,bg="lightgreen")
+        self.Line1=tk.Frame(self,height=20,width=500,bg="lightgreen")
         self.Line1.pack_propagate(False)        
         self.Line1.pack()
         self.Line2=tk.Frame(self)
@@ -871,7 +871,7 @@ class LOOP(tk.Frame):
 class ENDLOOP(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.Height=65
+        self.Height=45
         self.EndIntend=True
         self.Container=True 
         self.First=0
@@ -880,7 +880,7 @@ class ENDLOOP(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.Line1=tk.Frame(self,height=40,width=500,bg="orange")
+        self.Line1=tk.Frame(self,height=20,width=500,bg="orange")
         self.Line1.pack_propagate(False)        
         self.Line1.pack()
         self.Line2=tk.Frame(self)
@@ -1142,22 +1142,21 @@ def StartWizard(window):
     selected_objects=[]
     Selecting_Objects=False
     
-    
 
     def drag_start_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if selected_objects: return
         print("canvas drag")
         Selecting_Objects=True
-        Selection_start_X=my_canvas.canvasx(event.x)
-        Selection_start_Y=my_canvas.canvasy(event.y)
+        Selection_start_X=canvas.canvasx(event.x)
+        Selection_start_Y=canvas.canvasy(event.y)
         canvas.rect=canvas.create_rectangle(Selection_start_X,Selection_start_Y,Selection_start_X,Selection_start_Y,outline="blue", width=2)
 
     def drag_motion_canvas(event):
         global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if Selecting_Objects:
-            Selection_end_X=my_canvas.canvasx(event.x)
-            Selection_end_Y=my_canvas.canvasy(event.y)
+            Selection_end_X=canvas.canvasx(event.x)
+            Selection_end_Y=canvas.canvasy(event.y)
             canvas.coords(canvas.rect,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y)
 
     def on_mouse_up_canvas(event):
@@ -1205,13 +1204,6 @@ def StartWizard(window):
             Sorted=GetYStack()                   
             Min_Y=widget.First.winfo_y()
             Max_Y=widget.Last.winfo_y()
-##            for Contained in widget.Content: #retrieve y min and max of the container
-##              try:  
-##                ytmp=Contained.winfo_y()
-##                if ytmp>Max_Y: Max_Y=ytmp
-##                if ytmp<Min_Y: Min_Y=ytmp
-##              except:
-##                pass
             for element in Sorted: #put in the selection all the objects within the container
               try:
                 Y_pos=element[0]                  
@@ -1484,6 +1476,16 @@ def StartWizard(window):
             if ObjType=="Wait":
                     Time,Units=Action
                     CompiledCode.append("hook time >"+str(Time)+str(Units))
+
+            if ObjType=="IF":
+                    CompiledCode.append("if")
+
+            if ObjType=="ELSE":
+                    CompiledCode.append("else")
+                
+            if ObjType=="ENDIF":
+                    CompiledCode.append("endif")
+                
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         print("Compiled script= ",CompiledCode)
@@ -1655,7 +1657,7 @@ def StartWizard(window):
 
     WizardWindow=tk.Toplevel(window)
     WizardWindow.title("CORRO WIZARD")
-    WizardWindow.geometry('1000x800+200+10')
+    WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
