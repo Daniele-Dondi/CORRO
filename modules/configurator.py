@@ -541,6 +541,17 @@ def StartConfigurator(window):
                 return 0
         return 0
 
+    def FormatNumber(num):
+        # Define thresholds for scientific notation
+        lower_threshold = 0.01
+        upper_threshold = 1000
+        if num < lower_threshold or num > upper_threshold:
+            # Use scientific notation
+            return f"{num:.2e}"
+        else:
+            # Use two decimal places
+            return f"{num:.2f}"
+
     def CheckReactantParameters():
         global ReactantsArray,CurrentReactant
         Name=ReactantName.get()
@@ -571,7 +582,7 @@ def StartConfigurator(window):
             return False
         M=Try2CalculateMolarity()
         if M>0:
-            molaritylabel.config(text="Calculated molarity: "+str(M)+" M")
+            molaritylabel.config(text="Calculated molarity: "+FormatNumber(M)+" M")
         return True
 
     def SetTab1Variables(parms):

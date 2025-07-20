@@ -27,7 +27,7 @@ class Pour(tk.Frame):
         self.Action=[]
         self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
-        self.Container=False
+        self.IsContainer=False
         self.MacroName="Pour" #bind to macro name in macros folder
         super().__init__(container)
         self.create_widgets()
@@ -42,12 +42,12 @@ class Pour(tk.Frame):
         self.Amount=tk.Entry(self.Line1,state="normal",width=10)
         self.Amount.pack(side="left")
         self.Units=ttk.Combobox(self.Line1, values = ('mL','L'), state = 'readonly',width=3)
-        self.Units.bind("<<ComboboxSelected>>", self.UnitTypecallback)
+        self.Units.bind("<<ComboboxSelected>>", self.UnitTypeCallback)
         self.Units.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="of")
         self.Label2.pack(side="left")
         self.Source=ttk.Combobox(self.Line1, values = self.AvailableInputs, width=self.MaxCharsInList(self.AvailableInputs), state = 'readonly')
-        self.Source.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Source.bind("<<ComboboxSelected>>", self.InputTypeCallback)
         self.Source.pack(side="left")
         self.Label3=tk.Label(self.Line1,text="in")
         self.Label3.pack(side="left")
@@ -179,7 +179,7 @@ class Pour(tk.Frame):
                 self.Units.set("")
 
     
-    def UnitTypecallback(self,event):
+    def UnitTypeCallback(self,event):
         self.CheckUnit()
 
     def MaxCharsInList(self,List):
@@ -239,7 +239,7 @@ class Pour(tk.Frame):
             return "Cannot find connections from "+str(Input)+" to "+str(Output)
             
     
-    def InputTypecallback(self,event):
+    def InputTypeCallback(self,event):
         self.CheckInput()
 
 
@@ -248,7 +248,7 @@ class Heat(tk.Frame):
         self.Action=[]
         self.AvailableApparatus=GetAllHeatingApparatus()
         self.Height=75
-        self.Container=False
+        self.IsContainer=False
         super().__init__(container)
         self.create_widgets()
 
@@ -372,7 +372,7 @@ class Wash(tk.Frame):
         self.Action=[]
         self.Height=75
         self.MaxVol=0
-        self.Container=False
+        self.IsContainer=False
         super().__init__(container)
         self.create_widgets()
 
@@ -386,7 +386,7 @@ class Wash(tk.Frame):
         self.Label1=tk.Label(self.Line1, text="Wash")
         self.Label1.pack(side="left")
         self.Destination=ttk.Combobox(self.Line1, values = self.AvailableApparatus, width=self.MaxCharsInList(self.AvailableApparatus),state = 'readonly')
-        self.Destination.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Destination.bind("<<ComboboxSelected>>", self.InputTypeCallback)
         self.Destination.pack(side="left")
         self.Label2=tk.Label(self.Line1,text="with")
         self.Label2.pack(side="left")
@@ -439,7 +439,7 @@ class Wash(tk.Frame):
         if not self.Source.get() in PossibleInputs:
             self.Source.set("")    
 
-    def InputTypecallback(self,event):
+    def InputTypeCallback(self,event):
         self.CheckInput()
 
     def DeleteMe(self):
@@ -494,7 +494,7 @@ class Wait(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=50
-        self.Container=False
+        self.IsContainer=False
         super().__init__(container)
         self.create_widgets()
 
@@ -552,7 +552,7 @@ class IF(tk.Frame):
         self.Action=[]
         self.Height=65
         self.BeginIndent=True
-        self.Container=True 
+        self.IsContainer=True 
         self.Content=[]     
         self.First=0
         self.Last=0
@@ -567,7 +567,11 @@ class IF(tk.Frame):
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="IF")
         self.Label1.pack(side="left")
-        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=4,state = 'readonly')
+        self.IfType=ttk.Combobox(self.Line1, values = ["Sensor vars","Custom"], width=12,state = 'readonly')
+        self.IfType.set("Sensor vars")
+        self.IfType.bind("<<ComboboxSelected>>", self.IfTypeCallback)
+        self.IfType.pack(side="left")
+        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=10,state = 'readonly')
         self.Variable.pack(side="left")
         self.Condition=ttk.Combobox(self.Line1, values = ["<",">","=","<>",">=","<="], width=4,state = 'readonly')
         self.Condition.pack(side="left")        
@@ -579,6 +583,16 @@ class IF(tk.Frame):
         self.Delete.pack(side="left")
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")
+
+    def IfTypeCallback(self,event):
+        if self.IfType.get()=="Sensor vars":
+            self.Variable.config(state="readonly")
+            self.Condition.config(state="readonly")
+            self.Value.config(width=10)            
+        else:
+            self.Variable.config(state="disabled")
+            self.Condition.config(state="disabled")
+            self.Value.config(width=40)
         
     def DeleteMe(self):
         for Item in self.Content: DeleteObjByIdentifier(Item)            
@@ -588,18 +602,31 @@ class IF(tk.Frame):
         return self.Action
 
     def GetValues(self):
-        return [self.Value.get(), self.Variable.get()]
+        return [self.IfType.get(), self.Variable.get(), self.Condition.get(), self.Value.get()]
 
     def RetrieveConnections(self):
         return []
 
     def SetValues(self,parms):
-        return
-##        self.Value.set(parms[0])  #####
-##        self.Variable.set(parms[1])
+        self.IfType.set(parms[0])
+        self.Conditionset(parms[1])
+        self.Variable.set(parms[2])
+        self.Value.set(parms[3])        
 
     def CheckValues(self):
-        self.Action="OK"        
+        self.Action=[]
+        self.StatusLabel.config(text="---")
+        IfType=self.IfType.get()
+        Variable=self.Variable.get()
+        Condition=self.Condition.get()
+        Value=self.Value.get()
+        if IfType=="Custom":
+            if Value=="": return
+        else:
+            if Variable=="" or Condition=="" or Value=="": return
+        self.Action=[IfType, Variable, Condition, Value]
+        self.StatusLabel.config(text="OK")
+               
 
 class ELSE(tk.Frame):
     def __init__(self,container):
@@ -607,7 +634,7 @@ class ELSE(tk.Frame):
         self.Height=45
         self.BeginIndent=True        
         self.EndIntend=True        
-        self.Container=True 
+        self.IsContainer=True 
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -645,7 +672,7 @@ class ENDIF(tk.Frame):
         self.Action=[]
         self.Height=45
         self.EndIntend=True
-        self.Container=True 
+        self.IsContainer=True 
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -682,7 +709,7 @@ class GET(tk.Frame):
         self.Action=[]
         self.Height=65
         self.BeginIndent=False
-        self.Container=False 
+        self.IsContainer=False 
         super().__init__(container)
         self.create_widgets()
 
@@ -730,7 +757,7 @@ class Function(tk.Frame):
         self.Action=[]
         self.Height=125
         self.BeginIndent=False
-        self.Container=False
+        self.IsContainer=False
         self.AvailableFunctions=AvailableCommands+AvailableMacros
         self.FunctionNames=[self.AvailableFunctions[i][0] for i in range(len(self.AvailableFunctions))]
         self.FunctionNumVars=[self.AvailableFunctions[i][1] for i in range(len(self.AvailableFunctions))]
@@ -750,7 +777,7 @@ class Function(tk.Frame):
         self.Label1=tk.Label(self.Line1, text="Function")
         self.Label1.pack(side="left")
         self.Variable=ttk.Combobox(self.Line1, values = self.FunctionNames, width=self.MaxCharsInList(self.FunctionNames)+2,state = 'readonly')
-        self.Variable.bind("<<ComboboxSelected>>", self.InputTypecallback)
+        self.Variable.bind("<<ComboboxSelected>>", self.InputTypeCallback)
         self.Variable.pack(side="left")
         self.description = tk.Text(self.Line2, wrap="word", height=4, width=90,bg="lightgray")
         self.description.config(state='disabled')
@@ -777,7 +804,7 @@ class Function(tk.Frame):
     def RetrieveConnections(self):
         return []
 
-    def InputTypecallback(self,event):
+    def InputTypeCallback(self,event):
         self.description.config(state='normal')
         self.description.delete(1.0,tk.END)
         self.description.insert('end', self.FunctionHeader[self.Variable.current()])
@@ -821,7 +848,7 @@ class LOOP(tk.Frame):
         self.Action=[]
         self.Height=65
         self.BeginIndent=True
-        self.Container=True 
+        self.IsContainer=True 
         self.Content=[]     
         self.First=0
         self.Last=0
@@ -873,7 +900,7 @@ class ENDLOOP(tk.Frame):
         self.Action=[]
         self.Height=45
         self.EndIntend=True
-        self.Container=True 
+        self.IsContainer=True 
         self.First=0
         self.Last=0
         super().__init__(container)
@@ -909,7 +936,7 @@ class REM(tk.Frame):
     def __init__(self,container):
         self.Action=[]
         self.Height=55
-        self.Container=False
+        self.IsContainer=False
         super().__init__(container)
         self.create_widgets()
 
@@ -1154,6 +1181,7 @@ def StartWizard(window):
     def drag_start_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         global Dragging_Objects
+        if canvas.canvasx(event.x)<400: return
         if Dragging_Objects: return
         selected_objects=[]
         Selecting_Objects=True
@@ -1210,7 +1238,7 @@ def StartWizard(window):
                 Y_pos=element[0]                  
                 obj=element[1]
                 if Y_pos>=Min_Y and Y_pos<=Max_Y:
-                    if obj.Container: # if in our selection we included a container, we might need to expand the selection if we never taken all the contained objects
+                    if obj.IsContainer: # if in our selection we included a container, we might need to expand the selection if we never taken all the contained objects
                         contained_Min_Y=obj.First.winfo_y()
                         contained_Max_Y=obj.Last.winfo_y()
                         Min_Y=min(contained_Min_Y,Min_Y)
@@ -1259,7 +1287,7 @@ def StartWizard(window):
         selected_objects.append(widget)
         widget.lift()        
         try:
-         if widget.Container:
+         if widget.IsContainer:
             Sorted=GetYStack()                   
             Min_Y=widget.First.winfo_y()
             Max_Y=widget.Last.winfo_y()
@@ -1346,11 +1374,11 @@ def StartWizard(window):
         elif ObjType=="LOOP Block":
             Obj1=CreateNewObject("LOOP")
             Obj2=CreateNewObject("ENDLOOP")
+            Obj1.Content.append(Obj2)            
             Obj1.First=Obj1
             Obj1.Last=Obj2
             Obj2.First=Obj1
             Obj2.Last=Obj2
-            Obj1.Content.append(Obj2)
             return
         else:
             messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
@@ -1433,6 +1461,14 @@ def StartWizard(window):
             if Volume<SmallestVol: return SmallestSyr
             if Volume>BiggestVol: return BiggestSyr
             return ListOfSyringes[0] #it should not happen
+
+        global BoolVarCounter
+        BoolVarCounter=0
+        
+        def CreateBoolVariable():
+            global BoolVarCounter
+            BoolVarCounter+=1
+            return "$test"+str(BoolVarCounter)+"$"
         
         Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
         if not(len(Missing)==0):
@@ -1461,12 +1497,10 @@ def StartWizard(window):
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
-        print(NumActions," Operations")
             
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
-            print(ObjType)
             Object.CheckValues()
             Action=Object.GetAction()
             if len(Action)==0:
@@ -1539,7 +1573,16 @@ def StartWizard(window):
                     CompiledCode.append("hook time >"+str(Time)+str(Units))
 
             if ObjType=="IF":
-                    CompiledCode.append("if")
+                IfType,Variable,Condition,Value=Action
+                TestVariable=CreateBoolVariable()
+                tmp_string=""
+                if IfType=="Custom":
+                    tmp_string=Value
+                else:
+                    CompiledCode.append("getvalue $"+Variable+"$,"+Variable)
+                    tmp_string="$"+Variable+"$"+Condition+Value
+                CompiledCode.append("eval "+TestVariable+","+tmp_string)
+                CompiledCode.append("if "+TestVariable)
 
             if ObjType=="ELSE":
                     CompiledCode.append("else")
@@ -1655,7 +1698,7 @@ def StartWizard(window):
             Actions.append(Object.winfo_x())
             Actions.append(Object.winfo_y())
             try:
-             if Object.Container:
+             if Object.IsContainer:
                 Actions.append(True) 
                 try:
                     ContentList=[]
@@ -1753,7 +1796,8 @@ def StartWizard(window):
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     frame2.pack()
-    
+
+    #Selection frame, composed by 4 stretched buttons
     pixel = PhotoImage(width=1, height=1)        
     SelTopButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
     SelBottomButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
@@ -1766,7 +1810,6 @@ def StartWizard(window):
     canvas = Canvas(frame2,height=10000,width=1000,bg="white")
     canvas.pack()
 
-  
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
     tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
