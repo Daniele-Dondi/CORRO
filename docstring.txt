@@ -1,0 +1,46 @@
+def ResetChart():
+    """
+    Clears the recorded USB variable points for all connected devices.
+
+    This resets the internal chart data used for visualization.
+    Typically called when restarting measurements or refreshing the chart view.
+    """
+    for device in range(len(conf.USB_names)):
+        conf.USB_var_points[device] = []
+
+def GraphZoom_Unzoom():
+    """
+    Toggles the chart view mode between 'View All' and 'View Last'.
+
+    Updates the text of the zoom button to reflect the current mode.
+    - If graph_all is True, all recorded data is shown.
+    - If graph_all is False, only the most recent data is displayed.
+    """
+    global graph_all
+    graph_all = not(graph_all)
+    if graph_all:
+        Zoom_B.config(text="View All")
+    else:
+        Zoom_B.config(text="View Last")
+
+def readConfigurationFiles():
+    """
+    Reads and parses external configuration files for SyringeBOT initialization.
+
+    Loads:
+    - Main configuration parameters from 'configuration.txt'
+    - Macro bindings and color mappings from the mask/bind files
+    - Startup settings from 'startup.conf'
+
+    Handles exceptions and displays error dialogs for missing or malformed files.
+    """
+    ...
+def SyringeBOT_is_ready():
+    """
+    Checks whether SyringeBOT is ready for receiving commands.
+
+    Returns:
+        bool: True if SyringeBOT is idle and no event-based hooks are active.
+              False otherwise, and displays appropriate error messages to the user.
+    """
+    ...
