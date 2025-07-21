@@ -402,7 +402,7 @@ class Wash(tk.Frame):
         self.AllButton.pack(side="left")
         self.Label5=tk.Label(self.Line2, text="  Number of cycles:")
         self.Label5.pack(side="left")
-        self.Cycles=tk.Spinbox(self.Line2, from_=1, to=10, repeatdelay=500, repeatinterval=200);
+        self.Cycles=tk.Spinbox(self.Line2, from_=1, to=10, repeatdelay=500, repeatinterval=200)
         self.Cycles.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
@@ -609,9 +609,10 @@ class IF(tk.Frame):
 
     def SetValues(self,parms):
         self.IfType.set(parms[0])
-        self.Conditionset(parms[1])
-        self.Variable.set(parms[2])
-        self.Value.set(parms[3])        
+        self.Variable.set(parms[1])
+        self.Condition.set(parms[2])        
+        self.Value.delete(0,tk.END)
+        self.Value.insert(0,str(parms[3]))        
 
     def CheckValues(self):
         self.Action=[]
@@ -863,17 +864,33 @@ class LOOP(tk.Frame):
         self.Line2.pack()
         self.Label1=tk.Label(self.Line1, text="LOOP")
         self.Label1.pack(side="left")
-        self.Condition=tk.Entry(self.Line1,state="normal",width=10)
+        self.LoopType=ttk.Combobox(self.Line1, values = ("Forever","Num Cycles","If Condition True"), width=20,state = 'readonly')
+        self.LoopType.set("Forever")
+        self.LoopType.bind("<<ComboboxSelected>>", self.LoopTypeCallback)        
+        self.LoopType.pack(side="left")
+        self.Cycles=tk.Spinbox(self.Line1, from_=1, to=10000, repeatdelay=500, repeatinterval=200, width=4, state = 'disabled')
+        self.Cycles.pack(side="left")
+        self.Condition=tk.Entry(self.Line1,width=35, state = 'disabled')
         self.Condition.pack(side="left")
-        self.Units=ttk.Combobox(self.Line1, values = ("s","m","h","d"), width=4,state = 'readonly')
-        self.Units.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
         self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
         self.Delete.pack(side="left")
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")
-        
+
+    def LoopTypeCallback(self,event):
+        LoopType=self.LoopType.get()
+        if LoopType=="Forever":
+            self.Cycles.config(state="disabled")
+            self.Condition.config(state="disabled")
+        elif LoopType=="Num Cycles":
+            self.Cycles.config(state="normal")
+            self.Condition.config(state="disabled")
+        else:
+            self.Cycles.config(state="disabled")
+            self.Condition.config(state="normal")
+
     def DeleteMe(self):
         for Item in self.Content: DeleteObjByIdentifier(Item)        
         DeleteObjByIdentifier(self)
@@ -881,19 +898,28 @@ class LOOP(tk.Frame):
     def GetAction(self):
         return self.Action
 
-    def GetValues(self): #######
-        return [self.Condition.get(), self.Units.get()]
+    def GetValues(self): 
+        return [self.LoopType.get(), self.Cycles.get(), self.Condition.get()]
 
     def RetrieveConnections(self):
         return []
 
-    def SetValues(self,parms): #######
+    def SetValues(self,parms): 
+        self.LoopType.set(parms[0])
+        self.Cycles.delete(0,tk.END)
+        self.Cycles.insert(0,str(parms[1]))
         self.Condition.delete(0,tk.END)
-        self.Condition.insert(0,str(parms[0]))
-        self.Units.set(parms[1])
+        self.Condition.insert(0,str(parms[2]))
 
     def CheckValues(self):
-        self.Action="OK"        
+        self.Action=[]
+        self.StatusLabel.config(text="---")
+        LoopType=self.LoopType.get()
+        Cycles=self.Cycles.get()
+        Condition=self.Condition.get()
+        if LoopType=="If Condition True" and len(Condition)==0: return
+        self.Action=[LoopType, Cycles, Condition]
+        self.StatusLabel.config(text="OK")
 
 class ENDLOOP(tk.Frame):
     def __init__(self,container):
@@ -958,7 +984,7 @@ class REM(tk.Frame):
         DeleteObjByIdentifier(self)
         
     def GetAction(self):
-        return "OK"
+        return [self.Remark.get()]
 
     def GetValues(self):
         return [self.Remark.get()]
@@ -1430,6 +1456,7 @@ def StartWizard(window):
     
     def CheckProcedure():
         global EmptyVolume
+        
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
                 idx=NamesArray.index(Input)
@@ -1464,11 +1491,24 @@ def StartWizard(window):
 
         global BoolVarCounter
         BoolVarCounter=0
-        
         def CreateBoolVariable():
             global BoolVarCounter
             BoolVarCounter+=1
             return "$test"+str(BoolVarCounter)+"$"
+
+        global LabelCounter
+        LabelCounter=0
+        def CreateLabel():
+            global LabelCounter
+            LabelCounter+=1
+            return "LABEL_"+str(LabelCounter)
+
+        global LoopVarCounter
+        LoopVarCounter=0
+        def CreateLoopVar():
+            global LoopVarCounter
+            LoopVarCounter+=1
+            return "$count_"+str(LoopVarCounter)+"$"
         
         Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
         if not(len(Missing)==0):
@@ -1494,6 +1534,7 @@ def StartWizard(window):
         VolumesInApparatus=[]
         StepByStepOps=[]
         CompiledCode=[]
+        LoopStack=[]
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
@@ -1509,7 +1550,6 @@ def StartWizard(window):
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
                 Quantity=float(Quantity)
-                #Amount=float(Amount)
                 Transfered=Quantity
                 if "Reactant" in Input:
                  UpdateVolumes(Input,Quantity,ReactantsUsed,VolumesOfReactantsUsed)
@@ -1534,7 +1574,7 @@ def StartWizard(window):
                  V_waste=ValvePositionFor(SyringeToUse,'Air/Waste') 
                  CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
                  
-            if ObjType=="Wash":
+            elif ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
                 BestInputSyringe=ChooseProperSyringe(SyrInputs,Volume)
                 BestOutputSyringe=ChooseProperSyringe(SyrOutputs,Volume)
@@ -1560,7 +1600,7 @@ def StartWizard(window):
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
                 
-            if ObjType=="Heat":
+            elif ObjType=="Heat":
                 Apparatus,Temperature,Time,Wait4Cooling,EndTemperature=Action
                 CompiledCode.append(CreateMacroCode("SetTemp",Temperature))
                 CompiledCode.append("hook temp >"+str(Temperature))
@@ -1568,11 +1608,11 @@ def StartWizard(window):
                 if Wait4Cooling:
                     CompiledCode.append("hook temp <"+str(EndTemperature))
 
-            if ObjType=="Wait":
+            elif ObjType=="Wait":
                     Time,Units=Action
                     CompiledCode.append("hook time >"+str(Time)+str(Units))
 
-            if ObjType=="IF":
+            elif ObjType=="IF":
                 IfType,Variable,Condition,Value=Action
                 TestVariable=CreateBoolVariable()
                 tmp_string=""
@@ -1584,12 +1624,51 @@ def StartWizard(window):
                 CompiledCode.append("eval "+TestVariable+","+tmp_string)
                 CompiledCode.append("if "+TestVariable)
 
-            if ObjType=="ELSE":
-                    CompiledCode.append("else")
+            elif ObjType=="ELSE":
+                CompiledCode.append("else")
                 
-            if ObjType=="ENDIF":
+            elif ObjType=="ENDIF":
+                CompiledCode.append("endif")
+
+            elif ObjType=="LOOP":
+                LoopType, Cycles, Condition=Action  #"Forever","Num Cycles","If Condition True"
+                if LoopType=="Forever":
+                    JumpLabel=CreateLabel()
+                    LoopStack.append(LoopType)
+                    LoopStack.append(JumpLabel)
+                    CompiledCode.append("label "+JumpLabel)
+                elif LoopType=="Num Cycles":
+                    LoopVariable=CreateLoopVar()
+                    LoopStack.append(LoopType)
+                    LoopStack.append(Cycles)
+                    CompiledCode.append("for "+LoopVariable+" "+Cycles)
+                elif LoopType=="If Condition True":
+                    JumpLabel=CreateLabel()
+                    TestVariable=CreateBoolVariable()
+                    LoopStack.append(LoopType)
+                    LoopStack.append(JumpLabel)
+                    CompiledCode.append("label "+JumpLabel)                    
+                    CompiledCode.append("eval "+TestVariable+","+Condition)
+                    CompiledCode.append("if "+TestVariable)
+                else:
+                    print("ERROR 21")
+                    return
+
+            elif ObjType=="ENDLOOP":
+                parameter=LoopStack.pop()
+                LoopType=LoopStack.pop()
+                if LoopType=="Forever":
+                    CompiledCode.append("jump "+parameter)
+                elif LoopType=="Num Cycles":
+                    CompiledCode.append("next")
+                elif LoopType=="If Condition True":
+                    CompiledCode.append("jump "+parameter)
                     CompiledCode.append("endif")
-                
+                else:
+                    print("ERROR 454")
+
+            elif ObjType=="REM":
+                CompiledCode.append("; "+Action[0])
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         print("Compiled script= ",CompiledCode)
