@@ -1199,20 +1199,19 @@ def StartWizard(window):
 
     def Remove_Selection_Reactangle():
         try:
-            canvas.delete(canvas.rect)
+            SelectionCanvas.delete(SelectionCanvas.rect)
         except:
             pass        
-        #canvas.rect
 
     def drag_start_canvas(event):
         global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         global Dragging_Objects
-        if canvas.canvasx(event.x)<400: return
+        if SelectionCanvas.canvasx(event.x)<400: return
         if Dragging_Objects: return
         selected_objects=[]
         Selecting_Objects=True
-        Selection_start_X=canvas.canvasx(event.x)
-        Selection_start_Y=canvas.canvasy(event.y)
+        Selection_start_X=SelectionCanvas.canvasx(event.x)
+        Selection_start_Y=SelectionCanvas.canvasy(event.y)
         Selection_end_X=Selection_start_X
         Selection_end_Y=Selection_start_Y
         SelTopButton.place(x=Selection_start_X,y=Selection_start_Y)
@@ -1232,8 +1231,8 @@ def StartWizard(window):
     def drag_motion_canvas(event):
         global Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
         if Selecting_Objects:
-            Selection_end_X=canvas.canvasx(event.x)
-            Selection_end_Y=canvas.canvasy(event.y)
+            Selection_end_X=SelectionCanvas.canvasx(event.x)
+            Selection_end_Y=SelectionCanvas.canvasy(event.y)
             SelTopButton.config(width=abs(Selection_start_X-Selection_end_X))
             SelBottomButton.config(width=abs(Selection_start_X-Selection_end_X))
             SelBottomButton.place(y=Selection_end_Y)
@@ -1285,7 +1284,7 @@ def StartWizard(window):
                 Min_Y=selected_objects[0].winfo_y()-1
                 lastobj=selected_objects[-1]                
                 Max_Y=lastobj.winfo_y()+lastobj.Height-2
-                canvas.rect=canvas.create_rectangle(2,Min_Y,600,Max_Y,outline="blue", width=2)
+                SelectionCanvas.rect=SelectionCanvas.create_rectangle(2,Min_Y,600,Max_Y,outline="blue", width=2)
             else:
                 Remove_Selection_Reactangle()
         
@@ -1868,10 +1867,10 @@ def StartWizard(window):
     y_scrollbar.pack(side=RIGHT,fill=Y)
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
     my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
-    my_canvas.bind_all("<MouseWheel>", on_mousewheel)
-    my_canvas.bind_all("<Button-1>", drag_start_canvas)
-    my_canvas.bind_all("<B1-Motion>", drag_motion_canvas)
-    my_canvas.bind_all("<ButtonRelease-1>", on_mouse_up_canvas)
+    WizardWindow.bind("<MouseWheel>", on_mousewheel)
+    WizardWindow.bind("<Button-1>", drag_start_canvas)
+    WizardWindow.bind("<B1-Motion>", drag_motion_canvas)
+    WizardWindow.bind("<ButtonRelease-1>", on_mouse_up_canvas)
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     frame2.pack()
@@ -1886,8 +1885,8 @@ def StartWizard(window):
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     
     # Create a canvas inside the frame
-    canvas = Canvas(frame2,height=10000,width=1000,bg="white")
-    canvas.pack()
+    SelectionCanvas = Canvas(frame2,height=10000,width=1000,bg="white")
+    SelectionCanvas.pack()
 
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
     tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
