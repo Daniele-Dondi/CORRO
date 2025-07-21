@@ -1208,6 +1208,7 @@ def StartWizard(window):
         global Dragging_Objects
         if SelectionCanvas.canvasx(event.x)<400: return
         if Dragging_Objects: return
+        WizardWindow.focus_set()
         selected_objects=[]
         Selecting_Objects=True
         Selection_start_X=SelectionCanvas.canvasx(event.x)
