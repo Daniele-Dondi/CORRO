@@ -777,9 +777,9 @@ class Function(tk.Frame):
         self.Line3.pack()        
         self.Label1=tk.Label(self.Line1, text="Function")
         self.Label1.pack(side="left")
-        self.Variable=ttk.Combobox(self.Line1, values = self.FunctionNames, width=self.MaxCharsInList(self.FunctionNames)+2,state = 'readonly')
-        self.Variable.bind("<<ComboboxSelected>>", self.InputTypeCallback)
-        self.Variable.pack(side="left")
+        self.Function=ttk.Combobox(self.Line1, values = self.FunctionNames, width=self.MaxCharsInList(self.FunctionNames)+2,state = 'readonly')
+        self.Function.bind("<<ComboboxSelected>>", self.InputTypeCallback)
+        self.Function.pack(side="left")
         self.description = tk.Text(self.Line2, wrap="word", height=4, width=90,bg="lightgray")
         self.description.config(state='disabled')
         self.description.pack(side="left", fill="both", expand=True)
@@ -797,37 +797,37 @@ class Function(tk.Frame):
         DeleteObjByIdentifier(self)
 
     def GetAction(self):
-        return self.Action
+        return self.GetValues()
 
     def GetValues(self):
-        return [self.Value.get(), self.Variable.get()]
+        Values=[]
+        Values=[Value.get() for Value in self.Values]
+        return [self.Function.get(), Values]
 
     def RetrieveConnections(self):
         return []
 
-    def InputTypeCallback(self,event):
+    def Setup(self): #create enrtries in a number as requested by function
         self.description.config(state='normal')
         self.description.delete(1.0,tk.END)
-        self.description.insert('end', self.FunctionHeader[self.Variable.current()])
+        self.description.insert('end', self.FunctionHeader[self.Function.current()])
         self.description.config(state='disabled')
         self.Check.pack_forget()
         self.Delete.pack_forget()
         for entryobject in self.Values:
             entryobject.destroy()
         self.Values=[]
-        Num_Vars=self.FunctionNumVars[self.Variable.current()]
-        if Num_Vars>5:
-            entrywidth=5
-        else:
-            entrywidth=10
+        Num_Vars=self.FunctionNumVars[self.Function.current()]
         for i in range(Num_Vars):
+            entrywidth=int(50/Num_Vars)            
             self.Values.append(tk.Entry(self.Line1,state="normal",width=entrywidth))
             self.Values[-1].pack(side="left")
         self.Check.pack(side="left")
         self.Delete.pack(side="left")
+        
+    def InputTypeCallback(self,event):
+        self.Setup()
             
-
-
     def MaxCharsInList(self,List):
         maxlength=8
         try:
@@ -837,12 +837,17 @@ class Function(tk.Frame):
         return maxlength    
 
     def SetValues(self,parms):
-        return
-##        self.Value.set(parms[0])  #####
-##        self.Variable.set(parms[1])
-
+        self.Function.set(parms[0])
+        self.Setup()
+        try:
+            for num,value in enumerate(parms[1]):
+                self.Values[num].delete(0,tk.END)
+                self.Values[num].insert(0,str(value))
+        except:
+            pass
+        
     def CheckValues(self):
-        self.Action="OK" 
+        return 
 
 class LOOP(tk.Frame):
     def __init__(self,container):
@@ -1454,8 +1459,21 @@ def StartWizard(window,*args):
         return MissingConnections
                 
     
-    def CheckProcedure():
+    def CheckProcedure(**kwargs):
         global EmptyVolume
+
+        Phantom_Mode=False
+        GetCodeAndExit=False
+        GetVolumesAndExit=False
+
+        for k, val in kwargs.items():
+            if k=="Phantom":
+                if val:Phantom_Mode=True
+            if k=="Mode":
+                if val=="Code":
+                    GetCodeAndExit=True
+                elif val=="Volumes":
+                    GetVolumesAndExit=True
         
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
@@ -1512,6 +1530,9 @@ def StartWizard(window,*args):
         
         Missing=CheckIfConnectionsArePresent() #check if our SyringeBOT having the proper reactants/apparatus
         if not(len(Missing)==0):
+          if Phantom_Mode:
+              return ['ERROR',Missing]
+          else:  
             response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
             if response:  # True if "Yes" is clicked
                 if len(Missing)>1:
@@ -1542,7 +1563,7 @@ def StartWizard(window,*args):
         for Step,Action in enumerate(Sorted):
             Object=Action[1]
             ObjType=str(Object.__class__.__name__)
-            Object.CheckValues()
+            Object.CheckValues() #most of the objects needs to setup internal variables before retrieving the action
             Action=Object.GetAction()
             if len(Action)==0:
                 messagebox.showerror("ERROR", "Invalid or unfinished settings are present")
@@ -1669,9 +1690,28 @@ def StartWizard(window,*args):
 
             elif ObjType=="REM":
                 CompiledCode.append("; "+Action[0])
+
+            elif ObjType=="Function":
+                AvailMacros=GetAvailMacros()
+                MacroNames=[MacroName[0] for MacroName in AvailMacros]
+                if Action[0] in MacroNames:
+                    Action[0]='macro "'+Action[0]+'"'
+                parameters=[]
+                for parameter in Action[1]:
+                    parameters.append(parameter)
+                values=",".join(parameters)
+                if len(values)>0:
+                    values=" "+values
+                CompiledCode.append(Action[0]+values)
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
-        print("Compiled script= ",CompiledCode)
+        print(CompiledCode)
+        if GetCodeAndExit:
+            return CompiledCode
+        if GetVolumesAndExit:
+            return [ReactantsUsed,ApparatusUsed,StepByStepOps]
+        if Phantom_Mode:
+            return
         StepByStepWindow=Grid(window)
         StepByStepWindow.WriteOnHeader("#")
         StepByStepWindow.WriteOnHeader("Action")
@@ -1741,7 +1781,7 @@ def StartWizard(window,*args):
 
     def AskLoadProcedures():
         global ActionsArray
-        filetypes = (('SyringeBOT Procedure files', '*.Procedures'),('All files', '*.*'))
+        filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
         filename = filedialog.askopenfilename(filetypes=filetypes)
         if filename=="": return
         if len(ActionsArray)>0:
@@ -1755,9 +1795,9 @@ def StartWizard(window,*args):
     def AskImportProcedures():
         global ActionsArray
         if len(ActionsArray)>0:
-            MsgBox = tk.messagebox.askquestion ('Append Procedures','Import Procedures will add Procedures to the current project. Proceed?',icon = 'warning')
+            MsgBox = tk.messagebox.askquestion ('Append Procedures','Import Procedure will add Procedures to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
-                filetypes = (('SyringeBOT Procedure files', '*.Procedures'),('All files', '*.*'))
+                filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
                 filename = filedialog.askopenfilename(filetypes=filetypes)
                 if filename=="": return
                 LoadProcedures(filename)                
@@ -1816,10 +1856,10 @@ def StartWizard(window,*args):
         fout.close()
 
     def AskSaveProcedures():
-     filetypes=(('SyringeBOT Procedure files','*.Procedures'),('All files','*.*'))
+     filetypes=(('SyringeBOT Procedure files','*.Procedure'),('All files','*.*'))
      filename=filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
-     if not ".Procedures" in filename: filename+=".Procedures"
+     if not ".Procedure" in filename: filename+=".Procedure"
      SaveProcedures(filename)
 
     def Close():
@@ -1842,8 +1882,6 @@ def StartWizard(window,*args):
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
-    if "Hide" in args:
-        WizardWindow.withdraw()
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)
@@ -1906,5 +1944,13 @@ def StartWizard(window,*args):
     tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
     tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
 
-    tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")        
+    tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")
+
+    if "Hide" in args:
+        WizardWindow.withdraw()
+        LoadProcedures("test.procedure")
+        CompiledCode=CheckProcedure(Phantom=True,Mode="Code")
+        WizardWindow.destroy()
+        print(CompiledCode)
+    
     WizardWindow.mainloop()

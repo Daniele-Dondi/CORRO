@@ -3,8 +3,8 @@ eval $test$,$pH$>7.5
 if $test$ add_bicarbonate
 jump end
 label add_bicarbonate
-send M83
-send G1 E250
+send M83,0
+send G1 E250,0
 log added bicarbonate
 label end
 hook time 60s "add_NaHCO3"
