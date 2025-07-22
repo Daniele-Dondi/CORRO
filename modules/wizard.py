@@ -1183,7 +1183,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
     IndentObjects()
 
 
-def StartWizard(window):
+def StartWizard(window,*args):
     InitVars()
     LoadConfFile('startup.conf')
 
@@ -1842,6 +1842,8 @@ def StartWizard(window):
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
+    if "Hide" in args:
+        WizardWindow.withdraw()
     menubar = Menu(WizardWindow)
     file_menu = Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)
