@@ -1317,7 +1317,10 @@ def Wizard():
   StartWizard(base)
 
 def Bayesian():
-  StartWizard(base)
+  filename=ChooseProcedureFile()
+  if filename=="": return
+  OptimizerCode=StartWizard(base,Hide=True,File=filename,Mode="Optimizer")
+  print(OptimizerCode)
 
 def StartProcedure():
 ##    if connected==0:   

@@ -1523,6 +1523,7 @@ def StartWizard(window, **kwargs):
         Phantom_Mode=False
         GetCodeAndExit=False
         GetVolumesAndExit=False
+        GetOptimizerParameteraAndExit=False
 
         for k, val in kwargs.items():
             if k=="Hide":
@@ -1532,6 +1533,8 @@ def StartWizard(window, **kwargs):
                     GetCodeAndExit=True
                 elif val=="Volumes":
                     GetVolumesAndExit=True
+                elif val=="Optimizer":
+                    GetOptimizerParameteraAndExit=True
         
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
@@ -1776,9 +1779,11 @@ def StartWizard(window, **kwargs):
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         #print(CompiledCode)
-        print(OptimizerCode)
+        #print(OptimizerCode)
         if GetCodeAndExit:
             return CompiledCode
+        if GetOptimizerParameteraAndExit:
+            return OptimizerCode
         if GetVolumesAndExit:
             return [ReactantsUsed,ApparatusUsed,StepByStepOps]
         if Phantom_Mode:
