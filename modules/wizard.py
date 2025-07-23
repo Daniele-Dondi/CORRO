@@ -74,7 +74,7 @@ class Pour(tk.Frame):
 
     def GetOptimizableParameters(self):
         parms=self.GetValues()
-        return parms[0]+" $"+parms[3]+"$ "+parms[4]+" of '"+parms[5]+"' and put into '"+parms[6]+"'"
+        return parms[0]+" $3$ "+parms[4]+" of '"+parms[5]+"' into '"+parms[6]+"'"
 
     def RetrieveConnections(self):
         return [self.Source.get(), self.Destination.get()]
@@ -312,7 +312,7 @@ class Heat(tk.Frame):
 
     def GetOptimizableParameters(self):
         parms=self.GetValues()
-        return "Heat '"+parms[0]+"' at $"+parms[1]+"$ °C and keep for $"+parms[2]+"$ min"
+        return "Heat '"+parms[0]+"' at $1$ °C and keep for $2$ min"
 
     def RetrieveConnections(self):
         return [self.Source.get()]
@@ -459,6 +459,10 @@ class Wash(tk.Frame):
     def GetValues(self):
         return [self.Source.get(), self.Destination.get(), self.Cycles.get(), self.Volume.get()]
 
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "Wash '"+parms[1]+" with "+parms[0]
+
     def RetrieveConnections(self):
         return [self.Source.get(), self.Destination.get()]
 
@@ -532,6 +536,10 @@ class Wait(tk.Frame):
 
     def GetValues(self):
         return [self.Time.get(), self.Units.get()]
+
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "Wait $0$ "+parms[1]
 
     def RetrieveConnections(self):
         return []
@@ -612,6 +620,13 @@ class IF(tk.Frame):
     def GetValues(self):
         return [self.IfType.get(), self.Variable.get(), self.Condition.get(), self.Value.get()]
 
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        if parms[0]=="Custom":
+            return "IF "+parms[3]
+        else:
+            return "IF '"+parms[1]+parms[2]+" $3$"
+
     def RetrieveConnections(self):
         return []
 
@@ -666,6 +681,9 @@ class ELSE(tk.Frame):
     def GetValues(self):
         return []
 
+    def GetOptimizableParameters(self):
+        return "ELSE"
+
     def RetrieveConnections(self):
         return []
 
@@ -703,6 +721,9 @@ class ENDIF(tk.Frame):
 
     def GetValues(self):
         return []
+
+    def GetOptimizableParameters(self):
+        return "ENDIF"
 
     def RetrieveConnections(self):
         return []
@@ -749,6 +770,10 @@ class GET(tk.Frame):
 
     def GetValues(self):
         return [self.Value.get(), self.Variable.get()]
+
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "Get "+parms[0]+" "+parms[1]
 
     def RetrieveConnections(self):
         return []
@@ -811,6 +836,10 @@ class Function(tk.Frame):
         Values=[]
         Values=[Value.get() for Value in self.Values]
         return [self.Function.get(), Values]
+
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "FUNCTION "+parms[0]
 
     def RetrieveConnections(self):
         return []
@@ -914,6 +943,13 @@ class LOOP(tk.Frame):
     def GetValues(self): 
         return [self.LoopType.get(), self.Cycles.get(), self.Condition.get()]
 
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        if parms[0]=="Forever": return "LOOP"
+        if parms[0]=="Num Cycles": return "LOOP $1$ cycles"
+        if parms[0]=="If Condition True": return"LOOP IF "+parms[2]+"=True"
+        return "Heat '"+parms[0]+"' at $1$ °C and keep for $2$ min"
+
     def RetrieveConnections(self):
         return []
 
@@ -962,6 +998,10 @@ class ENDLOOP(tk.Frame):
     def GetValues(self):
         return []
 
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "ENDLOOP"
+
     def RetrieveConnections(self):
         return []
     
@@ -1001,6 +1041,10 @@ class REM(tk.Frame):
 
     def GetValues(self):
         return [self.Remark.get()]
+
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return parms[0]
 
     def RetrieveConnections(self):
         return []
@@ -1570,6 +1614,7 @@ def StartWizard(window, **kwargs):
         StepByStepOps=[]
         CompiledCode=[]
         LoopStack=[]
+        OptimizerCode=[]
         Sorted=GetYStack()
         NumActions=len(Sorted)
         if NumActions==0: return
@@ -1608,7 +1653,7 @@ def StartWizard(window, **kwargs):
                  V_out=ValvePositionFor(SyringeToUse,Output)
                  V_waste=ValvePositionFor(SyringeToUse,'Air/Waste') 
                  CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
-                 print(Object.GetOptimizableParameters())
+                 OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                  
             elif ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
@@ -1635,6 +1680,7 @@ def StartWizard(window, **kwargs):
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 
             elif ObjType=="Heat":
                 Apparatus,Temperature,Time,Wait4Cooling,EndTemperature=Action
@@ -1643,13 +1689,15 @@ def StartWizard(window, **kwargs):
                 CompiledCode.append("hook time >"+str(Time)+"m")
                 if Wait4Cooling:
                     CompiledCode.append("hook temp <"+str(EndTemperature))
-                print(Object.GetOptimizableParameters())
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
 
             elif ObjType=="Wait":
                     Time,Units=Action
                     CompiledCode.append("hook time >"+str(Time)+str(Units))
+                    OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
 
             elif ObjType=="IF":
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 IfType,Variable,Condition,Value=Action
                 TestVariable=CreateBoolVariable()
                 tmp_string=""
@@ -1663,11 +1711,14 @@ def StartWizard(window, **kwargs):
 
             elif ObjType=="ELSE":
                 CompiledCode.append("else")
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 
             elif ObjType=="ENDIF":
                 CompiledCode.append("endif")
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
 
             elif ObjType=="LOOP":
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 LoopType, Cycles, Condition=Action  #"Forever","Num Cycles","If Condition True"
                 if LoopType=="Forever":
                     JumpLabel=CreateLabel()
@@ -1692,6 +1743,7 @@ def StartWizard(window, **kwargs):
                     return
 
             elif ObjType=="ENDLOOP":
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 parameter=LoopStack.pop()
                 LoopType=LoopStack.pop()
                 if LoopType=="Forever":
@@ -1706,6 +1758,7 @@ def StartWizard(window, **kwargs):
 
             elif ObjType=="REM":
                 CompiledCode.append("; "+Action[0])
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
 
             elif ObjType=="Function":
                 AvailMacros=GetAvailMacros()
@@ -1719,9 +1772,11 @@ def StartWizard(window, **kwargs):
                 if len(values)>0:
                     values=" "+values
                 CompiledCode.append(Action[0]+values)
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
-        print(CompiledCode)
+        #print(CompiledCode)
+        print(OptimizerCode)
         if GetCodeAndExit:
             return CompiledCode
         if GetVolumesAndExit:
