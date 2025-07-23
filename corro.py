@@ -1320,13 +1320,13 @@ def Bayesian():
   StartWizard(base)
 
 def StartProcedure():
-    if connected==0:   
-        MsgBox = tkinter.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
-        return
-    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
-        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
-        return
-    if SyringeBOT_is_ready():
+##    if connected==0:   
+##        MsgBox = tkinter.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
+##        return
+##    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
+##        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
+##        return
+##    if SyringeBOT_is_ready():
         filename=ChooseProcedureFile()
         if filename=="": return
         CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")

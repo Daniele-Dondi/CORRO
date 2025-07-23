@@ -73,7 +73,8 @@ class Pour(tk.Frame):
         return [self.Label1.cget("text"), self.Label2.cget("text"), self.Label3.cget("text"),  self.Amount.get(), self.Units.get(), self.Source.get(), self.Destination.get(), self.StatusLabel.cget("text")]
 
     def GetOptimizableParameters(self):
-        return [False, False, False, True, False, False, False, False]
+        parms=self.GetValues()
+        return parms[0]+" $"+parms[3]+"$ "+parms[4]+" of '"+parms[5]+"' and put into '"+parms[6]+"'"
 
     def RetrieveConnections(self):
         return [self.Source.get(), self.Destination.get()]
@@ -310,7 +311,8 @@ class Heat(tk.Frame):
         return [self.Source.get(), self.Temperature.get(), self.Time.get(), self.Checked.get(), self.EndTemperature.get()]
 
     def GetOptimizableParameters(self):
-        return [False, True, True, False, True]
+        parms=self.GetValues()
+        return "Heat '"+parms[0]+"' at $"+parms[1]+"$ °C and keep for $"+parms[2]+"$ min"
 
     def RetrieveConnections(self):
         return [self.Source.get()]
@@ -1606,6 +1608,7 @@ def StartWizard(window, **kwargs):
                  V_out=ValvePositionFor(SyringeToUse,Output)
                  V_waste=ValvePositionFor(SyringeToUse,'Air/Waste') 
                  CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
+                 print(Object.GetOptimizableParameters())
                  
             elif ObjType=="Wash":
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
@@ -1640,6 +1643,7 @@ def StartWizard(window, **kwargs):
                 CompiledCode.append("hook time >"+str(Time)+"m")
                 if Wait4Cooling:
                     CompiledCode.append("hook temp <"+str(EndTemperature))
+                print(Object.GetOptimizableParameters())
 
             elif ObjType=="Wait":
                     Time,Units=Action
