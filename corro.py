@@ -1317,7 +1317,22 @@ def Wizard():
   StartWizard(base)
 
 def Bayesian():
-  StartWizard(base,"Hide")
+  StartWizard(base)
+
+def StartProcedure():
+    if connected==0:   
+        MsgBox = tkinter.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
+        return
+    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
+        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
+        return
+    if SyringeBOT_is_ready():
+        filename=ChooseProcedureFile()
+        if filename=="": return
+        CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")
+        print(CompiledCode)
+        
+
 
 ############################################################################################################################
 #                                                                                                                          #
@@ -1377,7 +1392,7 @@ rec_icon = PhotoImage(file = r"icons/rec.png")
 canc_icon = PhotoImage(file = r"icons/stop.png")
 #Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
 procedure_icon = PhotoImage(file = r"icons/erlenmeyer.png")
-Button(F, text="procedure", command=Configurator,image = procedure_icon, compound = LEFT).pack();
+Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = LEFT).pack();
 conf_icon = PhotoImage(file = r"icons/configurator.png")
 Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
 wiz_icon = PhotoImage(file = r"icons/wizard.png")

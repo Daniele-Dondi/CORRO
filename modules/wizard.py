@@ -72,6 +72,9 @@ class Pour(tk.Frame):
     def GetValues(self):
         return [self.Label1.cget("text"), self.Label2.cget("text"), self.Label3.cget("text"),  self.Amount.get(), self.Units.get(), self.Source.get(), self.Destination.get(), self.StatusLabel.cget("text")]
 
+    def GetOptimizableParameters(self):
+        return [False, False, False, True, False, False, False, False]
+
     def RetrieveConnections(self):
         return [self.Source.get(), self.Destination.get()]
 
@@ -305,6 +308,9 @@ class Heat(tk.Frame):
 
     def GetValues(self):
         return [self.Source.get(), self.Temperature.get(), self.Time.get(), self.Checked.get(), self.EndTemperature.get()]
+
+    def GetOptimizableParameters(self):
+        return [False, True, True, False, True]
 
     def RetrieveConnections(self):
         return [self.Source.get()]
@@ -1187,8 +1193,14 @@ def DeleteObjByIdentifier(ObjIdentifier):
     ObjIdentifier.destroy()
     IndentObjects()
 
+def ChooseProcedureFile():
+    filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
+    filename = filedialog.askopenfilename(filetypes=filetypes)
+    return filename
 
-def StartWizard(window,*args):
+
+
+def StartWizard(window, **kwargs):
     InitVars()
     LoadConfFile('startup.conf')
 
@@ -1467,8 +1479,8 @@ def StartWizard(window,*args):
         GetVolumesAndExit=False
 
         for k, val in kwargs.items():
-            if k=="Phantom":
-                if val:Phantom_Mode=True
+            if k=="Hide":
+                if val:Phantom_Mode=True #suppress interaction with user
             if k=="Mode":
                 if val=="Code":
                     GetCodeAndExit=True
@@ -1777,12 +1789,10 @@ def StartWizard(window,*args):
                     CreatedProcedures[i].First=CreatedProcedures[first]
                 if not(last==-1):
                     CreatedProcedures[i].Last=CreatedProcedures[last]
-            
 
     def AskLoadProcedures():
         global ActionsArray
-        filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
-        filename = filedialog.askopenfilename(filetypes=filetypes)
+        filename=ChooseProcedureFile()
         if filename=="": return
         if len(ActionsArray)>0:
             MsgBox = tk.messagebox.askquestion ('Load Procedures','By loading, current Procedures will be deleted. Proceed anyway?',icon = 'warning')
@@ -1946,11 +1956,20 @@ def StartWizard(window,*args):
 
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")
 
-    if "Hide" in args:
-        WizardWindow.withdraw()
-        LoadProcedures("test.procedure")
-        CompiledCode=CheckProcedure(Phantom=True,Mode="Code")
+    Hidden=False
+    filename=""
+    for k, val in kwargs.items():
+        if k=="Hide":
+            Hidden=val
+        elif k=="File":
+            filename=val
+            print(filename)
+    if filename:
+        if Hidden:
+            WizardWindow.withdraw()
+        LoadProcedures(filename)
+        CompiledCode=CheckProcedure(**kwargs)
         WizardWindow.destroy()
-        print(CompiledCode)
+        return CompiledCode
     
     WizardWindow.mainloop()
