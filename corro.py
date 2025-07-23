@@ -1345,22 +1345,22 @@ lTitle = Label(F, text="CO.R.RO",  font=(CORRO_FONT))
 lTitle.pack(side="top")
 bStart = Button(F, text="CONNECT/DISCONNECT", command=Connect)
 bStart.pack(side="top", pady=10)
-bSend_0 = Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
-bSend_0.pack(pady=10)
-lCommand_0 = Label(F, text="Command:")
-lCommand_0.pack()
-eCommand_0 = Entry(F)
-eCommand_0.insert(0, 'M304 P100 I1.5 D800')
-eCommand_0.pack()
-bSetTemp = Button(F, text="SetTemp", command=lambda: sendcommand("M140 S"+eTemperature.get(),0))
-bSetTemp.pack(pady=10)
-bOFFTemp = Button(F, text="Heating OFF", command=lambda: sendcommand("M140 S0",0))
-bOFFTemp.pack(pady=10)
-lTemperature = Label(F, text="Temperature: (°C)")
-lTemperature.pack()
-eTemperature = Entry(F)
-eTemperature.insert(0, 60)
-eTemperature.pack()
+##bSend_0 = Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
+##bSend_0.pack(pady=10)
+##lCommand_0 = Label(F, text="Command:")
+##lCommand_0.pack()
+##eCommand_0 = Entry(F)
+##eCommand_0.insert(0, 'M304 P100 I1.5 D800')
+##eCommand_0.pack()
+##bSetTemp = Button(F, text="SetTemp", command=lambda: sendcommand("M140 S"+eTemperature.get(),0))
+##bSetTemp.pack(pady=10)
+##bOFFTemp = Button(F, text="Heating OFF", command=lambda: sendcommand("M140 S0",0))
+##bOFFTemp.pack(pady=10)
+##lTemperature = Label(F, text="Temperature: (°C)")
+##lTemperature.pack()
+##eTemperature = Entry(F)
+##eTemperature.insert(0, 60)
+##eTemperature.pack()
 '''
 if (HasRobot):
  bSend_1 = Button(F, text="Send to robot", command=lambda: sendcommand(eCommand_1.get(),1))
@@ -1371,18 +1371,21 @@ if (HasRobot):
  eCommand_1.insert(0, 'G28 X Y')
  eCommand_1.pack()
 ''' 
-Button(F, text="load gcode", command=LoadGcode).pack();
+##Button(F, text="load gcode", command=LoadGcode).pack();
 rec_icon = PhotoImage(file = r"icons/rec.png")
 #Button(F, text="REC", command=Record,image = rec_icon, compound = LEFT).pack();
 canc_icon = PhotoImage(file = r"icons/stop.png")
 #Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
+procedure_icon = PhotoImage(file = r"icons/erlenmeyer.png")
+Button(F, text="procedure", command=Configurator,image = procedure_icon, compound = LEFT).pack();
 conf_icon = PhotoImage(file = r"icons/configurator.png")
 Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
 wiz_icon = PhotoImage(file = r"icons/wizard.png")
 Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT).pack();
 bo_icon = PhotoImage(file = r"icons/BO.png")
 Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = LEFT).pack();
-bClose = Button(F, text="EXIT", command=Close)
+exit_icon = PhotoImage(file = r"icons/exit.png")
+bClose = Button(F, text="EXIT", command=Close,image = exit_icon, compound = LEFT)
 bClose.pack(pady=10)
 temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=Button(F, image=temp_icon,command=temp_button_click)
@@ -1403,7 +1406,7 @@ else:
           if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
           #Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
 Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
-if ShowMacrosPalettes: Z2.pack(side="left",fill="y")
+#if ShowMacrosPalettes: Z2.pack(side="left",fill="y")        macro functions palette
 ##Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
 ##if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
 ##Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
@@ -1501,7 +1504,7 @@ if len(macrolist)>0:
   ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacro)
   ToggleB2.pack()
   Button(Z, text="", state=DISABLED,bd=0).pack() #space between buttons
-  Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
+##  Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
   i=0
   buttons_in_palette1=0
   for macro in macrolist:  #create a button for each macro
