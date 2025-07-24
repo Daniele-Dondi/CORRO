@@ -26,11 +26,10 @@ from modules.wizard import *
 
 class BO_Object(tk.Frame):
     def __init__(self,container):
-        self.Action=[]
-        self.AvailableInputs=GetAllSyringeInputs()
         self.Height=50
-        self.IsContainer=False
-        self.MacroName="Pour" #bind to macro name in macros folder
+        self.Objects=[]
+        self.text=""
+        self.values=""
         super().__init__(container)
         self.config(relief=tk.GROOVE,borderwidth=4)        
         self.create_widgets()
@@ -40,15 +39,28 @@ class BO_Object(tk.Frame):
         self.Line1.pack()
         self.Line2=tk.Frame(self)
         self.Line2.pack()        
-        self.Label1=tk.Label(self.Line1, text="Put")
-        self.Label1.pack(side="left")
+
         self.StatusLabel=tk.Label(self.Line2,text="---")
         self.StatusLabel.pack(side="left")
 
+    def UserClicked(self,num):
+        if self.Objects[num].config('relief')[-1] == 'raised':
+            self.Objects[num].config(relief='sunken',bg="red")
+        else:
+            self.Objects[num].config(relief='raised',bg="white")
+
     def SetValues(self,element):
         text=element[1]
-        self.Label1.config(text=text)
-
+        self.text=element[1]
+        values=element[0]
+        self.values=element[0]
+        parts=text.split("$")
+        for num,part in enumerate(parts):
+            if num % 2==0:
+                self.Objects.append(tk.Label(self.Line1, text=part, font="Verdana 12"))
+            else:
+                self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.UserClicked(j)))
+            self.Objects[-1].pack(side="left")
 
     
 ################################################################## end of classes ##################################################################
@@ -60,44 +72,6 @@ def InitVars():
     global ActionsArray, CurrentY, AvailableMacros, AvailableCommands, EmptyVolume
     ActionsArray=[]
     CurrentY=10
-    EmptyVolume=10 #Extra volume to be used to remove all reactors content
-
-##def IndentObjects(): #set the x position (indentation) of the object
-##    global CurrentY
-##    CurrentY=10
-##    Sorted=GetYStack()
-##    x=10    
-##    for element in Sorted:
-##        Item=element[1]
-##        try:
-##            if Item.EndIntend: x-=20            
-##        except:
-##            pass
-##        Item.place(x=x, y=CurrentY)
-##        try:
-##            if Item.BeginIndent: x+=20
-##        except:
-##            pass
-##        CurrentY+=int(Item.Height)
-##            
-##def GetYStack():
-##    global ActionsArray
-##    Result=[]
-##    for item in ActionsArray:
-##        Result.append([item.winfo_y(),item])
-##    try:
-##     Result.sort() #now we have the array of objects ordered w. respect to Y pos
-##    except Exception as e:
-##     print(e)   
-##     pass
-##    return Result
-##
-##def DeleteObjByIdentifier(ObjIdentifier):
-##    global ActionsArray
-##    num=ActionsArray.index(ObjIdentifier)
-##    ActionsArray.pop(num)
-##    ObjIdentifier.destroy()
-##    IndentObjects()
 
 def StartBO_Window(window, OptimizerCode, **kwargs):
     InitVars()
@@ -112,7 +86,6 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
             return -1 #not found
         except:
             return -1
-
 
     def Close():
         BO_Window.destroy()

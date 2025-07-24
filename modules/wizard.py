@@ -461,7 +461,7 @@ class Wash(tk.Frame):
 
     def GetOptimizableParameters(self):
         parms=self.GetValues()
-        return "Wash '"+parms[1]+" with "+parms[0]
+        return "Wash '"+parms[1]+"' with '"+parms[0]+"'"
 
     def RetrieveConnections(self):
         return [self.Source.get(), self.Destination.get()]
@@ -625,7 +625,7 @@ class IF(tk.Frame):
         if parms[0]=="Custom":
             return "IF "+parms[3]
         else:
-            return "IF '"+parms[1]+parms[2]+" $3$"
+            return "IF '"+parms[1]+parms[2]+"' $3$"
 
     def RetrieveConnections(self):
         return []
@@ -1228,7 +1228,7 @@ def GetYStack():
     try:
      Result.sort() #now we have the array of objects ordered w. respect to Y pos
     except Exception as e:
-     print(e)   
+     #print(e)   
      pass
     return Result
 
