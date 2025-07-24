@@ -1,0 +1,16 @@
+macro "Pour"0,10.0,1,2,0
+macro "Pour"1,0.22,1,4,0
+macro "Pour"1,19.97,3,4,0
+macro "Pour"1,18.0,2,4,0
+macro "Pour"0,16.0,4,2,0
+macro "SetTemp"50.0
+hook temp >50.0
+hook time >10.0m
+hook temp <25
+macro "Pour"0,74.19,3,0,0
+macro "Pour"0,150.0,1,2,0
+macro "Pour"0,160.0,3,0,0
+macro "Pour"0,150.0,1,2,0
+macro "Pour"0,160.0,3,0,0
+macro "Pour"0,150.0,1,2,0
+macro "Pour"0,160.0,3,0,0

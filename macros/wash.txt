@@ -1,14 +1,1 @@
-;syringe 5 waste collector
-;syringe 3 water to wash
-record
-macro "intake_X_Y"2,5
-macro "syrY_X_ml"100,3
-macro "purge syringe X"3
-macro "intake_X_Y"2,5
-macro "syrY_X_ml"100,3
-macro "purge syringe X"3
-macro "intake_X_Y"2,5
-play
-
-
-
+fre

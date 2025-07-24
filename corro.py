@@ -241,6 +241,18 @@ def Bind(text,color,window):
           NewColorAssignment=1
       else:     tkinter.messagebox.askquestion ('error','color already assigned',icon = 'warning')
     else:     tkinter.messagebox.askquestion ('error','macro not found',icon = 'warning')  
+
+def CreateNewMacroNumber(filename):
+    macronumber=len(macrolist)
+    macrolist.append(filename)
+    macrob.append(Button(Z, text=filename,command=lambda j=macronumber : UserClickedMacro(j)))
+    macrob[len(macrob)-1].pack()
+    return macronumber
+
+def SaveMacroFile(macronumber,text):
+    text_file = open("macros/"+macrolist[macronumber]+".txt", "w")
+    text_file.write(text)
+    text_file.close()
   
 def SaveMacro(text,macronumber,window): #save a macro
     if macronumber==-1:
@@ -253,13 +265,8 @@ def SaveMacro(text,macronumber,window): #save a macro
              window.destroy()
              return
          else: break
-        macronumber=len(macrolist)
-        macrolist.append(filename)
-        macrob.append(Button(Z, text=filename,command=lambda j=macronumber : UserClickedMacro(j)))
-        macrob[len(macrob)-1].pack()
-    text_file = open("macros/"+macrolist[macronumber]+".txt", "w")
-    text_file.write(text)
-    text_file.close()
+        macronumber=CreateNewMacroNumber(filename)
+    SaveMacroFile(macronumber,text)
     window.destroy()
 
 def MacroEditor(macronumber): #edit a macro or create a new one
@@ -741,6 +748,11 @@ def ExecuteMacro(num,*args):
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
 
+def DeleteMacroFileAndButton(num):
+    macrob[num].destroy() #remove macro button
+    os.remove("macros/"+macrolist[num]+".txt") #delete text file (recovery is impossible)
+    macrolist[num]=""  #remove macro from the list
+
 
 def Macro(num,*args): #run, delete or edit a macro 
     global IsEditingMacro,IsDeletingMacro,macrob,macrout,debug,WatchdogMax,SyringeBOT_IS_INITIALIZED,SyringeBOT_IS_BUSY
@@ -767,21 +779,19 @@ def Macro(num,*args): #run, delete or edit a macro
      else:  #delete macro
       MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
       if MsgBox == 'yes':
-        macrob[num].destroy() #remove macro button
-        os.remove("macros/"+macrolist[num]+".txt") #delete text file (recovery is impossible)
-        macrolist[num]=""  #remove macro from the list
-      DeleteMacro()  
+        DeleteMacroFileAndButton(num)
+      DeleteMacroButtonProc()  
     else: #edit macro
      MacroEditor(num) #open the macro editor  
-     EditMacro()
+     EditMacroButtonProc()
 
-def CreateMacro():
+def CreateMacroButtonProc():
      global IsEditingMacro,IsDeletingMacro
-     if IsDeletingMacro==1: DeleteMacro()
-     if IsEditingMacro==1: EditMacro()
+     if IsDeletingMacro==1: DeleteMacroButtonProc()
+     if IsEditingMacro==1: EditMacroButtonProc()
      MacroEditor(-1) #-1 = create new macro
      
-def EditMacro():
+def EditMacroButtonProc():
     global IsEditingMacro,IsDeletingMacro
     global SyringeBOT_IS_BUSY,Temperature_Hook,Time_Hook
     if (SyringeBOT_IS_BUSY) or (Temperature_Hook) or (Time_Hook):
@@ -789,21 +799,21 @@ def EditMacro():
     if IsEditingMacro==0:
      ToggleB.config(relief=SUNKEN)
      IsEditingMacro=1
-     if IsDeletingMacro==1: DeleteMacro()
+     if IsDeletingMacro==1: DeleteMacroButtonProc()
      base.config(cursor='cross')
     else:
      IsEditingMacro=0
      ToggleB.config(relief=RAISED)
      base.config(cursor='arrow')          
 
-def DeleteMacro():
+def DeleteMacroButtonProc():
     global IsEditingMacro,IsDeletingMacro
     if (SyringeBOT_IS_BUSY) or (Temperature_Hook) or (Time_Hook):
      return           
     if IsDeletingMacro==0:
      ToggleB2.config(relief=SUNKEN)
      IsDeletingMacro=1
-     if IsEditingMacro==1: EditMacro()
+     if IsEditingMacro==1: EditMacroButtonProc()
      base.config(cursor='pirate')
     else:
      IsDeletingMacro=0
@@ -1302,7 +1312,6 @@ def time_button_click():
  Button(t, text="DELETE EVENT",command=lambda: DeleteTimeEvent(t)).pack() 
  t.grab_set()
 
-
 def UserClickedMacro(num):
  if SyringeBOT_is_ready():
   Macro(num)
@@ -1333,7 +1342,10 @@ def StartProcedure():
         filename=ChooseProcedureFile()
         if filename=="": return
         CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")
-        print(CompiledCode)
+        macronum=CreateNewMacroNumber("TEMP_FFFF")
+        SaveMacroFile(macronum,"\n".join(CompiledCode))
+        Macro(macronum)
+        DeleteMacroFileAndButton(macronum)
         
 
 
@@ -1516,10 +1528,10 @@ if (HasRobot):
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
   Label(Z, text="MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
-  Button(Z, text="CREATE MACRO",command=CreateMacro).pack()
-  ToggleB=Button(Z, text="EDIT MACRO",command=EditMacro)
+  Button(Z, text="CREATE MACRO",command=CreateMacroButtonProc).pack()
+  ToggleB=Button(Z, text="EDIT MACRO",command=EditMacroButtonProc)
   ToggleB.pack()
-  ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacro)
+  ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacroButtonProc)
   ToggleB2.pack()
   Button(Z, text="", state=DISABLED,bd=0).pack() #space between buttons
 ##  Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
