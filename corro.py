@@ -1331,7 +1331,7 @@ def Bayesian():
   if filename=="": return
   OptimizerCode=StartWizard(base,Hide=True,File=filename,Mode="Optimizer")
   print(OptimizerCode)
-  StartBO_Window(base)
+  StartBO_Window(base,OptimizerCode)
 
 def StartProcedure():
 ##    if connected==0:   

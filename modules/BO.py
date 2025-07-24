@@ -24,6 +24,31 @@ from modules.configurator import *
 from modules.wizard import *
 
 
+class BO_Object(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.AvailableInputs=GetAllSyringeInputs()
+        self.Height=50
+        self.IsContainer=False
+        self.MacroName="Pour" #bind to macro name in macros folder
+        super().__init__(container)
+        self.config(relief=tk.GROOVE,borderwidth=4)        
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()        
+        self.Label1=tk.Label(self.Line1, text="Put")
+        self.Label1.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+
+    def SetValues(self,element):
+        text=element[1]
+        self.Label1.config(text=text)
+
 
     
 ################################################################## end of classes ##################################################################
@@ -74,7 +99,7 @@ def InitVars():
 ##    ObjIdentifier.destroy()
 ##    IndentObjects()
 
-def StartBO_Window(window, **kwargs):
+def StartBO_Window(window, OptimizerCode, **kwargs):
     InitVars()
                       
     def on_mousewheel(event):
@@ -159,6 +184,17 @@ def StartBO_Window(window, **kwargs):
     tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
 
     tk.Button(frame3,text="Process Check").pack(side="left")#,command=CheckProcedure).pack(side="left")
+    
+    CreatedProcedures=[]
+    CurrentY=10
+    for element in OptimizerCode:
+        Obj=BO_Object(frame2)
+        CreatedProcedures.append(Obj)
+        Obj.SetValues(element)
+        YSize=Obj.Height
+        Obj.place(x=10,y=CurrentY)
+        CurrentY+=YSize
+
 
     Hidden=False
     filename=""
