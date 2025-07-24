@@ -32,6 +32,7 @@ import modules.configurator as conf
 from modules.wizard import *
 from modules.listserialports import *
 from modules.buildvercalculator import *
+from modules.BO import *
 import traceback
 
 
@@ -39,7 +40,7 @@ import traceback
 connected = 0
 GO_Fullscreen=False #if True, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
-AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization    --- NOT YET IMPLEMENTED ---
+AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization
 ShowMacrosPalettes=True
 #USB sensors control vars
 Sensors_var_names=[]
@@ -1330,6 +1331,7 @@ def Bayesian():
   if filename=="": return
   OptimizerCode=StartWizard(base,Hide=True,File=filename,Mode="Optimizer")
   print(OptimizerCode)
+  StartBO_Window(base)
 
 def StartProcedure():
 ##    if connected==0:   
