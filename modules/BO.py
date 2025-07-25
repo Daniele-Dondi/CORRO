@@ -23,11 +23,55 @@ import os
 from modules.configurator import *
 from modules.wizard import *
 
+def disable_widgets(frame):
+    for widget in frame.winfo_children():
+        try:
+            widget.configure(state='disabled')
+        except tk.TclError:
+            # Skip widgets that don't support 'state' (e.g. labels)
+            pass
+
+def enable_widgets(frame):
+    for widget in frame.winfo_children():
+        try:
+            widget.configure(state='normal')
+        except tk.TclError:
+            # Skip widgets that don't support 'state' (e.g. labels)
+            pass        
+
+class MinMaxApp:
+    def __init__(self, root):
+        self.root = root
+        #self.root.title("Min/Max Entry App")
+        
+        # Create a frame
+        self.frame = tk.Frame(self.root,relief=tk.GROOVE,borderwidth=4)
+        self.frame.pack(side="left")#pady=20)
+
+        # Min Entry
+        label1=tk.Label(self.frame, text="Min Value:")
+        label1.configure(state="disabled")
+        label1.grid(row=0, column=0)
+        self.min_entry = tk.Entry(self.frame, state = 'disabled')
+        self.min_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        # Max Entry
+        label2=tk.Label(self.frame, text="Max Value:")
+        label2.configure(state="disabled")
+        label2.grid(row=1, column=0)
+        self.max_entry = tk.Entry(self.frame, state = 'disabled')
+        self.max_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    def print_values(self):
+        min_val = self.min_entry.get()
+        max_val = self.max_entry.get()
+        print(f"Min: {min_val}, Max: {max_val}")
 
 class BO_Object(tk.Frame):
     def __init__(self,container):
-        self.Height=50
+        self.Height=40
         self.Objects=[]
+        self.MinMaxs=[]
         self.text=""
         self.values=""
         super().__init__(container)
@@ -38,16 +82,15 @@ class BO_Object(tk.Frame):
         self.Line1=tk.Frame(self)
         self.Line1.pack()
         self.Line2=tk.Frame(self)
-        self.Line2.pack()        
-
-        self.StatusLabel=tk.Label(self.Line2,text="---")
-        self.StatusLabel.pack(side="left")
+        self.Line2.pack(side="left")
 
     def UserClicked(self,num):
         if self.Objects[num].config('relief')[-1] == 'raised':
             self.Objects[num].config(relief='sunken',bg="red")
+            enable_widgets(self.MinMaxs[num//2].frame)
         else:
             self.Objects[num].config(relief='raised',bg="white")
+            disable_widgets(self.MinMaxs[num//2].frame)
 
     def SetValues(self,element):
         text=element[1]
@@ -60,6 +103,8 @@ class BO_Object(tk.Frame):
                 self.Objects.append(tk.Label(self.Line1, text=part, font="Verdana 12"))
             else:
                 self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.UserClicked(j)))
+                self.Height=105
+                self.MinMaxs.append(MinMaxApp(self.Line2))
             self.Objects[-1].pack(side="left")
 
     
@@ -164,6 +209,7 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
         Obj=BO_Object(frame2)
         CreatedProcedures.append(Obj)
         Obj.SetValues(element)
+        BO_Window.update_idletasks()
         YSize=Obj.Height
         Obj.place(x=10,y=CurrentY)
         CurrentY+=YSize
