@@ -1053,6 +1053,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                 w.config(width=chart_w,height=chart_h)
                 w.pack(expand=YES,fill=BOTH)
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
+        bConnect.config(image = disconnect_icon) #toggle image on connect button
         #create buttons to enable/disable plots
         cntr=0
         j=0
@@ -1115,6 +1116,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
       logfile.write("---------------------------------\n")
       logfile.write(str(DT.datetime.now())+"\n")
       logfile.close()
+      bConnect.config(image = connect_icon) #toggle image on connect button
 
 def SyringeBOTCycle(): #listen and send messages to SyringeBOT
  global SyringeBOT,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
@@ -1321,6 +1323,8 @@ def Record():
   return
 
 def ThereAreErrors(CompiledCode):
+  if CompiledCode=="" or CompiledCode==None:
+     return True
   test="ERROR" in CompiledCode
   if test:
      AskToShowMissingConnections(base,CompiledCode[1])     
@@ -1336,6 +1340,8 @@ def Bayesian():
   filename=ChooseProcedureFile()
   if filename=="": return
   OptimizerCode=StartWizard(base,Hide=True,File=filename,Mode="Optimizer")
+  if ThereAreErrors(OptimizerCode):
+      return
   StartBO_Window(base,OptimizerCode)
 
 def StartProcedure():
@@ -1382,8 +1388,10 @@ F.master.title("CO.R.RO 1.2 Build "+str(BuildVersion))
 #Frame F
 lTitle = Label(F, text="CO.R.RO",  font=(CORRO_FONT))
 lTitle.pack(side="top")
-bStart = Button(F, text="CONNECT/DISCONNECT", command=Connect)
-bStart.pack(side="top", pady=10)
+connect_icon = PhotoImage(file = r"icons/connect.png")
+disconnect_icon = PhotoImage(file = r"icons/disconnect.png")
+bConnect = Button(F, command=Connect,image = connect_icon, compound = LEFT)
+bConnect.pack(side="top", pady=10)
 ##bSend_0 = Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
 ##bSend_0.pack(pady=10)
 ##lCommand_0 = Label(F, text="Command:")

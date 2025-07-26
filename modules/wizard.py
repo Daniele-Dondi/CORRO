@@ -197,6 +197,7 @@ class Pour(tk.Frame):
     def CheckInput(self): 
         Input=self.Source.get()
         Output=self.Destination.get()
+        if Input=="" or Output=="": return
         PossibleUnits=["mL","L"]
         if "Reactant" in Input:
             M=GetMolarityOfInput(Input)
@@ -238,7 +239,7 @@ class Pour(tk.Frame):
         PossibleOutputs.sort()
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
         if not Output in PossibleOutputs:
-            self.Destination.set("")
+            #self.Destination.set("")
             #print("Cannot find connections from ",Input," to ",Output)
             return "Cannot find connections from "+str(Input)+" to "+str(Output)
             
@@ -1502,6 +1503,8 @@ def StartWizard(window, **kwargs):
             Object=Action[1]
             connections=Object.RetrieveConnections()
             for connection in connections:
+                if connection=="":
+                    continue
                 if "Reactant" in connection:
                  if connection not in ReactantsUsed:
                      ReactantsUsed.append(connection)
@@ -1517,7 +1520,7 @@ def StartWizard(window, **kwargs):
         AvailableReactants=GetReactantsNames()
         for reactant in ReactantsUsed:
             if not(reactant in AvailableReactants):
-                print(reactant,"is missing")
+                #print(reactant,"is missing")
                 MissingConnections.append(reactant)
         AvailableApparatus=GetApparatusNames()
         for apparatus in ApparatusUsed:
