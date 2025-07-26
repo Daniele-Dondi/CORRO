@@ -144,10 +144,9 @@ figures=[]
 
 
 # Bounded region of parameter space
-NumDimensions=4
 start=[-2,-2,-2,-2]
 stop=[8,8,8,8]
-pbounds={'x'+str(i+1): (start[i],stop[i]) for i in range(NumDimensions)}
+pbounds={'x'+str(i+1): (start[i],stop[i]) for i in range(len(stop))}
 print(pbounds)
 MaxIterations=20
 

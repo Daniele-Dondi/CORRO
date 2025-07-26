@@ -42,7 +42,6 @@ def enable_widgets(frame):
 class MinMaxApp:
     def __init__(self, root):
         self.root = root
-        #self.root.title("Min/Max Entry App")
         
         # Create a frame
         self.frame = tk.Frame(self.root,relief=tk.GROOVE,borderwidth=4)
@@ -50,30 +49,40 @@ class MinMaxApp:
 
         # Min Entry
         label1=tk.Label(self.frame, text="Min Value:")
-        label1.configure(state="disabled")
         label1.grid(row=0, column=0)
-        self.min_entry = tk.Entry(self.frame, state = 'disabled')
+        self.min_entry = tk.Entry(self.frame)
         self.min_entry.grid(row=0, column=1, padx=5, pady=5)
 
         # Max Entry
         label2=tk.Label(self.frame, text="Max Value:")
-        label2.configure(state="disabled")
         label2.grid(row=1, column=0)
-        self.max_entry = tk.Entry(self.frame, state = 'disabled')
+        self.max_entry = tk.Entry(self.frame)
         self.max_entry.grid(row=1, column=1, padx=5, pady=5)
 
-    def print_values(self):
+    def SetMin(self,value):
+        value=round(value,2)
+        self.min_entry.delete(0,tk.END)
+        self.min_entry.insert(0,str(value))
+
+    def SetMax(self,value):
+        value=round(value,2)
+        self.max_entry.delete(0,tk.END)
+        self.max_entry.insert(0,str(value))
+
+    def GetValues(self):
         min_val = self.min_entry.get()
         max_val = self.max_entry.get()
-        print(f"Min: {min_val}, Max: {max_val}")
+        return [min_val, max_val]
 
 class BO_Object(tk.Frame):
     def __init__(self,container):
         self.Height=40
         self.Objects=[]
-        self.MinMaxs=[]
-        self.text=""
-        self.values=""
+        self.MinMaxs=[] #links to minmax objects
+        self.ParametersToChange=[] #contains the number of variable to change associate with possible BO variables
+        self.text="" #display text with $..$ indicating possible BO variables
+        self.values="" #values retrieved for the object
+        self.Colors=["Cyan","Crimson","Purple","Red"]
         super().__init__(container)
         self.config(relief=tk.GROOVE,borderwidth=4)        
         self.create_widgets()
@@ -84,13 +93,22 @@ class BO_Object(tk.Frame):
         self.Line2=tk.Frame(self)
         self.Line2.pack(side="left")
 
+    def SelectedColor(self,num):
+        return self.Colors[num%len(self.Colors)]        
+
     def UserClicked(self,num):
         if self.Objects[num].config('relief')[-1] == 'raised':
-            self.Objects[num].config(relief='sunken',bg="red")
-            enable_widgets(self.MinMaxs[num//2].frame)
+            num_MinMax=num//2            
+            self.Objects[num].config(relief='sunken',bg=self.SelectedColor(num_MinMax))
+            SelectedMinMax=self.MinMaxs[num_MinMax].frame
+            enable_widgets(SelectedMinMax)
+            SelectedMinMax.config(highlightbackground=self.SelectedColor(num_MinMax), highlightthickness=1)
         else:
             self.Objects[num].config(relief='raised',bg="white")
-            disable_widgets(self.MinMaxs[num//2].frame)
+            num_MinMax=num//2
+            SelectedMinMax=self.MinMaxs[num_MinMax].frame
+            disable_widgets(SelectedMinMax)
+            SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
 
     def SetValues(self,element):
         text=element[1]
@@ -104,7 +122,13 @@ class BO_Object(tk.Frame):
             else:
                 self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.UserClicked(j)))
                 self.Height=105
-                self.MinMaxs.append(MinMaxApp(self.Line2))
+                self.ParametersToChange.append(part)
+                ThisMinMax=MinMaxApp(self.Line2)
+                self.MinMaxs.append(ThisMinMax)
+                FloatValue=float(values[int(part)])
+                ThisMinMax.SetMin(FloatValue*0.8) #fill entries with +- 20% of current value
+                ThisMinMax.SetMax(FloatValue*1.2)
+                disable_widgets(ThisMinMax.frame)
             self.Objects[-1].pack(side="left")
 
     
