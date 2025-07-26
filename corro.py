@@ -1318,7 +1318,13 @@ def UserClickedMacro(num):
   Macro(num)
 
 def Record():
-  return      
+  return
+
+def ThereAreErrors(CompiledCode):
+  test="ERROR" in CompiledCode
+  if test:
+     AskToShowMissingConnections(base,CompiledCode[1])     
+  return test
 
 def Configurator():
   StartConfigurator(base)      
@@ -1343,6 +1349,8 @@ def StartProcedure():
         filename=ChooseProcedureFile()
         if filename=="": return
         CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")
+        if ThereAreErrors(CompiledCode):
+            return
         macronum=CreateNewMacroNumber("TEMP_FFFF")
         SaveMacroFile(macronum,"\n".join(CompiledCode))
         Macro(macronum)

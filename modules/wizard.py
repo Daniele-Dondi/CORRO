@@ -227,7 +227,7 @@ class Pour(tk.Frame):
         if len(SyrNums)==0: #database has changed meanwhile
             #self.Source.set("")
             #self.Destination.set("")
-            print("Cannot find any connections to "+Input)
+            #print("Cannot find any connections to "+Input)
             return "Cannot find any connections to "+Input
         for SyringeNum in SyrNums:
             AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
@@ -239,7 +239,7 @@ class Pour(tk.Frame):
         self.Destination.config(values = PossibleOutputs,state="readonly",width=self.MaxCharsInList(PossibleOutputs))
         if not Output in PossibleOutputs:
             self.Destination.set("")
-            print("Cannot find connections from ",Input," to ",Output)
+            #print("Cannot find connections from ",Input," to ",Output)
             return "Cannot find connections from "+str(Input)+" to "+str(Output)
             
     
@@ -1244,7 +1244,21 @@ def ChooseProcedureFile():
     filename = filedialog.askopenfilename(filetypes=filetypes)
     return filename
 
-
+def AskToShowMissingConnections(window,Missing):
+    response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
+    if response:  # True if "Yes" is clicked
+        if len(Missing)>1:
+            plural="s"
+        else:
+            plural=""
+        MissingObjects=Grid(window)
+        MissingObjects.WriteOnHeader("Number of missing object"+plural)
+        MissingObjects.WriteOnHeader("---------------- Object missing (Reagent, Connection, Apparatus) ----------------")
+        MissingObjects.CloseHeader()
+        for i,Missed in enumerate(Missing):
+            MissingObjects.AddItemToRow(str(i+1))
+            MissingObjects.AddItemToRow(Missed)
+            MissingObjects.NextRow()    
 
 def StartWizard(window, **kwargs):
     InitVars()
@@ -1593,23 +1607,10 @@ def StartWizard(window, **kwargs):
         if not(len(Missing)==0):
           if Phantom_Mode:
               return ['ERROR',Missing]
-          else:  
-            response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
-            if response:  # True if "Yes" is clicked
-                if len(Missing)>1:
-                    plural="s"
-                else:
-                    plural=""
-                MissingObjects=Grid(window)
-                MissingObjects.WriteOnHeader("Number of missing object"+plural)
-                MissingObjects.WriteOnHeader("Object missing (Reagent, Connection, Apparatus)")
-                MissingObjects.CloseHeader()
-                for i,Missed in enumerate(Missing):
-                    MissingObjects.AddItemToRow(str(i+1))
-                    MissingObjects.AddItemToRow(Missed)
-                    MissingObjects.NextRow()
-                
+          else:
+            AskToShowMissingConnections(WizardWindow,Missing)  
             return
+        
         ReactantsUsed=[]
         VolumesOfReactantsUsed=[]
         ApparatusUsed=[]

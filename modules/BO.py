@@ -136,25 +136,11 @@ class BO_Object(tk.Frame):
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
         
-        
-def InitVars():
-    global ActionsArray, CurrentY, AvailableMacros, AvailableCommands, EmptyVolume
-    ActionsArray=[]
-    CurrentY=10
 
 def StartBO_Window(window, OptimizerCode, **kwargs):
-    InitVars()
                       
     def on_mousewheel(event):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-    def GetObjectPosition(object_y,sortedlist):
-        try:
-            for i,obj in enumerate(sortedlist):
-                if obj[0]==object_y: return i
-            return -1 #not found
-        except:
-            return -1
 
     def Close():
         BO_Window.destroy()
@@ -210,20 +196,8 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
     SelectionCanvas = Canvas(frame2,height=10000,width=1000,bg="white")
     SelectionCanvas.pack()
 
-    tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
-    tk.Button(frame1,text="Heat reactor",command=lambda: CreateNewObject("Heat")).pack(side="left")
-    tk.Button(frame1,text="Wash reactor",command=lambda: CreateNewObject("Wash")).pack(side="left")
-    tk.Button(frame1,text="Wait",command=lambda: CreateNewObject("Wait")).pack(side="left")
-    tk.Button(frame1,text="IF",command=lambda: CreateNewObject("IF Block")).pack(side="left")
-    tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
-    tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
-    tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
-    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Function")).pack(side="left")        
-##    tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
-##    tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
-    tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
-    tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
-    tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
+    tk.Button(frame1,text="Pour liquid").pack(side="left")
+
 
     tk.Button(frame3,text="Process Check").pack(side="left")#,command=CheckProcedure).pack(side="left")
     
@@ -233,7 +207,6 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
         Obj=BO_Object(frame2)
         CreatedProcedures.append(Obj)
         Obj.SetValues(element)
-        BO_Window.update_idletasks()
         YSize=Obj.Height
         Obj.place(x=10,y=CurrentY)
         CurrentY+=YSize
