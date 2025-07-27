@@ -33,6 +33,7 @@ from modules.wizard import *
 from modules.listserialports import *
 from modules.buildvercalculator import *
 from modules.BO import *
+from modules.tooltip import ToolTip
 import traceback
 
 
@@ -1392,6 +1393,7 @@ connect_icon = PhotoImage(file = r"icons/connect.png")
 disconnect_icon = PhotoImage(file = r"icons/disconnect.png")
 bConnect = Button(F, command=Connect,image = connect_icon, compound = LEFT)
 bConnect.pack(side="top", pady=10)
+ToolTip(bConnect, "Click to Connect/Disconnect")
 ##bSend_0 = Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
 ##bSend_0.pack(pady=10)
 ##lCommand_0 = Label(F, text="Command:")
@@ -1424,16 +1426,25 @@ rec_icon = PhotoImage(file = r"icons/rec.png")
 canc_icon = PhotoImage(file = r"icons/stop.png")
 #Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
 procedure_icon = PhotoImage(file = r"icons/erlenmeyer.png")
-Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = LEFT).pack();
+bProcedure=Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = LEFT)
+bProcedure.pack()
+ToolTip(bProcedure, "Click to run a saved procedure")
 conf_icon = PhotoImage(file = r"icons/configurator.png")
-Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT).pack();
+bConf=Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT)
+bConf.pack()
+ToolTip(bConf, "Click to configure the system")
 wiz_icon = PhotoImage(file = r"icons/wizard.png")
-Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT).pack();
+bWiz=Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT)
+bWiz.pack()
+ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
 bo_icon = PhotoImage(file = r"icons/BO.png")
-Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = LEFT).pack();
+bBO=Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = LEFT)
+bBO.pack()
+ToolTip(bBO, "Click to start the reaction optimization by Baesyan Algorithm")
 exit_icon = PhotoImage(file = r"icons/exit.png")
 bClose = Button(F, text="EXIT", command=Close,image = exit_icon, compound = LEFT)
 bClose.pack(pady=10)
+ToolTip(bClose, "Exit the program. You should not be connected")
 temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=Button(F, image=temp_icon,command=temp_button_click)
 clock_icon = PhotoImage(file = r"icons"+os.sep+"clock.png")
