@@ -1259,7 +1259,15 @@ def AskToShowMissingConnections(window,Missing):
         for i,Missed in enumerate(Missing):
             MissingObjects.AddItemToRow(str(i+1))
             MissingObjects.AddItemToRow(Missed)
-            MissingObjects.NextRow()    
+            MissingObjects.NextRow()
+
+def ThereAreErrors(window,CompiledCode):
+  if CompiledCode=="" or CompiledCode==None:
+     return True
+  test="ERROR" in CompiledCode
+  if test:
+     AskToShowMissingConnections(window,CompiledCode[1])     
+  return test            
 
 def StartWizard(window, **kwargs):
     InitVars()

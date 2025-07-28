@@ -30,6 +30,7 @@ def InitAllData():
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
     global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
     global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
+    global PlugsArray,CurrentPlug,DefaultPlugParameters
     global CurrentFileName
     global FileIsModified
     ReactantsArray=[]
@@ -46,7 +47,10 @@ def InitAllData():
     CurrentApparatus=1
     DevicesArray=[]
     CurrentDevice=1
+    PlugsArray=[]
+    CurrentPlug=1
     DefaultDeviceParameters=["","","","","",True,"0",""]
+    DefaultPlugParameters=["","","",True,""]
     PIDList=["None","Heater 1","Heater 2"]
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
@@ -392,11 +396,13 @@ def StartConfigurator(window):
     tab2 = ttk.Frame(tabControl)
     tab3 = ttk.Frame(tabControl)
     tab4 = ttk.Frame(tabControl)
+    tab5 = ttk.Frame(tabControl)
       
     tabControl.add(tab1, text ='Reactants') 
     tabControl.add(tab2, text ='Apparatus')
     tabControl.add(tab3, text ='SyringeBOT')
-    tabControl.add(tab4, text ='USB devices') 
+    tabControl.add(tab4, text ='USB devices')
+    tabControl.add(tab5, text ='Smart Plugs') 
     tabControl.pack(expand = 1, fill ="both")
 
 
@@ -1359,6 +1365,176 @@ def StartConfigurator(window):
     ttk.Button(F3T4, text="Rescan USB", command=RefreshUSB).pack(side="left")
     ttk.Button(F4T4, text="Add new Device", command=AddDevice).pack(side="left")
     ttk.Button(F4T4, text="Remove Device", command=DeleteCurrentDevice).pack(side="left")
+
+#########################################
+    def GetTab5Variables():
+        return [PlugName.get(), PlugType.get(), Plug_IP.get(), PlugEnabled.get(), PlugCommand.get()]
+
+    def SetTab5Variables(parms):
+        PlugName.delete(0,tk.END); PlugName.insert(0,str(parms[0]))
+        PlugType.set(parms[1])
+        Plug_IP.set(parms[2])
+        PlugEnabled.set(parms[3])
+        DevEnabled.update()
+        PlugCommand.delete(0,tk.END); PlugCommand.insert(0,str(parms[4]))
+        PlugCommand.update()
+
+    def LoadPlugParameters():
+         global PlugsArray,CurrentPlug
+         if (len(PlugsArray)<CurrentPlug-1): return
+         tabControl.unbind("<<NotebookTabChanged>>")
+         SetTab5Variables(PlugsArray[CurrentPlug-1])
+         tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
+         
+    def SavePlugParameters():
+        global CurrentPlug,FileIsModified
+        if CheckPlugParameters():
+          newvalues=GetTab5Variables()
+          if len(PlugsArray)==CurrentPlug-1:  
+           PlugsArray.append(newvalues)
+           FileIsModified=True
+          elif NotSavedDataTab5():
+           answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Plug?")
+           if answer:
+            PlugsArray[CurrentPlug-1]=newvalues
+            FileIsModified=True
+
+    def AskLoadPlugParameters():
+        global CurrentPlug
+        answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
+        if answer:
+            LoadPlugParameters()        
+    
+    def ClearPlugParameters():
+        global DefaultPlugParameters
+        SetTab5Variables(DefaultPlugParameters)
+
+    def AddPlug():
+        global CurrentPlug,PlugsArray 
+        if len(PlugsArray)==CurrentPlug-1:
+            messagebox.showinfo(message="Finish first to edit the current Plug")
+            return
+        if NotSavedDataTab5():
+            messagebox.showinfo(message="Unsaved data for the current Plug")
+            return
+        CurrentPlug=len(PlugsArray)+1
+        HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(CurrentPlug))
+        ClearPlugParameters()
+        SetStatusNextPrevButtonsT5()
+
+    def DeleteCurrentPlug(): 
+        global CurrentPlug,FileIsModified
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Plug?")
+        if answer:
+         ClearPlugParameters()
+         FileIsModified=True
+         if CurrentPlug>len(PlugsArray): #we have the number but still it is not saved in the array. So the array is shorter
+             if CurrentPlug==1:
+                 return
+             else:
+                 CurrentPlug-=1
+                 HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(CurrentPlug))
+                 SetTab5Variables(PlugsArray[CurrentPlug-1])
+         else:
+             del PlugsArray[CurrentPlug-1]
+             FileIsModified=True
+             if CurrentPlug>len(PlugsArray): #we deleted the first and only Plug
+                 HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(CurrentPlug))
+             else:    
+                 HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(len(PlugsArray)))
+                 SetTab5Variables(PlugsArray[CurrentPlug-1])
+         SetStatusNextPrevButtonsT5()
+
+    def NotSavedDataTab5():
+        global CurrentPlug,DefaultPlugParameters
+        if len(PlugsArray)==CurrentPlug-1:
+         if GetTab5Variables()==DefaultPlugParameters:
+               return False
+         else:
+             return True
+        return not(GetTab5Variables()==PlugsArray[CurrentPlug-1])        
+
+    def CheckPlugParameters():
+        global CurrentPlug,PlugsArray
+        parms=GetTab5Variables()
+        for i,element in enumerate(PlugsArray):
+            if  not i==CurrentPlug-1:
+                if parms[0] in element:
+                    messagebox.showerror("ERROR", "Name already in use")
+                    return False
+                if parms[2] in element:
+                    messagebox.showerror("ERROR", "Port "+str(parms[2])+" already in use")
+                    return False
+        return True
+
+    def PlugTypecallback(eventObject):
+        return
+    
+    def SetStatusNextPrevButtonsT5():
+        global CurrentPlug
+        if CurrentPlug-1>0:
+            PrevT5Button.configure(state='enabled')
+        else:
+            PrevT5Button.configure(state='disabled')
+        if CurrentPlug<len(PlugsArray):
+            NextT5Button.configure(state='enabled')
+        else:
+            NextT5Button.configure(state='disabled')        
+
+    def NextT5():
+        global CurrentPlug
+        if NotSavedDataTab5():
+         messagebox.showinfo(message="Finish first to edit the current Plug")
+         return
+        CurrentPlug+=1
+        HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(len(PlugsArray)))
+        SetTab5Variables(PlugsArray[CurrentPlug-1])
+        SetStatusNextPrevButtonsT5()
+        
+    def PrevT5():
+        global CurrentPlug
+        if NotSavedDataTab5():
+         messagebox.showinfo(message="Finish first to edit the current Plug")
+         return
+        CurrentPlug-=1
+        HeaderLabelT5.config(text="Plug n. "+str(CurrentPlug)+" of "+str(len(PlugsArray)))
+        SetTab5Variables(PlugsArray[CurrentPlug-1])
+        SetStatusNextPrevButtonsT5()
+
+    def Try2Trigger():
+        data_str=""
+        try:
+            parms=GetTab5Variables()
+            if parms[2]=="" or parms[3]=="": return
+            app = SerialMon(ConfiguratorWindow,parms[2],parms[3])
+            #Test=serial.Serial(parms[2],parms[3])
+            #time.sleep(0.5)
+        except:
+            messagebox.showerror("ERROR", "Cannot connect")
+
+    F1T5 = ttk.Frame(tab5); F1T5.pack()    
+    PrevT5Button=ttk.Button(F1T5, text="Prev", command=PrevT5,state='disabled'); PrevT5Button.pack(side="left")
+    NextT5Button=ttk.Button(F1T5, text="Next", command=NextT5,state='disabled'); NextT5Button.pack(side="left")
+    HeaderLabelT5=ttk.Label(tab5,text ="Plug n. 1 of 1",font=("Arial", 12)); HeaderLabelT5.pack(pady="10");
+    ttk.Label(tab5,text ="Plug Name").pack(); PlugName=ttk.Entry(tab5); PlugName.pack();
+    ttk.Label(tab5,text ="Plug type").pack(); PlugType=ttk.Combobox(tab5, values = ("SyringeBOT","Sensor","Robot"), state = 'readonly'); PlugType.pack(); 
+    ttk.Label(tab5,text ="Plug IP").pack(); Plug_IP=ttk.Combobox(tab5, values = AvailableSerialPorts()); Plug_IP.pack(); #Plug_IP.bind("<<ComboboxSelected>>", ReactantTypecallback)
+    PlugEnabled=tk.BooleanVar(); PlgEnabled=tk.Checkbutton(tab5,text="Plug enabled",variable=PlugEnabled); PlgEnabled.pack()
+    ttk.Label(tab5,text ="Variable names (base name or space separated)").pack(); PlugCommand=ttk.Entry(tab5); PlugCommand.pack(); 
+    USBlabel=ttk.Label(tab5,text ="---"); USBlabel.pack();
+    F2T5 = ttk.Frame(tab5); F2T5.pack()
+    F3T5 = ttk.Frame(tab5); F3T5.pack()
+    F4T5 = ttk.Frame(tab5); F4T5.pack(pady="10")
+    ttk.Button(F2T5, text="Save changes", command=SavePlugParameters).pack(side="left")
+    ttk.Button(F2T5, text="Ignore changes", command=AskLoadPlugParameters).pack(side="left")
+    ttk.Button(F2T5, text="Clear all values", command=ClearPlugParameters).pack(side="left")
+    ttk.Button(F3T5, text="TEST", command=Try2Trigger).pack(side="left")
+    ttk.Button(F4T5, text="Add new Plug", command=AddPlug).pack(side="left")
+    ttk.Button(F4T5, text="Remove Plug", command=DeleteCurrentPlug).pack(side="left")
+
+    
+####################################
+    
 
     LoadConfFile('startup.conf')
     SetSyringeOptions()

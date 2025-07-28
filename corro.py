@@ -1323,14 +1323,6 @@ def UserClickedMacro(num):
 def Record():
   return
 
-def ThereAreErrors(CompiledCode):
-  if CompiledCode=="" or CompiledCode==None:
-     return True
-  test="ERROR" in CompiledCode
-  if test:
-     AskToShowMissingConnections(base,CompiledCode[1])     
-  return test
-
 def Configurator():
   StartConfigurator(base)      
 
@@ -1338,12 +1330,7 @@ def Wizard():
   StartWizard(base)
 
 def Bayesian():
-  filename=ChooseProcedureFile()
-  if filename=="": return
-  OptimizerCode=StartWizard(base,Hide=True,File=filename,Mode="Optimizer")
-  if ThereAreErrors(OptimizerCode):
-      return
-  StartBO_Window(base,OptimizerCode)
+  StartOptimizer(base)
 
 def StartProcedure():
 ##    if connected==0:   
@@ -1356,7 +1343,7 @@ def StartProcedure():
         filename=ChooseProcedureFile()
         if filename=="": return
         CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")
-        if ThereAreErrors(CompiledCode):
+        if ThereAreErrors(base,CompiledCode):
             return
         macronum=CreateNewMacroNumber("TEMP_FFFF")
         SaveMacroFile(macronum,"\n".join(CompiledCode))

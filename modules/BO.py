@@ -22,6 +22,7 @@ from tkinter import ttk
 import os
 from modules.configurator import *
 from modules.wizard import *
+from modules.buildvercalculator import CRC
 
 def disable_widgets(frame):
     for widget in frame.winfo_children():
@@ -135,7 +136,43 @@ class BO_Object(tk.Frame):
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
-        
+
+def StartOptimizer(window): 
+    Optimizer_Window=tk.Toplevel(window)
+    Optimizer_Window.title("REACTION OPTIMIZER SETUP")
+    Optimizer_Window.geometry('200x500+400+10')
+    Optimizer_Window.grab_set()
+    New_icon = PhotoImage(file = r"icons/new_setup.png")
+    bNewSetup=Button(Optimizer_Window, text="NEW", command=lambda: New_Setup(Optimizer_Window),image = New_icon, compound = LEFT)
+    bNewSetup.pack()
+    Load_icon = PhotoImage(file = r"icons/load_setup.png")
+    bLoad=Button(Optimizer_Window, text="EDIT", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
+    bLoad.pack()
+    Run_icon = PhotoImage(file = r"icons/run_setup.png")
+    bRun=Button(Optimizer_Window, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
+    bRun.pack()
+    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
+    bExit=Button(Optimizer_Window, text="EXIT", command=lambda: Exit_Setup(Optimizer_Window),image = Exit_icon, compound = LEFT)
+    bExit.pack()
+                               
+    Optimizer_Window.mainloop()
+
+
+def New_Setup(window):
+    filename=ChooseProcedureFile()
+    if filename=="": return
+    OptimizerCode=StartWizard(window,Hide=True,File=filename,Mode="Optimizer")
+    if ThereAreErrors(window,OptimizerCode): return
+    StartBO_Window(window,OptimizerCode,File=filename)    
+
+def Edit_Setup(window):
+    return
+
+def Run_Setup(window):
+    return
+
+def Exit_Setup(window):
+    window.destroy()
 
 def StartBO_Window(window, OptimizerCode, **kwargs):
                       
@@ -211,20 +248,12 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
         Obj.place(x=10,y=CurrentY)
         CurrentY+=YSize
 
-
-    Hidden=False
     filename=""
     for k, val in kwargs.items():
-        if k=="Hide":
-            Hidden=val
-        elif k=="File":
+        if k=="File":
             filename=val
-    if filename:
-        if Hidden:
-            BO_Window.withdraw()
-        LoadProcedures(filename)
-        #CompiledCode=CheckProcedure(**kwargs)
-        BO_Window.destroy()
-        return CompiledCode
+            CRC_Value=CRC(filename)
+            File_Size=os.path.getsize(filename)
+            print(filename,CRC_Value,File_Size)
     
     BO_Window.mainloop()
