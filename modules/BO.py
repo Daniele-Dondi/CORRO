@@ -137,33 +137,26 @@ class BO_Object(tk.Frame):
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
 
-def StartOptimizer(window): 
-    Optimizer_Window=tk.Toplevel(window)
-    Optimizer_Window.title("REACTION OPTIMIZER SETUP")
-    Optimizer_Window.geometry('200x500+400+10')
-    Optimizer_Window.grab_set()
-    New_icon = PhotoImage(file = r"icons/new_setup.png")
-    bNewSetup=Button(Optimizer_Window, text="NEW", command=lambda: New_Setup(Optimizer_Window),image = New_icon, compound = LEFT)
-    bNewSetup.pack()
-    Load_icon = PhotoImage(file = r"icons/load_setup.png")
-    bLoad=Button(Optimizer_Window, text="EDIT", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
-    bLoad.pack()
-    Run_icon = PhotoImage(file = r"icons/run_setup.png")
-    bRun=Button(Optimizer_Window, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
-    bRun.pack()
-    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
-    bExit=Button(Optimizer_Window, text="EXIT", command=lambda: Exit_Setup(Optimizer_Window),image = Exit_icon, compound = LEFT)
-    bExit.pack()
-                               
-    Optimizer_Window.mainloop()
+##def StartOptimizer(window): 
+##    Optimizer_Window=tk.Toplevel(window)
+##    Optimizer_Window.title("REACTION OPTIMIZER SETUP")
+##    Optimizer_Window.geometry('200x500+400+10')
+##    Optimizer_Window.grab_set()
+##    New_icon = PhotoImage(file = r"icons/new_setup.png")
+##    bNewSetup=Button(Optimizer_Window, text="NEW", command=lambda: New_Setup(Optimizer_Window),image = New_icon, compound = LEFT)
+##    bNewSetup.pack()
+##    Load_icon = PhotoImage(file = r"icons/load_setup.png")
+##    bLoad=Button(Optimizer_Window, text="EDIT", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
+##    bLoad.pack()
+##    Run_icon = PhotoImage(file = r"icons/run_setup.png")
+##    bRun=Button(Optimizer_Window, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
+##    bRun.pack()
+##    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
+##    bExit=Button(Optimizer_Window, text="EXIT", command=lambda: Exit_Setup(Optimizer_Window),image = Exit_icon, compound = LEFT)
+##    bExit.pack()
+##                               
+##    Optimizer_Window.mainloop()
 
-
-def New_Setup(window):
-    filename=ChooseProcedureFile()
-    if filename=="": return
-    OptimizerCode=StartWizard(window,Hide=True,File=filename,Mode="Optimizer")
-    if ThereAreErrors(window,OptimizerCode): return
-    StartBO_Window(window,OptimizerCode,File=filename)    
 
 def Edit_Setup(window):
     return
@@ -171,10 +164,13 @@ def Edit_Setup(window):
 def Run_Setup(window):
     return
 
-def Exit_Setup(window):
-    window.destroy()
-
-def StartBO_Window(window, OptimizerCode, **kwargs):
+def StartBO_Window(window, **kwargs):
+    global filename,CRC_Value,File_Size,CurrentY
+    CreatedProcedures=[]
+    filename=""
+    CRC_Value=""
+    File_Size=0
+    CurrentY=10    
                       
     def on_mousewheel(event):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -182,29 +178,51 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
     def Close():
         BO_Window.destroy()
 
+    def RenderOptimizerCode(OptimizerCode):
+        global filename,CRC_Value,File_Size,CurrentY
+        for element in OptimizerCode:
+            Obj=BO_Object(frame2)
+            CreatedProcedures.append(Obj)
+            Obj.SetValues(element)
+            YSize=Obj.Height
+            Obj.place(x=10,y=CurrentY)
+            CurrentY+=YSize
+
+    def New_Setup():
+        global filename,CRC_Value,File_Size,CurrentY
+        filename=ChooseProcedureFile()
+        if filename=="": return
+        OptimizerCode=StartWizard(window,Hide=True,File=filename,Mode="Optimizer")
+        if ThereAreErrors(window,OptimizerCode): return
+        CRC_Value=CRC(filename)
+        File_Size=os.path.getsize(filename)
+        print(filename,CRC_Value,File_Size)
+        RenderOptimizerCode(OptimizerCode)    
+
     BO_Window=tk.Toplevel(window)
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
     BO_Window.geometry('1000x800+400+10')
     BO_Window.grab_set()
     menubar = Menu(BO_Window)
     file_menu = Menu(menubar,tearoff=0)
-    file_menu.add_command(label='New')#,command=New)
+    file_menu.add_command(label='New',command=New_Setup)
     file_menu.add_separator()    
-    file_menu.add_command(label='Load Procedure')#,command=AskLoadProcedures)
-    file_menu.add_command(label='Append Procedure')#,command=AskImportProcedures)    
-    file_menu.add_command(label='Save Procedure')#,command=AskSaveProcedures)
+    file_menu.add_command(label='Load Procedure to be optimized')#,command=AskLoadProcedures)
+    file_menu.add_separator()
+    file_menu.add_command(label='Load Optimization')#,command=AskImportProcedures)    
+    file_menu.add_command(label='Save Optimization')#,command=AskSaveProcedures)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
-    settings_menu = Menu(menubar,tearoff=0)
-    settings_menu.add_command(label='Default macro settings')
+    #settings_menu = Menu(menubar,tearoff=0)
+    #settings_menu.add_command(label='Default macro settings')
     BO_Window.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
-    menubar.add_cascade(label="Settings",menu=settings_menu)
+    #menubar.add_cascade(label="Settings",menu=settings_menu)
     menubar.add_cascade(label="Process Check")#,command=CheckProcedure)
     frame1 = tk.Frame(BO_Window)
     frame1.pack(side="top")
-    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
-    frame3.pack(side="bottom")
+##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
+##    frame3.pack(side="bottom")
     
     my_canvas = Canvas(BO_Window)
     my_canvas.pack(side=LEFT,fill=BOTH,expand=1)
@@ -233,20 +251,19 @@ def StartBO_Window(window, OptimizerCode, **kwargs):
     SelectionCanvas = Canvas(frame2,height=10000,width=1000,bg="white")
     SelectionCanvas.pack()
 
-    tk.Button(frame1,text="Pour liquid").pack(side="left")
+    New_icon = PhotoImage(file = r"icons/new_setup.png")
+    bNewSetup=Button(frame1, text="NEW", command=New_Setup,image = New_icon, compound = LEFT)
+    bNewSetup.pack(side="left",padx=10)
+    Load_icon = PhotoImage(file = r"icons/load_setup.png")
+    bLoad=Button(frame1, text="EDIT", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
+    bLoad.pack(side="left",padx=10)
+    Run_icon = PhotoImage(file = r"icons/run_setup.png")
+    bRun=Button(frame1, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
+    bRun.pack(side="left",padx=10)
+    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
+    bExit=Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = LEFT)
+    bExit.pack(side="left",padx=10)
 
-
-    tk.Button(frame3,text="Process Check").pack(side="left")#,command=CheckProcedure).pack(side="left")
-    
-    CreatedProcedures=[]
-    CurrentY=10
-    for element in OptimizerCode:
-        Obj=BO_Object(frame2)
-        CreatedProcedures.append(Obj)
-        Obj.SetValues(element)
-        YSize=Obj.Height
-        Obj.place(x=10,y=CurrentY)
-        CurrentY+=YSize
 
     filename=""
     for k, val in kwargs.items():

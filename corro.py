@@ -1330,7 +1330,7 @@ def Wizard():
   StartWizard(base)
 
 def Bayesian():
-  StartOptimizer(base)
+  StartBO_Window(base)
 
 def StartProcedure():
 ##    if connected==0:   
