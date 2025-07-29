@@ -267,6 +267,11 @@ def StartBO_Window(window, **kwargs):
     bExit=Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = LEFT)
     bExit.pack(side="left",padx=10)
 
+    Help_icon = PhotoImage(file = r"icons/help_setup.png")
+    bHelp=Button(frame1, text="HELP", command=Close,image = Help_icon, compound = LEFT)
+    bHelp.pack(side="left",padx=20)
+    
+
 
     filename=""
     for k, val in kwargs.items():
