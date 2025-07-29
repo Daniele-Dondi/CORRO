@@ -31,12 +31,12 @@ def TurnPlugOFF(SHELLY_IP):
     except Exception as e:
         return f"ERROR: Unexpected error: {e}"
 
-
-# Example usage
-print("waiting")
-time.sleep(5)
-response=TurnPlugON("10.163.42.152")
-print(response)
-time.sleep(5)
-response=TurnPlugOFF("10.163.42.152")
-print(response)
+##
+### Example usage
+##print("waiting")
+##time.sleep(5)
+##response=TurnPlugON("10.163.42.152")
+##print(response)
+##time.sleep(5)
+##response=TurnPlugOFF("10.163.42.152")
+##print(response)
