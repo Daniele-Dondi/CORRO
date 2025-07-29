@@ -21,7 +21,7 @@ def TurnPlugOFF(SHELLY_IP):
     try:
         response = requests.get(f"{BASE_URL}?turn=off", timeout=5)
         response.raise_for_status()
-        print("Plug turned OFF:", response.text)
+        return "Plug turned OFF:", response.text
     except requests.exceptions.Timeout:
         return "ERROR: Request timed out. Shelly plug may be unreachable."
     except requests.exceptions.ConnectionError:
@@ -36,5 +36,7 @@ def TurnPlugOFF(SHELLY_IP):
 print("waiting")
 time.sleep(5)
 response=TurnPlugON("10.163.42.152")
+print(response)
 time.sleep(5)
 response=TurnPlugOFF("10.163.42.152")
+print(response)
