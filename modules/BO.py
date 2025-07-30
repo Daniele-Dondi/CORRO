@@ -157,7 +157,7 @@ class BO_Object(tk.Frame):
             MinMaxEnabled.append(MinMax.GetEnabled())
         output.append(MinMaxValues)
         output.append(MinMaxEnabled)
-        print(output,len(output))
+        return output
 
     
 ################################################################## end of classes ##################################################################
@@ -199,10 +199,30 @@ def StartBO_Window(window, **kwargs):
             Obj.place(x=10,y=CurrentY)
             CurrentY+=YSize
 
+    def ValuesAreCorrected():
+        global CreatedProcedures
+        for obj in CreatedProcedures:
+            Values=obj.GetValues()
+            for num,element in enumerate(Values[3]):
+                obj.MinMaxs[num].frame.config(bg=obj.MinMaxs[num].frame.master.cget("bg")) #retrieve the background color from the master object
+                if element=="normal":
+                    try:
+                        minimum=float(Values[2][num][0])
+                        maximum=float(Values[2][num][1])
+                        if minimum>maximum:
+                            obj.MinMaxs[num].frame.config(bg="red")
+                            return False
+                    except:
+                        obj.MinMaxs[num].frame.config(bg="red")
+                        return False
+
+
     def SaveOptimization(filename):
         global ProcedureName,CRC_Value,File_Size,CreatedProcedures
+        AllValues=[]
         for obj in CreatedProcedures:
-            obj.GetValues()
+            AllValues.append(obj.GetValues())
+        print(AllValues)
 
     def AskSaveOptimizer():
         global CreatedProcedures
@@ -212,6 +232,8 @@ def StartBO_Window(window, **kwargs):
         filename=filedialog.asksaveasfilename(filetypes=filetypes)
         if filename=="": return
         if not ".Optimizer" in filename: filename+=".Optimizer"
+        if ValuesAreCorrected()==False:
+            tk.messagebox.showerror("ERROR", "Check values inserted")
         SaveOptimization(filename)
 
     def New_Setup():
