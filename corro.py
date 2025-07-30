@@ -29,10 +29,10 @@ import datetime as DT
 import os
 import serial
 import modules.configurator as conf
-from modules.wizard import *
-from modules.listserialports import *
-from modules.buildvercalculator import *
-from modules.BO import *
+import modules.wizard as wiz
+from modules.listserialports import AvailableSerialPorts
+from modules.buildvercalculator import GetBuildVersion
+import modules.BO as Bay
 from modules.tooltip import ToolTip
 import traceback
 
@@ -107,6 +107,7 @@ Time_Hook_Macro="" #macro to call when condition is True
 #Macro global variables are variables that are available to all scripts and are kept up to program exit
 #To access them use the commands getglobal and setglobal
 global_vars=[]
+USB_handles=[]
 
 BuildVersion=GetBuildVersion()
 
@@ -133,40 +134,57 @@ def GraphZoom_Unzoom():
 def readConfigurationFiles():
     global SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
     global HasRobot,HasSyringeBOT
-    
+    global AutoConnect, AutoInit,GO_Fullscreen
+    global ShowMacrosPalettes,debug,DoNotConnect,WatchdogMax
+    global noprint_debug, cmdfile
+
+    # Initialize dictionary to store variables
+    variables = {}
     try:
-        conf_file = open("conf"+os.sep+"configuration.txt", "r") #open configuration.txt and read parameters
-        lines=conf_file.readlines()
-        conf_file.close()
-        NumSyringes=int(lines[1].strip())
-##        for x in range(NumSyringes):
-##            l=lines[3+x].split(";")
-##            SyringemmToMax[x]=float(l[0].strip())*2 #annoyngly we have to multiply by 2 to have the correct movement in mm
-##            SyringeVolumes[x]=float(l[1].strip())
-        curline=4+NumSyringes
-        #VolInlet=float(lines[curline].strip())
-        curline+=2
-        #VolOutlet=float(lines[curline].strip())
-        curline+=2
-        SchematicImage="conf"+os.sep+lines[curline].strip()
+        # Read file and parse lines
+        with open("conf"+os.sep+"configuration.txt", "r") as file:
+            for line in file:
+                # Remove whitespace and skip empty lines
+                line = line.strip()
+                if not line or '=' not in line:
+                    continue
+                # Split into keyword and value
+                key, value = line.split('=', 1)
+                variables[key.strip()] = value.strip()
+
+        SchematicImage="conf"+os.sep+variables.get("Schematic Image")
         MaskImage=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-mask.png" #define automatically the names of mask and binds from the schematic image name
         MaskMacros=SchematicImage.rsplit( ".", 1 )[ 0 ]+"-binds.txt"
- 
-        LoadConfFile('startup.conf')
-
-    except Exception as e:
-     print(e)       
-     tkinter.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
-    try: #open configuration-binds.txt
-     bind_file = open(MaskMacros, "r")
-     lines=bind_file.readlines()
-     bind_file.close()
-     NumBinds=int(lines[1].strip())
-     for x in range(NumBinds):        
-      pixboundedmacro.append(lines[3+x].strip())
-      colorsbound.append(eval(lines[4+x+NumBinds]))
+        try: AutoConnect=variables["AutoConnect"].lower()=="true"
+        except: pass
+        try: AutoInit=variables["AutoInit"].lower()=="true"
+        except: pass
+        try: ShowMacrosPalettes=variables["ShowMacrosPalettes"].lower()=="true"
+        except: pass
+        try: debug=variables["debug"].lower()=="true"
+        except: pass
+        try: DoNotConnect=variables["DoNotConnect"].lower()=="true"
+        except: pass
+        try: WatchdogMax=int(variables["WatchdogMax"])
+        except: pass
+        try: GO_Fullscreen=variables["GO_Fullscreen"].lower()=="true"
+        except: pass
+        try: noprint_debug=int(variables["noprint_debug"])
+        except: pass
+        if noprint_debug: cmdfile=open("gcodecmds.txt","w")        
+        try: #open configuration-binds.txt
+         bind_file = open(MaskMacros, "r")
+         lines=bind_file.readlines()
+         bind_file.close()
+         NumBinds=int(lines[1].strip())
+         for x in range(NumBinds):        
+          pixboundedmacro.append(lines[3+x].strip())
+          colorsbound.append(eval(lines[4+x+NumBinds]))
+        except:
+         tkinter.messagebox.showwarning("Warning","Current schematic has no colors defined with macros")    
     except:
-     tkinter.messagebox.showwarning("Warning","Current schematic has no colors defined with macros")
+        tkinter.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
+    conf.LoadConfFile('startup.conf')    
 
 def SyringeBOT_is_ready():
     global SyringeBOT_IS_BUSY,Temperature_Hook,Time_Hook
@@ -1027,7 +1045,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             return
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")    
-        LoadConfFile('startup.conf')
+        conf.LoadConfFile('startup.conf')
         for device in range(len(conf.USB_names)): #connect all the sensors
          if conf.USB_deviceready[device]:
           if conf.USB_types[device]=="SyringeBOT":
@@ -1324,13 +1342,13 @@ def Record():
   return
 
 def Configurator():
-  StartConfigurator(base)      
+  conf.StartConfigurator(base)      
 
 def Wizard():
-  StartWizard(base)
+  wiz.StartWizard(base)
 
 def Bayesian():
-  StartBO_Window(base)
+  Bay.StartBO_Window(base)
 
 def StartProcedure():
 ##    if connected==0:   
@@ -1340,10 +1358,10 @@ def StartProcedure():
 ##        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
 ##        return
 ##    if SyringeBOT_is_ready():
-        filename=ChooseProcedureFile()
+        filename=wiz.ChooseProcedureFile()
         if filename=="": return
-        CompiledCode=StartWizard(base,Hide=True,File=filename,Mode="Code")
-        if ThereAreErrors(base,CompiledCode):
+        CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
+        if wiz.ThereAreErrors(base,CompiledCode):
             return
         macronum=CreateNewMacroNumber("TEMP_FFFF")
         SaveMacroFile(macronum,"\n".join(CompiledCode))
@@ -1367,6 +1385,8 @@ CORRO_FONT="Verdana 15 bold"
 HEADER_FONT="Verdana 8 bold"
 BUSY_FONT='Helvetica 15 bold'
 #base.iconbitmap("icons/main_icon.ico")
+#Load configuration file
+readConfigurationFiles()
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
 F = Frame(base)
@@ -1427,7 +1447,7 @@ bWiz.pack()
 bo_icon = PhotoImage(file = r"icons/BO.png")
 bBO=Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = LEFT)
 bBO.pack()
-#ToolTip(bBO, "Click to start the reaction optimization by Baesyan Algorithm")
+#ToolTip(bBO, "Click to start the reaction optimization by Bayesian Algorithm")
 exit_icon = PhotoImage(file = r"icons/exit.png")
 bClose = Button(F, text="EXIT", command=Close,image = exit_icon, compound = LEFT)
 bClose.pack(pady=10)
@@ -1492,8 +1512,7 @@ w2.bind("<Button-1>", onclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-2>", onmiddleclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-3>", onrightclick) #bind click procedure to syringebot scheme
 w2.pack()
-#Load configuration file
-readConfigurationFiles()
+
 RESIZE_IMAGES=False
 original_image = PIL.Image.open(SchematicImage)  # Replace with your actual image file
 if (RESIZE_IMAGES):

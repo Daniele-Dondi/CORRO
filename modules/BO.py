@@ -18,10 +18,9 @@
 
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import os
-from modules.configurator import *
-from modules.wizard import *
+import modules.wizard as wiz
 from modules.buildvercalculator import CRC
 
 def disable_widgets(frame):
@@ -132,6 +131,14 @@ class BO_Object(tk.Frame):
                 disable_widgets(ThisMinMax.frame)
             self.Objects[-1].pack(side="left")
 
+    def GetValues(self):
+        output=[self.values,self.text]
+        MinMaxValues=[]
+        for MinMax in self.MinMaxs:
+            MinMaxValues.append(MinMax.GetValues())
+        output.append(MinMaxValues)
+        print(output)
+
     
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
@@ -165,12 +172,16 @@ def Run_Setup(window):
     return
 
 def StartBO_Window(window, **kwargs):
-    global filename,CRC_Value,File_Size,CurrentY
-    CreatedProcedures=[]
-    filename=""
-    CRC_Value=""
-    File_Size=0
-    CurrentY=10    
+    global ProcedureName,CRC_Value,File_Size,CurrentY
+    global CreatedProcedures
+
+    def InitVars():
+        global CreatedProcedures, ProcedureName, CRC_Value, File_Size, CurrentY
+        CreatedProcedures=[]
+        ProcedureName=""
+        CRC_Value=""
+        File_Size=0
+        CurrentY=10    
                       
     def on_mousewheel(event):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -179,7 +190,7 @@ def StartBO_Window(window, **kwargs):
         BO_Window.destroy()
 
     def RenderOptimizerCode(OptimizerCode):
-        global filename,CRC_Value,File_Size,CurrentY
+        global CurrentY,CreatedProcedures
         for element in OptimizerCode:
             Obj=BO_Object(frame2)
             CreatedProcedures.append(Obj)
@@ -188,16 +199,51 @@ def StartBO_Window(window, **kwargs):
             Obj.place(x=10,y=CurrentY)
             CurrentY+=YSize
 
-    def New_Setup():
-        global filename,CRC_Value,File_Size,CurrentY
-        filename=ChooseProcedureFile()
+    def SaveOptimization(filename):
+        global ProcedureName,CRC_Value,File_Size,CreatedProcedures
+        for obj in CreatedProcedures:
+            obj.GetValues()
+
+    def AskSaveOptimizer():
+        global CreatedProcedures
+        if len(CreatedProcedures)==0:
+            return
+        filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
+        filename=filedialog.asksaveasfilename(filetypes=filetypes)
         if filename=="": return
-        OptimizerCode=StartWizard(window,Hide=True,File=filename,Mode="Optimizer")
-        if ThereAreErrors(window,OptimizerCode): return
-        CRC_Value=CRC(filename)
-        File_Size=os.path.getsize(filename)
-        print(filename,CRC_Value,File_Size)
-        RenderOptimizerCode(OptimizerCode)    
+        if not ".Optimizer" in filename: filename+=".Optimizer"
+        SaveOptimization(filename)
+
+    def New_Setup():
+        global ProcedureName,CRC_Value,File_Size,CurrentY,CreatedProcedures
+        if len(CreatedProcedures)>0:
+            if AskDeleteAll()==False:
+                return
+        ProcedureName=wiz.ChooseProcedureFile()
+        if ProcedureName=="": return
+        OptimizerCode=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Optimizer")
+        if wiz.ThereAreErrors(window,OptimizerCode): return
+        CRC_Value=CRC(ProcedureName)
+        File_Size=os.path.getsize(ProcedureName)
+        print(ProcedureName,CRC_Value,File_Size)
+        RenderOptimizerCode(OptimizerCode)
+
+    def DeleteAll():
+        global CreatedProcedures
+        for obj in CreatedProcedures:
+            obj.destroy()
+        InitVars()
+
+    def AskDeleteAll():
+        global CreatedProcedures
+        if len(CreatedProcedures)==0:
+            return
+        else:
+            MsgBox = tk.messagebox.askquestion ('New Optimization','Are you sure you want to delete all?',icon = 'warning')
+        if MsgBox == 'yes':
+            DeleteAll()
+            return True
+        return False
 
     BO_Window=tk.Toplevel(window)
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
@@ -205,12 +251,12 @@ def StartBO_Window(window, **kwargs):
     BO_Window.grab_set()
     menubar = Menu(BO_Window)
     file_menu = Menu(menubar,tearoff=0)
-    file_menu.add_command(label='New',command=New_Setup)
+    file_menu.add_command(label='Clear All',command=AskDeleteAll)
     file_menu.add_separator()    
-    file_menu.add_command(label='Load Procedure to be optimized')#,command=AskLoadProcedures)
+    file_menu.add_command(label='Load Procedure to be optimized',command=New_Setup)
     file_menu.add_separator()
     file_menu.add_command(label='Load Optimization')#,command=AskImportProcedures)    
-    file_menu.add_command(label='Save Optimization')#,command=AskSaveProcedures)
+    file_menu.add_command(label='Save Optimization',command=AskSaveOptimizer)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
     #settings_menu = Menu(menubar,tearoff=0)
@@ -258,7 +304,7 @@ def StartBO_Window(window, **kwargs):
     bLoad=Button(frame1, text="LOAD", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
     bLoad.pack(side="left",padx=10)
     Save_icon = PhotoImage(file = r"icons/save_setup.png")
-    bSave=Button(frame1, text="SAVE", command=lambda: Save_Setup(Optimizer_Window),image = Save_icon, compound = LEFT)
+    bSave=Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = LEFT)
     bSave.pack(side="left",padx=10)
     Run_icon = PhotoImage(file = r"icons/run_setup.png")
     bRun=Button(frame1, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
@@ -271,14 +317,14 @@ def StartBO_Window(window, **kwargs):
     bHelp=Button(frame1, text="HELP", command=Close,image = Help_icon, compound = LEFT)
     bHelp.pack(side="left",padx=20)
     
+    InitVars()
 
-
-    filename=""
+    ProcedureName=""
     for k, val in kwargs.items():
         if k=="File":
-            filename=val
-            CRC_Value=CRC(filename)
-            File_Size=os.path.getsize(filename)
-            print(filename,CRC_Value,File_Size)
+            ProcedureName=val
+            CRC_Value=CRC(ProcedureName)
+            File_Size=os.path.getsize(ProcedureName)
+            print(ProcedureName,CRC_Value,File_Size)
     
     BO_Window.mainloop()

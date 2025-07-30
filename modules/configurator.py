@@ -21,14 +21,14 @@ from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
 import serial
 import time
-from modules.listserialports import *
-from .serialmon import *
+from modules.listserialports import AvailableSerialPorts
+from .serialmon import SerialMon
 
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
     global ValveOptions,CurrentSyringe,ValvesArray,SyringesArray,SyringeVolumes,SyringeInletVolumes,SyringeOutletVolumes,SyringemmToMax
     global DefaultDeviceParameters, PIDList, ThermoList, PowerList
-    global USB_handles,USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
+    global USB_names,USB_deviceready,USB_ports,USB_baudrates,USB_types
     global USB_num_vars,USB_var_names,USB_var_points,USB_last_values,Sensors_var_names,Sensors_var_values
     global PlugsArray,CurrentPlug,DefaultPlugParameters
     global CurrentFileName
@@ -50,11 +50,11 @@ def InitAllData():
     PlugsArray=[]
     CurrentPlug=1
     DefaultDeviceParameters=["","","","","",True,"0",""]
-    DefaultPlugParameters=["","","",True,""]
+    DefaultPlugParameters=["","","",True,"/relay/0?turn=on","/relay/0?turn=off"]
     PIDList=["None","Heater 1","Heater 2"]
     ThermoList=["None","Thermocouple 1","Thermocouple 2"]
     PowerList=["None","BT channel 1","BT channel 2","BT channel 3","BT channel 4","BT channel 5","BT channel 6"]
-    USB_handles=[]; USB_names=[]; USB_deviceready=[]; USB_ports=[]; USB_baudrates=[]; USB_types=[]
+    USB_names=[]; USB_deviceready=[]; USB_ports=[]; USB_baudrates=[]; USB_types=[]
     USB_num_vars=[]; USB_var_names=[]; USB_var_points=[]; USB_last_values=[]; Sensors_var_names=[]; Sensors_var_values=[]
     CurrentFileName=""
     FileIsModified=False
@@ -1368,16 +1368,18 @@ def StartConfigurator(window):
 
 #########################################
     def GetTab5Variables():
-        return [PlugName.get(), PlugType.get(), Plug_IP.get(), PlugEnabled.get(), PlugCommand.get()]
+        return [PlugName.get(), PlugType.get(), Plug_IP.get(), PlugDefaultParms.get(), PlugCommandON.get(), PlugCommandOFF.get()]
 
     def SetTab5Variables(parms):
         PlugName.delete(0,tk.END); PlugName.insert(0,str(parms[0]))
         PlugType.set(parms[1])
-        Plug_IP.set(parms[2])
-        PlugEnabled.set(parms[3])
-        DevEnabled.update()
-        PlugCommand.delete(0,tk.END); PlugCommand.insert(0,str(parms[4]))
-        PlugCommand.update()
+        Plug_IP.delete(0,tk.END); Plug_IP.insert(0,str(parms[2]))
+        PlugDefaultParms.set(parms[3])
+        PlgEnabled.update()
+        PlugCommandON.delete(0,tk.END); PlugCommandON.insert(0,str(parms[4]))
+        PlugCommandON.update()
+        PlugCommandOFF.delete(0,tk.END); PlugCommandOFF.insert(0,str(parms[5]))
+        PlugCommandOFF.update()
 
     def LoadPlugParameters():
          global PlugsArray,CurrentPlug
@@ -1457,18 +1459,39 @@ def StartConfigurator(window):
     def CheckPlugParameters():
         global CurrentPlug,PlugsArray
         parms=GetTab5Variables()
+        if parms[0]=="":
+            messagebox.showerror("ERROR", "Plug name cannot be empty. Insert a valid name and retry.")
+            return False
+        if parms[1]=="":
+            messagebox.showerror("ERROR", "Plug type cannot be empty.")
+            return False
+        if parms[2]=="":
+            messagebox.showerror("ERROR", "IP address cannot be empty.")
+            return False
+        if Is_Valid_IP(str(parms[2]))==False:
+            messagebox.showerror("ERROR", str(parms[2])+" is not a valid IP address")
+            return False
+        if (parms[3]==False and( parms[4]=="" or parms[5]=="")):
+            messagebox.showerror("ERROR", "Plug parameters cannot be empty if parameters are not default.")
+            return False
         for i,element in enumerate(PlugsArray):
             if  not i==CurrentPlug-1:
                 if parms[0] in element:
                     messagebox.showerror("ERROR", "Name already in use")
                     return False
                 if parms[2] in element:
-                    messagebox.showerror("ERROR", "Port "+str(parms[2])+" already in use")
+                    messagebox.showerror("ERROR", "IP "+str(parms[2])+" already in use")
                     return False
         return True
 
     def PlugTypecallback(eventObject):
-        return
+        global DefaultPlugParameters
+        if PlugType.get()=="Shelly":
+            parms=GetTab5Variables()
+            parms[3]=True
+            parms[4]=DefaultPlugParameters[4]
+            parms[5]=DefaultPlugParameters[5]
+            SetTab5Variables(parms)
     
     def SetStatusNextPrevButtonsT5():
         global CurrentPlug
@@ -1512,16 +1535,29 @@ def StartConfigurator(window):
         except:
             messagebox.showerror("ERROR", "Cannot connect")
 
+    def Is_Valid_IP(IP):
+        parts=IP.split(".")
+        if not(len(parts))==4: return False
+        try:
+            for part in parts:
+                num=int(part)
+                if num<0 or num>255: return False
+        except:
+            return False
+        return True
+
     F1T5 = ttk.Frame(tab5); F1T5.pack()    
     PrevT5Button=ttk.Button(F1T5, text="Prev", command=PrevT5,state='disabled'); PrevT5Button.pack(side="left")
     NextT5Button=ttk.Button(F1T5, text="Next", command=NextT5,state='disabled'); NextT5Button.pack(side="left")
     HeaderLabelT5=ttk.Label(tab5,text ="Plug n. 1 of 1",font=("Arial", 12)); HeaderLabelT5.pack(pady="10");
     ttk.Label(tab5,text ="Plug Name").pack(); PlugName=ttk.Entry(tab5); PlugName.pack();
-    ttk.Label(tab5,text ="Plug type").pack(); PlugType=ttk.Combobox(tab5, values = ("SyringeBOT","Sensor","Robot"), state = 'readonly'); PlugType.pack(); 
-    ttk.Label(tab5,text ="Plug IP").pack(); Plug_IP=ttk.Combobox(tab5, values = AvailableSerialPorts()); Plug_IP.pack(); #Plug_IP.bind("<<ComboboxSelected>>", ReactantTypecallback)
-    PlugEnabled=tk.BooleanVar(); PlgEnabled=tk.Checkbutton(tab5,text="Plug enabled",variable=PlugEnabled); PlgEnabled.pack()
-    ttk.Label(tab5,text ="Variable names (base name or space separated)").pack(); PlugCommand=ttk.Entry(tab5); PlugCommand.pack(); 
-    USBlabel=ttk.Label(tab5,text ="---"); USBlabel.pack();
+    ttk.Label(tab5,text ="Plug type").pack(); PlugType=ttk.Combobox(tab5, values = ("Shelly","Other"), state = 'readonly'); PlugType.pack();
+    PlugType.bind("<<ComboboxSelected>>", PlugTypecallback)
+    ttk.Label(tab5,text ="Plug IP").pack(); Plug_IP=ttk.Entry(tab5); Plug_IP.pack();
+    PlugDefaultParms=tk.BooleanVar(); PlgEnabled=tk.Checkbutton(tab5,text="Use default commands",variable=PlugDefaultParms); PlgEnabled.pack()
+    ttk.Label(tab5,text ="Command to switch ON").pack(); PlugCommandON=ttk.Entry(tab5); PlugCommandON.pack();
+    ttk.Label(tab5,text ="Command to switch OFF").pack(); PlugCommandOFF=ttk.Entry(tab5); PlugCommandOFF.pack();     
+    Pluglabel=ttk.Label(tab5,text ="---"); Pluglabel.pack();
     F2T5 = ttk.Frame(tab5); F2T5.pack()
     F3T5 = ttk.Frame(tab5); F3T5.pack()
     F4T5 = ttk.Frame(tab5); F4T5.pack(pady="10")
