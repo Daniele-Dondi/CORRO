@@ -116,6 +116,7 @@ class BO_Object(tk.Frame):
             SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
 
     def SetValues(self,element):
+        #[['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
         text=element[1]
         self.text=element[1]
         values=element[0]
@@ -135,6 +136,17 @@ class BO_Object(tk.Frame):
                 ThisMinMax.SetMax(FloatValue*1.2)
                 disable_widgets(ThisMinMax.frame)
             self.Objects[-1].pack(side="left")
+        if len(element)>2:
+            for num,parameter in enumerate(element[2]):
+                ThisMinMax=self.MinMaxs[num]
+                ThisMinMax.SetMin(parameter[0]) #fill entries with +- 20% of current value
+                ThisMinMax.SetMax(parameter[1])
+            for num,parameter in enumerate(element[3]):
+                ThisMinMax=self.MinMaxs[num].frame
+                if parameter=="disabled":
+                    disable_widgets(ThisMinMax)
+                else:
+                    enable_widgets(ThisMinMax)
 
     def GetValues(self):
         output=[self.values,self.text]
@@ -145,7 +157,7 @@ class BO_Object(tk.Frame):
             MinMaxEnabled.append(MinMax.GetEnabled())
         output.append(MinMaxValues)
         output.append(MinMaxEnabled)
-        print(output)
+        print(output,len(output))
 
     
 ################################################################## end of classes ##################################################################
