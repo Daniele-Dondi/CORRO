@@ -74,6 +74,11 @@ class MinMaxApp:
         max_val = self.max_entry.get()
         return [min_val, max_val]
 
+    def GetEnabled(self):
+        MinMaxEnabled = self.min_entry.cget("state")
+        return MinMaxEnabled
+
+
 class BO_Object(tk.Frame):
     def __init__(self,container):
         self.Height=40
@@ -134,35 +139,18 @@ class BO_Object(tk.Frame):
     def GetValues(self):
         output=[self.values,self.text]
         MinMaxValues=[]
+        MinMaxEnabled=[]
         for MinMax in self.MinMaxs:
             MinMaxValues.append(MinMax.GetValues())
+            MinMaxEnabled.append(MinMax.GetEnabled())
         output.append(MinMaxValues)
+        output.append(MinMaxEnabled)
         print(output)
 
     
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
 ################################################################## end of classes ##################################################################
-
-##def StartOptimizer(window): 
-##    Optimizer_Window=tk.Toplevel(window)
-##    Optimizer_Window.title("REACTION OPTIMIZER SETUP")
-##    Optimizer_Window.geometry('200x500+400+10')
-##    Optimizer_Window.grab_set()
-##    New_icon = PhotoImage(file = r"icons/new_setup.png")
-##    bNewSetup=Button(Optimizer_Window, text="NEW", command=lambda: New_Setup(Optimizer_Window),image = New_icon, compound = LEFT)
-##    bNewSetup.pack()
-##    Load_icon = PhotoImage(file = r"icons/load_setup.png")
-##    bLoad=Button(Optimizer_Window, text="EDIT", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
-##    bLoad.pack()
-##    Run_icon = PhotoImage(file = r"icons/run_setup.png")
-##    bRun=Button(Optimizer_Window, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
-##    bRun.pack()
-##    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
-##    bExit=Button(Optimizer_Window, text="EXIT", command=lambda: Exit_Setup(Optimizer_Window),image = Exit_icon, compound = LEFT)
-##    bExit.pack()
-##                               
-##    Optimizer_Window.mainloop()
 
 
 def Edit_Setup(window):
