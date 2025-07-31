@@ -31,34 +31,80 @@ for row in design:
 df = pd.DataFrame(real_values, columns=["Temperature (°C)", "pH", "Time (min)"])
 print(df)
 
+###################################################################
+import pandas as pd
+from pyDOE2 import pbdesign
 
-##import numpy as np
-##import pandas as pd
-##from pyDOE2 import fullfact
-##
-### Define levels for each factor
-##levels = [2, 2, 2]  # Temperature, pH, Time
-##
-### Generate the full factorial design
-##design = fullfact(levels)
-##
-##print(design)
-##
-### Scale levels to actual values
-##temperature_vals = [50, 70]
-##pH_vals = [6, 8]
-##time_vals = [30, 60]
-##
-### Map the coded levels to real values
-##real_values = []
-##for row in design:
-##    t = temperature_vals[int(row[0])]
-##    pH = pH_vals[int(row[1])]
-##    time = time_vals[int(row[2])]
-##    real_values.append([t, pH, time])
-##
-### Convert to DataFrame for readability
-##df = pd.DataFrame(real_values, columns=["Temperature (°C)", "pH", "Time (min)"])
-##
-### Show the experimental runs
-##print(df)
+# Number of factors
+num_factors = 7
+
+# Define min and max values for each factor
+min_vals = [10, 20, 5, 100, 1, 50, 8]
+max_vals = [30, 40, 15, 200, 5, 70, 12]
+factor_names = ["A", "B", "C", "D", "E", "F", "G"]
+
+# Generate Plackett-Burman design matrix (coded -1 and +1)
+design_matrix = pbdesign(num_factors)
+
+# Map coded values to actual levels
+real_values = []
+for row in design_matrix:
+    mapped_row = [
+        min_vals[i] if val == -1 else max_vals[i] 
+        for i, val in enumerate(row)
+    ]
+    real_values.append(mapped_row)
+
+# Create DataFrame
+df_pb = pd.DataFrame(real_values, columns=factor_names)
+df_pb.index = [f"Run {i+1}" for i in range(len(df_pb))]
+
+print(df_pb)
+
+print("without libraries")
+import itertools
+
+class DesignOfExperiments:
+    def __init__(self, level_counts, min_vals, max_vals):
+        self.level_counts = level_counts
+        self.min_vals = min_vals
+        self.max_vals = max_vals
+        self.coded_matrix = []
+        self.real_matrix = []
+
+    def generate_factorial(self):
+        """Generate full factorial matrix using coded levels"""
+        self.coded_matrix = list(itertools.product(*[range(levels) for levels in self.level_counts]))
+        return self.coded_matrix
+
+    def scale_levels(self):
+        """Convert coded levels into real-world values"""
+        def scale(min_val, max_val, num_levels):
+            return [min_val + i * (max_val - min_val) / (num_levels - 1) for i in range(num_levels)]
+
+        self.level_values = [scale(self.min_vals[i], self.max_vals[i], self.level_counts[i])
+                             for i in range(len(self.level_counts))]
+
+        self.real_matrix = [[self.level_values[i][coded] for i, coded in enumerate(row)]
+                            for row in self.coded_matrix]
+        return self.real_matrix
+
+    def get_design(self):
+        if not self.real_matrix:
+            self.generate_factorial()
+            self.scale_levels()
+        return self.real_matrix
+
+# Define design parameters
+levels = [3, 2, 4]
+min_vals = [40, 5, 15]
+max_vals = [80, 9, 75]
+
+# Instantiate and generate design
+doe = DesignOfExperiments(levels, min_vals, max_vals)
+matrix = doe.get_design()
+
+# Print a few rows
+for row in matrix[:5]:
+    print(row)
+

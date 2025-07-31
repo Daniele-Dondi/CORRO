@@ -199,9 +199,68 @@ def StartBO_Window(window, **kwargs):
             Obj.place(x=10,y=CurrentY)
             CurrentY+=YSize
 
+    def AskLoadOptimization():
+        global CreatedProcedures
+        if len(CreatedProcedures)>0:
+            if AskDeleteAll()==False:
+                return
+        filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
+        filename = filedialog.askopenfilename(filetypes=filetypes)
+        if filename=="": return
+        LoadOptimization(filename)
+
+    def LoadOptimization(filename):
+        fin=open(filename, 'rb')
+        ProcedureName=pickle.load(fin)
+        CRC_Value=pickle.load(fin)
+        File_Size=pickle.load(fin)
+        Values=pickle.load(fin)
+        OptParams=pickle.load(fin)
+        fin.close()
+        if not(CRC(ProcedureName)==CRC_Value):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
+            return
+        if not(os.path.getsize(ProcedureName)==File_Size):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
+            return
+        OptimizerCode=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Optimizer")
+        if wiz.ThereAreErrors(window,OptimizerCode):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" contains errors.")
+            return
+        RenderOptimizerCode(OptimizerCode)
+##        SetObjValues()
+##        SetOptParms()
+
+    def GetOptimizationParms(): #no error checking! Launch OptimizationParametersAreCorrect first
+        Opt_Type=OptimizationType.get()
+        if Opt_Type=="Bayesian Optimization":
+            MaxIter=int(MaxIterations.get())
+            K=float(kappa.get())
+            XI=float(xi.get())
+            return [Opt_Type, MaxIter,K,XI]
+        elif Opt_Type=="DOE":
+            return []
+
     def OptimizationParametersAreCorrect():
-        
-        return True
+        Opt_Type=OptimizationType.get()
+        if Opt_Type=="Bayesian Optimization":
+            try:
+                MaxIter=int(MaxIterations.get())
+                K=float(kappa.get())
+                XI=float(xi.get())
+            except:
+                return ["ERROR","Insert valid numerical data"]
+            if MaxIter<=0: 
+                return  ["ERROR","Number of iterations must be >=0 !"]
+            if K<=0: 
+                return  ["ERROR","K must be >=0 !"]
+            if XI<=0: 
+                return  ["ERROR","xi must be >=0 !"]                         
+        elif Opt_Type=="DOE":
+            return ["ERROR","Function not yet implemented"]
+        else:
+            return ["ERROR","Please select an optimization method"]
+        return "OK"
 
     def ValuesAreCorrect():
         global CreatedProcedures
@@ -224,8 +283,8 @@ def StartBO_Window(window, **kwargs):
         if ThereIsSomethingToOptimize==False:
             return ["ERROR","There are no parameters to be optimized"]
         CanOptimize=OptimizationParametersAreCorrect()
-        if CanOptimize==False:
-            return ["WARNING","Optimization parameters are not properly setted"]
+        if not(CanOptimize=="OK"):
+            return CanOptimize
         return "OK"
 
     def SaveOptimization(filename):
@@ -239,6 +298,7 @@ def StartBO_Window(window, **kwargs):
         pickle.dump(CRC_Value,fout)
         pickle.dump(File_Size,fout)
         pickle.dump(AllValues,fout)
+        pickle.dump(GetOptimizationParms(),fout)
         fout.close()        
 
     def AskSaveOptimizer():
@@ -293,6 +353,7 @@ def StartBO_Window(window, **kwargs):
             widget.destroy()
 
         if selection == "Bayesian Optimization":
+            global MaxIterations,kappa,xi
             Label2=tk.Label(frameOpt, text="Max number of iterations: ")
             Label2.pack(side="left")
             MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
@@ -306,6 +367,7 @@ def StartBO_Window(window, **kwargs):
             xi=tk.Entry(frameOpt,state="normal",width=10)
             xi.pack(side="left")
         elif selection == "DOE":
+            global DOE_Type,NumLevels
             DOE_Type=ttk.Combobox(frameOpt, values = ("Full Factorial","Level Full-Factorial","Level Fractional-Factorial","Plackett-Burman"), state = 'readonly',width=20)
             DOE_Type.pack(side="left")
             Label2=tk.Label(frameOpt, text="Number of Levels: ")
@@ -328,7 +390,7 @@ def StartBO_Window(window, **kwargs):
     file_menu.add_separator()    
     file_menu.add_command(label='Load Procedure to be optimized',command=New_Setup)
     file_menu.add_separator()
-    file_menu.add_command(label='Load Optimization')#,command=AskImportProcedures)    
+    file_menu.add_command(label='Load Optimization',command=AskLoadOptimization)
     file_menu.add_command(label='Save Optimization',command=AskSaveOptimizer)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
@@ -384,7 +446,7 @@ def StartBO_Window(window, **kwargs):
     bNewSetup=tk.Button(frame1, text="NEW", command=New_Setup,image = New_icon, compound = tk.LEFT)
     bNewSetup.pack(side="left",padx=10)
     Load_icon = tk.PhotoImage(file = r"icons/load_setup.png")
-    bLoad=tk.Button(frame1, text="LOAD", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = tk.LEFT)
+    bLoad=tk.Button(frame1, text="LOAD", command=AskLoadOptimization,image = Load_icon, compound = tk.LEFT)
     bLoad.pack(side="left",padx=10)
     Save_icon = tk.PhotoImage(file = r"icons/save_setup.png")
     bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = tk.LEFT)
