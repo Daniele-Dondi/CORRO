@@ -9,8 +9,25 @@ class ToolTip:
         self.widget.bind("<Leave>", self.hide_tooltip)
 
     def show_tooltip(self, event=None):
+        self.schedule = self.widget.after(500, self._show)
+
+    def _show(self):
         if self.tooltip_window:
             return
+        # Get mouse pointer position
+        pointer_x = self.widget.winfo_pointerx()
+        pointer_y = self.widget.winfo_pointery()
+
+        # Get widget position and size
+        widget_x = self.widget.winfo_rootx()
+        widget_y = self.widget.winfo_rooty()
+        widget_width = self.widget.winfo_width()
+        widget_height = self.widget.winfo_height()
+
+        # Check if pointer is truly inside the widget
+        if not (widget_x <= pointer_x <= widget_x + widget_width and
+                widget_y <= pointer_y <= widget_y + widget_height):
+            return  # Skip showing tooltip        
         x, y, _, _ = self.widget.bbox("insert")
         x += self.widget.winfo_rootx() + 25
         y += self.widget.winfo_rooty() + 25

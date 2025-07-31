@@ -22,6 +22,7 @@ from tkinter import ttk, filedialog
 import os
 import modules.wizard as wiz
 from modules.buildvercalculator import CRC
+import pickle
 
 def disable_widgets(frame):
     for widget in frame.winfo_children():
@@ -201,21 +202,25 @@ def StartBO_Window(window, **kwargs):
 
     def ValuesAreCorrected():
         global CreatedProcedures
+        ThereIsSomethingToOptimize=False
         for obj in CreatedProcedures:
             Values=obj.GetValues()
             for num,element in enumerate(Values[3]):
                 obj.MinMaxs[num].frame.config(bg=obj.MinMaxs[num].frame.master.cget("bg")) #retrieve the background color from the master object
                 if element=="normal":
+                    ThereIsSomethingToOptimize=True
                     try:
                         minimum=float(Values[2][num][0])
                         maximum=float(Values[2][num][1])
-                        if minimum>maximum:
+                        if minimum>=maximum:
                             obj.MinMaxs[num].frame.config(bg="red")
-                            return False
+                            return ["ERROR","Minimum cannot be greater or equal to the maximum"]
                     except:
                         obj.MinMaxs[num].frame.config(bg="red")
-                        return False
-
+                        return ["ERROR", "Invalid floating point number"]
+        if ThereIsSomethingToOptimize==False:
+            return ["ERROR","There are no parameters to be optimized"]
+        return "OK"
 
     def SaveOptimization(filename):
         global ProcedureName,CRC_Value,File_Size,CreatedProcedures
@@ -223,6 +228,12 @@ def StartBO_Window(window, **kwargs):
         for obj in CreatedProcedures:
             AllValues.append(obj.GetValues())
         print(AllValues)
+        fout=open(filename, 'wb')
+        pickle.dump(ProcedureName,fout)
+        pickle.dump(CRC_Value,fout)
+        pickle.dump(File_Size,fout)
+        pickle.dump(AllValues,fout)
+        fout.close()        
 
     def AskSaveOptimizer():
         global CreatedProcedures
@@ -232,8 +243,10 @@ def StartBO_Window(window, **kwargs):
         filename=filedialog.asksaveasfilename(filetypes=filetypes)
         if filename=="": return
         if not ".Optimizer" in filename: filename+=".Optimizer"
-        if ValuesAreCorrected()==False:
-            tk.messagebox.showerror("ERROR", "Check values inserted")
+        Check=ValuesAreCorrected()
+        if not(Check=="OK"):
+            tk.messagebox.showerror(Check[0], Check[1])
+            return
         SaveOptimization(filename)
 
     def New_Setup():
@@ -289,6 +302,26 @@ def StartBO_Window(window, **kwargs):
     menubar.add_cascade(label="Process Check")#,command=CheckProcedure)
     frame1 = tk.Frame(BO_Window)
     frame1.pack(side="top")
+    frameOpt = tk.Frame(BO_Window, bd=1, relief=tk.RAISED, background="#e0e0e0")
+    frameOpt.pack(side="top",pady=10)
+    Label1=tk.Label(frameOpt, text="Optimizzation Type:")
+    Label1.pack(side="left")
+    OptimizationType=ttk.Combobox(frameOpt, values = ('Bayesian Optimization','DOE'), state = 'readonly',width=20)
+    OptimizationType.pack(side="left")
+    Label2=tk.Label(frameOpt, text="Max number of iterations: ")
+    Label2.pack(side="left")
+    MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
+    MaxIterations.pack(side="left")
+    Label3=tk.Label(frameOpt, text="kappa: ")
+    Label3.pack(side="left")
+    kappa=tk.Entry(frameOpt,state="normal",width=10)
+    kappa.pack(side="left")
+    Label4=tk.Label(frameOpt, text="xi: ")
+    Label4.pack(side="left")
+    xi=tk.Entry(frameOpt,state="normal",width=10)
+    xi.pack(side="left")
+
+    
 ##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
 ##    frame3.pack(side="bottom")
     
