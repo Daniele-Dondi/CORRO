@@ -199,7 +199,11 @@ def StartBO_Window(window, **kwargs):
             Obj.place(x=10,y=CurrentY)
             CurrentY+=YSize
 
-    def ValuesAreCorrected():
+    def OptimizationParametersAreCorrect():
+        
+        return True
+
+    def ValuesAreCorrect():
         global CreatedProcedures
         ThereIsSomethingToOptimize=False
         for obj in CreatedProcedures:
@@ -219,6 +223,9 @@ def StartBO_Window(window, **kwargs):
                         return ["ERROR", "Invalid floating point number"]
         if ThereIsSomethingToOptimize==False:
             return ["ERROR","There are no parameters to be optimized"]
+        CanOptimize=OptimizationParametersAreCorrect()
+        if CanOptimize==False:
+            return ["WARNING","Optimization parameters are not properly setted"]
         return "OK"
 
     def SaveOptimization(filename):
@@ -238,14 +245,15 @@ def StartBO_Window(window, **kwargs):
         global CreatedProcedures
         if len(CreatedProcedures)==0:
             return
-        filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
-        filename=filedialog.asksaveasfilename(filetypes=filetypes)
-        if filename=="": return
-        if not ".Optimizer" in filename: filename+=".Optimizer"
-        Check=ValuesAreCorrected()
+        Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
-            return
+            if Check[0]=="ERROR":
+                return
+        filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
+        filename=filedialog.asksaveasfilename(filetypes=filetypes)
+        if not ".Optimizer" in filename: filename+=".Optimizer"        
+        if filename=="": return        
         SaveOptimization(filename)
 
     def New_Setup():
@@ -279,6 +287,32 @@ def StartBO_Window(window, **kwargs):
             return True
         return False
 
+    def create_widgets(selection):
+        # Clear old widgets
+        for widget in frameOpt.winfo_children():
+            widget.destroy()
+
+        if selection == "Bayesian Optimization":
+            Label2=tk.Label(frameOpt, text="Max number of iterations: ")
+            Label2.pack(side="left")
+            MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
+            MaxIterations.pack(side="left")
+            Label3=tk.Label(frameOpt, text="kappa: ")
+            Label3.pack(side="left")
+            kappa=tk.Entry(frameOpt,state="normal",width=10)
+            kappa.pack(side="left")
+            Label4=tk.Label(frameOpt, text="xi: ")
+            Label4.pack(side="left")
+            xi=tk.Entry(frameOpt,state="normal",width=10)
+            xi.pack(side="left")
+        elif selection == "DOE":
+            DOE_Type=ttk.Combobox(frameOpt, values = ("Full Factorial","Level Full-Factorial","Level Fractional-Factorial","Plackett-Burman"), state = 'readonly',width=20)
+            DOE_Type.pack(side="left")
+
+    def on_select(event):
+        selected_option = OptimizationType.get()
+        create_widgets(selected_option)    
+
     BO_Window=tk.Toplevel(window)
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
     BO_Window.geometry('1000x800+400+10')
@@ -301,25 +335,15 @@ def StartBO_Window(window, **kwargs):
     menubar.add_cascade(label="Process Check")#,command=CheckProcedure)
     frame1 = tk.Frame(BO_Window)
     frame1.pack(side="top")
+    Optimizer = tk.Frame(BO_Window, bd=1, relief=tk.RAISED, background="#e0e0e0")
+    Optimizer.pack(side="top",pady=10)
     frameOpt = tk.Frame(BO_Window, bd=1, relief=tk.RAISED, background="#e0e0e0")
-    frameOpt.pack(side="top",pady=10)
-    Label1=tk.Label(frameOpt, text="Optimizzation Type:")
+    frameOpt.pack(side="top")    
+    Label1=tk.Label(Optimizer, text="Optimizzation Type:")
     Label1.pack(side="left")
-    OptimizationType=ttk.Combobox(frameOpt, values = ('Bayesian Optimization','DOE'), state = 'readonly',width=20)
+    OptimizationType=ttk.Combobox(Optimizer, values = ('Bayesian Optimization','DOE'), state = 'readonly',width=20)
     OptimizationType.pack(side="left")
-    Label2=tk.Label(frameOpt, text="Max number of iterations: ")
-    Label2.pack(side="left")
-    MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
-    MaxIterations.pack(side="left")
-    Label3=tk.Label(frameOpt, text="kappa: ")
-    Label3.pack(side="left")
-    kappa=tk.Entry(frameOpt,state="normal",width=10)
-    kappa.pack(side="left")
-    Label4=tk.Label(frameOpt, text="xi: ")
-    Label4.pack(side="left")
-    xi=tk.Entry(frameOpt,state="normal",width=10)
-    xi.pack(side="left")
-
+    OptimizationType.bind("<<ComboboxSelected>>", on_select)
     
 ##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
 ##    frame3.pack(side="bottom")
@@ -338,12 +362,12 @@ def StartBO_Window(window, **kwargs):
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     frame2.pack()
 
-    #Selection frame, composed by 4 stretched buttons
-    pixel = tk.PhotoImage(width=1, height=1)        
-    SelTopButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelBottomButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelLeftButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelRightButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+##    #Selection frame, composed by 4 stretched buttons
+##    pixel = tk.PhotoImage(width=1, height=1)        
+##    SelTopButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+##    SelBottomButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+##    SelLeftButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+##    SelRightButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
     
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     
