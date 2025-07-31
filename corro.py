@@ -18,9 +18,8 @@
 
 import PIL.Image
 from PIL import ImageTk
-import tkinter
+import tkinter as tk
 import threading
-from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
 import sys
@@ -181,18 +180,18 @@ def readConfigurationFiles():
           pixboundedmacro.append(lines[3+x].strip())
           colorsbound.append(eval(lines[4+x+NumBinds]))
         except:
-         tkinter.messagebox.showwarning("Warning","Current schematic has no colors defined with macros")    
+         tk.messagebox.showwarning("Warning","Current schematic has no colors defined with macros")    
     except:
-        tkinter.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
+        tk.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
     conf.LoadConfFile('startup.conf')    
 
 def SyringeBOT_is_ready():
     global SyringeBOT_IS_BUSY,Temperature_Hook,Time_Hook
     if SyringeBOT_IS_BUSY:
-     MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
+     MsgBox = tk.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
      return False
     if (Temperature_Hook) or (Time_Hook):
-     MsgBox = tkinter.messagebox.showerror ('SyringeBOT is event-driven','SyringeBOT is waiting for Time or Temperature events. An action could create problems',icon = 'error')
+     MsgBox = tk.messagebox.showerror ('SyringeBOT is event-driven','SyringeBOT is waiting for Time or Temperature events. An action could create problems',icon = 'error')
      return False
     return True
         
@@ -214,7 +213,7 @@ def onclick(event):
          macronum=macrolist.index(macroname)
          Macro(macronum,str(str(color[0])+','+str(color[1])+','+str(color[2]))) #by default passes color arguments to macro
        except Exception as e:
-         tkinter.messagebox.showerror("ERROR","Problem executing macro "+macroname)
+         tk.messagebox.showerror("ERROR","Problem executing macro "+macroname)
          print("onclick error:",e)
      except:
         print("Clicked out of image")
@@ -226,7 +225,7 @@ def onmiddleclick(event):
     color=pix[event.x,event.y]
     print ('middle',color)
     if color in colorsbound:
-     MsgBox = tkinter.messagebox.askquestion ('Unbound color','Are you sure you want to unbound macro for this color?',icon = 'warning')
+     MsgBox = tk.messagebox.askquestion ('Unbound color','Are you sure you want to unbound macro for this color?',icon = 'warning')
      if MsgBox == 'yes':
       idx=colorsbound.index(color)
       del colorsbound[idx]
@@ -238,15 +237,15 @@ def onrightclick(event):
     color=pix[event.x,event.y]
     print (color)
     if color in colorsbound:
-        tkinter.messagebox.showerror('ERROR','Color already assigned. Use middle click do debound first')
+        tk.messagebox.showerror('ERROR','Color already assigned. Use middle click do debound first')
         return
-    binder = tkinter.Toplevel(base)
+    binder = tk.Toplevel(base)
     binder.title("bind an event to this color")
-    Label(binder,text='bind an event to this color').pack()
+    tk.Label(binder,text='bind an event to this color').pack()
     comboMacro = ttk.Combobox(binder, values=macrolist, width=40)
     comboMacro.pack()
-    Button(binder, text="OK",command=lambda: Bind(comboMacro.get(),color,binder)).pack()
-    Button(binder, text="CANCEL",command=lambda: binder.destroy()).pack()
+    tk.Button(binder, text="OK",command=lambda: Bind(comboMacro.get(),color,binder)).pack()
+    tk.Button(binder, text="CANCEL",command=lambda: binder.destroy()).pack()
     binder.grab_set()
 
 def Bind(text,color,window):
@@ -259,13 +258,13 @@ def Bind(text,color,window):
           window.destroy()
           if(debug): print('macro "',text,'" assigned to color ',color)
           NewColorAssignment=1
-      else:     tkinter.messagebox.askquestion ('error','color already assigned',icon = 'warning')
-    else:     tkinter.messagebox.askquestion ('error','macro not found',icon = 'warning')  
+      else:     tk.messagebox.askquestion ('error','color already assigned',icon = 'warning')
+    else:     tk.messagebox.askquestion ('error','macro not found',icon = 'warning')  
 
 def CreateNewMacroNumber(filename):
     macronumber=len(macrolist)
     macrolist.append(filename)
-    macrob.append(Button(Z, text=filename,command=lambda j=macronumber : UserClickedMacro(j)))
+    macrob.append(tk.Button(Z, text=filename,command=lambda j=macronumber : UserClickedMacro(j)))
     macrob[len(macrob)-1].pack()
     return macronumber
 
@@ -277,11 +276,11 @@ def SaveMacroFile(macronumber,text):
 def SaveMacro(text,macronumber,window): #save a macro
     if macronumber==-1:
         while True:
-         filename = tkinter.simpledialog.askstring('MACRO NAME','Please assign a name to this macro')
-         if filename in macrolist: tkinter.messagebox.showerror("ERROR","Macro name already in use. Choose another name")
-         elif filename == "": tkinter.messagebox.showerror("ERROR","Please assign a name")
+         filename = tk.simpledialog.askstring('MACRO NAME','Please assign a name to this macro')
+         if filename in macrolist: tk.messagebox.showerror("ERROR","Macro name already in use. Choose another name")
+         elif filename == "": tk.messagebox.showerror("ERROR","Please assign a name")
          elif filename == None:
-             tkinter.messagebox.showerror("ERROR","Macro will not be saved")
+             tk.messagebox.showerror("ERROR","Macro will not be saved")
              window.destroy()
              return
          else: break
@@ -292,17 +291,17 @@ def SaveMacro(text,macronumber,window): #save a macro
 def MacroEditor(macronumber): #edit a macro or create a new one
      if macronumber!=-1: title=macrolist[macronumber] #-1 = create a new macro
      else: title='NEW MACRO'
-     t = tkinter.Toplevel(base)
+     t = tk.Toplevel(base)
      t.title(title)
-     a=Text(t,width=90,height=30)
+     a=tk.Text(t,width=90,height=30)
      if macronumber!=-1:
         text_file = open("macros/"+macrolist[macronumber]+".txt", "r")
         text=text_file.read()
         text_file.close()
-        a.insert(INSERT, text)
+        a.insert(tk.INSERT, text)
      a.pack()
-     Button(t, text="SAVE",command=lambda: SaveMacro(a.get("1.0",END),macronumber,t)).pack()
-     Button(t, text="CANCEL",command=lambda: t.destroy()).pack()
+     tk.Button(t, text="SAVE",command=lambda: SaveMacro(a.get("1.0",END),macronumber,t)).pack()
+     tk.Button(t, text="CANCEL",command=lambda: t.destroy()).pack()
      t.grab_set()
 
 def Stringify(item):
@@ -331,7 +330,7 @@ def RefreshVarValues(var_name,value,variables): #if a variable exists, update it
 
 def GetVarValue(var_name,variables): #retrieve a value of var_name
     if not(var_name in variables):  #variable not present
-     tkinter.messagebox.showerror("ERROR",var_name+" not present in variables")
+     tk.messagebox.showerror("ERROR",var_name+" not present in variables")
     else:
       return variables[variables.index(var_name)+1]
 
@@ -349,7 +348,7 @@ def Parse(line,variables):    #parse macro line and execute statements
       logfile.write(str(DT.datetime.now())+"\t"+commands[1]+"\n")  
      except Exception as e:
       print(e)
-      tkinter.messagebox.showerror("ERROR in log method","use: log text")
+      tk.messagebox.showerror("ERROR in log method","use: log text")
       return "Error"
     elif (line.find('buffer')==0)or(line.find('record')==0): #buffer all commands, send later. Used for long gcode sequence where send will fail
         IsBuffered0=True
@@ -371,13 +370,13 @@ def Parse(line,variables):    #parse macro line and execute statements
       newWin = Tk()
       #But make it invisible
       newWin.withdraw()    
-      x = tkinter.simpledialog.askfloat(commands[1], commands[2]+' ['+str(commands[4])+' ... '+str(commands[5]+']'),initialvalue=float(commands[3]), minvalue=float(commands[4]), maxvalue=float(commands[5]),parent=newWin)
+      x = tk.simpledialog.askfloat(commands[1], commands[2]+' ['+str(commands[4])+' ... '+str(commands[5]+']'),initialvalue=float(commands[3]), minvalue=float(commands[4]), maxvalue=float(commands[5]),parent=newWin)
       newWin.destroy()
       if x==None: return "Cancel"
       RefreshVarValues(commands[0],x,variables)
      except Exception as e:
       if (debug): print(e)       
-      tkinter.messagebox.showerror("ERROR in ask method","use: ask $varname$,title,question,initialvalue,minvalue,maxvalue")
+      tk.messagebox.showerror("ERROR in ask method","use: ask $varname$,title,question,initialvalue,minvalue,maxvalue")
       return "Error"
     elif line.find('getsyringeparms')==0: #load the values for the syringe  
      try:
@@ -393,7 +392,7 @@ def Parse(line,variables):    #parse macro line and execute statements
       RefreshVarValues("$numsyringes$",len(conf.SyringeVolumes),variables)
      except Exception as e:
       print(e)       
-      tkinter.messagebox.showerror("ERROR in getsyringeparms method","use: getsyringeparms syringenumber")
+      tk.messagebox.showerror("ERROR in getsyringeparms method","use: getsyringeparms syringenumber")
       return "Error"
     elif line.find('eval')==0: #we've to calculate somethg
       try:
@@ -403,7 +402,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        RefreshVarValues(commands[0],x,variables)
       except Exception as e:
        print(e)
-       tkinter.messagebox.showerror("ERROR in eval method","use: eval $varname$,math_expression")
+       tk.messagebox.showerror("ERROR in eval method","use: eval $varname$,math_expression")
        return "Error"
     elif line.find('getvalue')==0: #we've to retrieve a sensor variable
       try:
@@ -413,7 +412,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        x = Sensors_var_values[Sensors_var_names.index(commands[1])]
        RefreshVarValues(commands[0],x,variables)
       except Exception as e:
-       tkinter.messagebox.showerror("ERROR in getvalue method","use: getvalue $varname$,sensor_value"+e)
+       tk.messagebox.showerror("ERROR in getvalue method","use: getvalue $varname$,sensor_value"+e)
        return "Error"
     elif line.find('let')==0: #variable assignment
       try:
@@ -422,7 +421,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        x = SubstituteVarValues(commands[1],variables) #substitute variable names with values
        RefreshVarValues(commands[0],x,variables)
       except:
-       tkinter.messagebox.showerror("ERROR in let method","use: let $varname$,value or variable")
+       tk.messagebox.showerror("ERROR in let method","use: let $varname$,value or variable")
        return "Error"
     elif line.find('createarray')==0: #create an array of vars called base_varname1, 2, ...
       try:
@@ -434,7 +433,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        for x in range(1,numvarsinarray):
          RefreshVarValues(basevarname+str(x)+"$",0,variables) #create vars from 1 to number
       except:
-       tkinter.messagebox.showerror("ERROR in createarray method","use: createarray base_varname,number_of_elements_in_array")
+       tk.messagebox.showerror("ERROR in createarray method","use: createarray base_varname,number_of_elements_in_array")
        return "Error"
     elif line.find('getelement')==0: #retrieve an element from array
       try:
@@ -445,7 +444,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        x=GetVarValue(varname,variables)
        RefreshVarValues(commands[1],x,variables) #store value in store_var
       except:
-       tkinter.messagebox.showerror("ERROR in getelement method","use: getelement base_varname,store_var,number_of_element")
+       tk.messagebox.showerror("ERROR in getelement method","use: getelement base_varname,store_var,number_of_element")
        return "Error"
     elif line.find('setelement')==0: #set an element of an array
       try:
@@ -456,7 +455,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        varname="$"+commands[0]+commands[1]+"$"
        RefreshVarValues(varname,commands[2],variables) #store value in store_var
       except:
-       tkinter.messagebox.showerror("ERROR in setelement method","use: setelement base_varname,number_of_element,value")
+       tk.messagebox.showerror("ERROR in setelement method","use: setelement base_varname,number_of_element,value")
        return "Error"
     elif line.find('exec')==0: #we've to execute somethg
       try:
@@ -477,7 +476,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        for x in range(0,len(namevars)):
            RefreshVarValues(namevars[x],l[codevars[x]],variables)
       except:
-       tkinter.messagebox.showerror("ERROR in exec method","use: exec code!,varname1=$var1$,...")
+       tk.messagebox.showerror("ERROR in exec method","use: exec code!,varname1=$var1$,...")
        return "Error"
     elif line.find('macro')==0: #we've to call a nested macro
       try:
@@ -490,10 +489,10 @@ def Parse(line,variables):    #parse macro line and execute statements
          if err=="Error":
            print("Macro ended with an error")      
            return "Error"
-       except ValueError:  tkinter.messagebox.showerror("ERROR in macro call",'macro '+commands[1]+' does not exist')
+       except ValueError:  tk.messagebox.showerror("ERROR in macro call",'macro '+commands[1]+' does not exist')
       except Exception as e:
        print(e)       
-       tkinter.messagebox.showerror("ERROR in macro call",'use: macro "macroname" var1,var2..')
+       tk.messagebox.showerror("ERROR in macro call",'use: macro "macroname" var1,var2..')
        return "Error"
     elif line.find('echo')==0: #we've to echo to the console
       try:
@@ -501,7 +500,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
        if(debug): print(commands[1])
       except:
-       tkinter.messagebox.showerror("ERROR in echo method","use: echo text $varname$")
+       tk.messagebox.showerror("ERROR in echo method","use: echo text $varname$")
        return "Error"
     elif line.find('hook')==0: #we've to create an hook (temperature or timer)
       try:
@@ -557,7 +556,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        if(debug): print(commands[1])
       except Exception as e:
        print(e) 
-       tkinter.messagebox.showerror("ERROR in hook method",'use: hook temp or time $value$ "macroname"\nif time is defined use the format xxhxxmxxs')
+       tk.messagebox.showerror("ERROR in hook method",'use: hook temp or time $value$ "macroname"\nif time is defined use the format xxhxxmxxs')
        return "Error"
     elif line.find('writegcode')==0: #we've to write the gcode recorded
       try:
@@ -566,7 +565,7 @@ def Parse(line,variables):    #parse macro line and execute statements
         fp.write('\n'.join(map(str, Gcode)))
        fp.close() 
       except:
-       tkinter.messagebox.showerror("ERROR in writegcode method","use: writegcode filename")
+       tk.messagebox.showerror("ERROR in writegcode method","use: writegcode filename")
        return "Error"
     elif line.find('readgcode')==0: #we've to read the gcode recorded
       try:
@@ -576,15 +575,15 @@ def Parse(line,variables):    #parse macro line and execute statements
        fp.close()
        IsBuffered0=True
       except:
-       tkinter.messagebox.showerror("ERROR in readgcode method","use: readgcode filename")
+       tk.messagebox.showerror("ERROR in readgcode method","use: readgcode filename")
        return "Error"
     elif line.find('message')==0: #show a messagebox
       try:
        commands=line.split(' ',1)
        commands[1]=SubstituteVarValues(commands[1],variables) #substitute var names with values
-       tkinter.messagebox.showinfo('info',commands[1])
+       tk.messagebox.showinfo('info',commands[1])
       except:
-       tkinter.messagebox.showerror("ERROR in message method","use: message text $varname$")
+       tk.messagebox.showerror("ERROR in message method","use: message text $varname$")
        return "Error"
     elif line.find('setglobal')==0: #upload a variable in the global variable list
       try:
@@ -594,7 +593,7 @@ def Parse(line,variables):    #parse macro line and execute statements
         value=SubstituteVarValues(var,variables) #substitute var name with its value
         RefreshVarValues(var_name,value,global_vars) #register it in global variables
       except:
-       tkinter.messagebox.showerror("ERROR in setglobal method","use: setglobal $varname$ [$varname2$]") 
+       tk.messagebox.showerror("ERROR in setglobal method","use: setglobal $varname$ [$varname2$]") 
        return "Error"
     elif line.find('getglobal')==0: #retrieve a variable from the global variable list            
       try:
@@ -604,7 +603,7 @@ def Parse(line,variables):    #parse macro line and execute statements
         value=SubstituteVarValues(var,global_vars) #retrieve its value
         RefreshVarValues(var_name,value,variables) #register it in local variables
       except:
-       tkinter.messagebox.showerror("ERROR in getglobal method","use: getglobal $varname$ [$varname2$]") 
+       tk.messagebox.showerror("ERROR in getglobal method","use: getglobal $varname$ [$varname2$]") 
        return "Error"
     elif line.find('send')==0:
       try:
@@ -614,7 +613,7 @@ def Parse(line,variables):    #parse macro line and execute statements
        commands[0] = SubstituteVarValues(commands[0],variables) #substitute variable names with values
        sendcommand(commands[0],int(commands[1]))
       except:
-       tkinter.messagebox.showerror("ERROR in send method","use: send command,where")
+       tk.messagebox.showerror("ERROR in send method","use: send command,where")
        return "Error"
     else:
         #command not recognized
@@ -645,8 +644,8 @@ def ExecuteMacro(num,*args):
          if (line.find('label')==0): #before executing the code search all the labels and put them into the label array
            label=line.split(' ',1)
            if (RefreshVarValues(label[1],j,labels)==1):  # insert the current line number in the labels set
-             tkinter.messagebox.showerror("Duplicated label","Error: a label name is duplicated")      
-             tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
+             tk.messagebox.showerror("Duplicated label","Error: a label name is duplicated")      
+             tk.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
              return
         #analize if blocks (an if block is an if/else/endif statements block)
         IfBlockCounter=0
@@ -666,7 +665,7 @@ def ExecuteMacro(num,*args):
               IfBlockPosition.append(LineNumber)
               IfBlockType.append(name)
             except:
-              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: ELSE without IF in line "+str(LineNumber))
+              tk.messagebox.showerror("IF BLOCK ERROR","Error: ELSE without IF in line "+str(LineNumber))
               return
           if line.find('endif')==0:
             try:
@@ -674,10 +673,10 @@ def ExecuteMacro(num,*args):
               IfBlockType.append("ENDIF "+IfStack[-1])
               IfStack.pop()
             except:
-              tkinter.messagebox.showerror("IF BLOCK ERROR","Error: ENDIF without IF in line "+str(LineNumber))
+              tk.messagebox.showerror("IF BLOCK ERROR","Error: ENDIF without IF in line "+str(LineNumber))
               return
         if len(IfStack)>0:
-          tkinter.messagebox.showerror("IF BLOCK ERROR","Error: IF without ENDIF")
+          tk.messagebox.showerror("IF BLOCK ERROR","Error: IF without ENDIF")
           return
         print(IfBlockPosition,IfBlockType)
         while (i<len(lines)):
@@ -685,7 +684,7 @@ def ExecuteMacro(num,*args):
          i=i+1
          watchdog=watchdog+1
          if (watchdog>WatchdogMax): #watchdog counter, try to avoid infinite loops
-          MsgBox = tkinter.messagebox.askquestion ('Infinite Loop?','It seems that we are doing a lot of cycles. Continue?',icon = 'warning')
+          MsgBox = tk.messagebox.askquestion ('Infinite Loop?','It seems that we are doing a lot of cycles. Continue?',icon = 'warning')
           if MsgBox == 'yes': #if cycles exceed the number above and the user reply 'yes' continue to run
            watchdog=0
           else: return 
@@ -719,8 +718,8 @@ def ExecuteMacro(num,*args):
            try:
             i=labels[labels.index(label[1])+1]
            except:
-            tkinter.messagebox.showerror("ERROR in jump","label not defined")
-            tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
+            tk.messagebox.showerror("ERROR in jump","label not defined")
+            tk.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
             return
           elif isif: #if statement
            label=line.split(' ',2)
@@ -750,8 +749,8 @@ def ExecuteMacro(num,*args):
              try:
               i=int(SubstituteVarValues(label[2],labels))
              except:
-              tkinter.messagebox.showerror("ERROR in if","label not defined")
-              tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
+              tk.messagebox.showerror("ERROR in if","label not defined")
+              tk.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
               return
           elif iselse: #command else of an IF BLOCK. If we read this, it means we are in the end of the true condition, so we have to jump to the end of the corresponding ENDIF
             IfStatementNumber=IfBlockType[IfBlockPosition.index(i-1)].split()[1] #retrieve the number of the corresponding IF statement
@@ -760,10 +759,10 @@ def ExecuteMacro(num,*args):
          else:
           exitcode=Parse(line,variables) #no flow commands are present, executes the statement present in the line
           if exitcode=="Error": #execute code contained in line. In the case of error abort macro execution
-              tkinter.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
+              tk.messagebox.showerror("Error in code:","macro name: "+macrolist[num]+"\nline: "+str(i)+"\ncommand: "+line)
               return "Error"
           elif exitcode=="Cancel":
-              tkinter.messagebox.showwarning("Warning","Operation interrupted by the user")    
+              tk.messagebox.showwarning("Warning","Operation interrupted by the user")    
               return "Error"    
        if '$return$' in variables: macrout=SubstituteVarValues("$return$",variables) #when a macro returns a value it's automatically set the reserved variable $return$
        if (debug): print (variables)  #DEBUG
@@ -779,25 +778,25 @@ def Macro(num,*args): #run, delete or edit a macro
     if IsEditingMacro==0:
      if IsDeletingMacro==0:
       if connected==0:   
-        MsgBox = tkinter.messagebox.askquestion ('Not Connected','SyringeBOT is not connected. Connect now?',icon = 'error')
+        MsgBox = tk.messagebox.askquestion ('Not Connected','SyringeBOT is not connected. Connect now?',icon = 'error')
         if MsgBox == 'yes':
             Connect()
             return
       if connected==1:   #we are connected
        if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
         if not(macrolist[num])=="INIT_ALL": #only call to INIT_ALL is allowed
-         MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
+         MsgBox = tk.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
          return
         else: # we are executing INIT_ALL
          SyringeBOT_IS_INITIALIZED=True #we set True because we are executing INIT_ALL
        if SyringeBOT_IS_BUSY==True:
-        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
+        MsgBox = tk.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
         return
        #ExecuteMacro(num,args)
        threading.Timer(0.1, ExecuteMacro, args=(num,args)).start()
-      else:  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
+      else:  tk.messagebox.showerror("ERROR","Not connected. Connect first")
      else:  #delete macro
-      MsgBox = tkinter.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
+      MsgBox = tk.messagebox.askquestion ('Delete macro','Are you sure you want to delete macro '+macrolist[num]+" ?",icon = 'warning')
       if MsgBox == 'yes':
         DeleteMacroFileAndButton(num)
       DeleteMacroButtonProc()  
@@ -817,13 +816,13 @@ def EditMacroButtonProc():
     if (SyringeBOT_IS_BUSY) or (Temperature_Hook) or (Time_Hook):
      return       
     if IsEditingMacro==0:
-     ToggleB.config(relief=SUNKEN)
+     ToggleB.config(relief="sunken")
      IsEditingMacro=1
      if IsDeletingMacro==1: DeleteMacroButtonProc()
      base.config(cursor='cross')
     else:
      IsEditingMacro=0
-     ToggleB.config(relief=RAISED)
+     ToggleB.config(relief="raised")
      base.config(cursor='arrow')          
 
 def DeleteMacroButtonProc():
@@ -831,26 +830,26 @@ def DeleteMacroButtonProc():
     if (SyringeBOT_IS_BUSY) or (Temperature_Hook) or (Time_Hook):
      return           
     if IsDeletingMacro==0:
-     ToggleB2.config(relief=SUNKEN)
+     ToggleB2.config(relief="sunken")
      IsDeletingMacro=1
      if IsEditingMacro==1: EditMacroButtonProc()
      base.config(cursor='pirate')
     else:
      IsDeletingMacro=0
-     ToggleB2.config(relief=RAISED)
+     ToggleB2.config(relief="raised")
      base.config(cursor='arrow')     
 
 #Quit program
 def Close():
  global pixboundedmacro,colorsbound,NewColorAssignment,MaskMacros,cmdfile
  if connected != 0:
-     tkinter.messagebox.showerror("ERROR","Disconnect first")
+     tk.messagebox.showerror("ERROR","Disconnect first")
  else:
-  MsgBox = tkinter.messagebox.askquestion('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
+  MsgBox = tk.messagebox.askquestion('Exit Application','Are you sure you want to exit the application?',icon = 'warning')
   if MsgBox == 'yes':  
      #insert here the save config file  TODO
      if NewColorAssignment==1:
-        MsgBox = tkinter.messagebox.askquestion ('Save color assignment','Do you want to save new assignments?',icon = 'question')
+        MsgBox = tk.messagebox.askquestion ('Save color assignment','Do you want to save new assignments?',icon = 'question')
         if MsgBox == 'yes':
          out_file = open(MaskMacros, "w")
          out_file.write("#num of bound colors\n")
@@ -871,18 +870,18 @@ def LoadGcode():
  global connected
  var=[]
  if connected==0:
-  tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
+  tk.messagebox.showerror("ERROR","Not connected. Connect first")
   return
  filetypes = (('Gcode files', '*.gcode'),('All files', '*.*'))
  filename = filedialog.askopenfilename(filetypes=filetypes)
  print(filename)
  if str(filename)=="": return
  if Parse("readgcode "+filename,var)=="Error":
-   tkinter.messagebox.showerror("ERROR","Cannot run Gcode "+filename)
+   tk.messagebox.showerror("ERROR","Cannot run Gcode "+filename)
 
 def CancelPrint():
  global SyringeBOTWorking
- MsgBox = tkinter.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
+ MsgBox = tk.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
  if MsgBox == 'yes':  
   SyringeBOTWorking=False
 '''
@@ -917,7 +916,7 @@ def MoveRobot(cmd):
     robot.send("G91") #relative positioning
     robot.send("G1 Z-"+str(how_much))
     robot.send("G90") #absolute positioning    
- else:    tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
+ else:    tk.messagebox.showerror("ERROR","Not connected. Connect first")
 '''  
 
 def sendcommand(cmd,where): #send a gcode command
@@ -938,7 +937,7 @@ def sendcommand(cmd,where): #send a gcode command
        if (HasRobot):   
         if noprint_debug: robot.send(cmd)
       if(debug): print(cmd,"->",destination[where])
-    else:    tkinter.messagebox.showerror("ERROR","Not connected. Connect first")
+    else:    tk.messagebox.showerror("ERROR","Not connected. Connect first")
 
 
 def StartPrint0(): #send gcode array to SyringeBOT
@@ -994,9 +993,9 @@ def Enable_Disable_plot(j):
    global Charts_enabled,Plot_B
    Charts_enabled[j]=not(Charts_enabled[j])
    if Charts_enabled[j]:
-    Plot_B[j].config(relief=RAISED)           
+    Plot_B[j].config(relief="raised")           
    else:        
-    Plot_B[j].config(relief=SUNKEN)
+    Plot_B[j].config(relief="sunken")
 
 def ensure_directory_exists(directory_path):
     if not os.path.exists(directory_path):
@@ -1019,7 +1018,7 @@ def ConnectSyringeBOT(USB,USBrate):
       data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii') 
       print(data_str, end='')          
     except Exception as e:
-     tkinter.messagebox.showerror("ERROR", "SyringeBOT unit not connected! \ncheck connections\nand restart")
+     tk.messagebox.showerror("ERROR", "SyringeBOT unit not connected! \ncheck connections\nand restart")
      print("ERROR Connect(): ",e)
      HasSyringeBOT=False
      USB_handles.append("")
@@ -1060,17 +1059,17 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
            except Exception as e:
             print(e)       
             conf.USB_deviceready[device]=False       
-            tkinter.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
+            tk.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
            else:
             connected=1
         if connected==0:
-                tkinter.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in Configurator")
+                tk.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in Configurator")
                 return
         if HasSyringeBOT==False: #No SyringeBOT, only sensors. Expand Graph
                 w.pack_forget()
                 chart_h=600
                 w.config(width=chart_w,height=chart_h)
-                w.pack(expand=YES,fill=BOTH)
+                w.pack(expand="yes",fill="both")
         Sensors_var_names=" ".join(conf.USB_var_names).split() #prepare var names array for getvalues
         bConnect.config(image = disconnect_icon) #toggle image on connect button
         #create buttons to enable/disable plots
@@ -1080,7 +1079,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
          for variable in range(int(conf.USB_num_vars[device])):
           if conf.USB_deviceready[device]:                  
            var_name=Sensors_var_names[cntr]
-           btn=Button(GRP, text=var_name, command=lambda num=j: Enable_Disable_plot(num),bg=graph_colors[(j)% len(graph_colors)],fg="white",bd=4)
+           btn=tk.Button(GRP, text=var_name, command=lambda num=j: Enable_Disable_plot(num),bg=graph_colors[(j)% len(graph_colors)],fg="white",bd=4)
            j+=1
            Plot_B.append(btn)
            btn.pack()
@@ -1100,16 +1099,16 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             logfile.write("\n")               
         except Exception as e:
            print(e)     
-           tkinter.messagebox.showerror("ERROR", "Error writing log file")
+           tk.messagebox.showerror("ERROR", "Error writing log file")
         if AutoInit and HasSyringeBOT:
            time.sleep(0.5)
            try:
              num=macrolist.index("INIT_ALL")
              Macro(num)
            except:
-            tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
+            tk.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
     else:  #if it is connected, disconnect
-     MsgBox = tkinter.messagebox.askquestion ('Disconnect','Are you sure you want to disconnect?',icon = 'warning')
+     MsgBox = tk.messagebox.askquestion ('Disconnect','Are you sure you want to disconnect?',icon = 'warning')
      if MsgBox == 'yes':
       connected=0;
       time.sleep(1) #wait to stop all threads
@@ -1249,7 +1248,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
                 SyringeBOT_WAS_BUSY=True
            else:
                 if SyringeBOT_WAS_BUSY==True:
-                  w2.create_image(0, 0, image = Aimage, anchor=NW)
+                  w2.create_image(0, 0, image = Aimage, anchor=tk.NW)
                   logfile.write(str(DT.datetime.now())+"\tProcess finished\n")
                 SyringeBOT_IS_BUSY=False
                 SyringeBOT_WAS_BUSY=False
@@ -1302,36 +1301,36 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
 
 def DeleteTemperatureEvent(t):
  global Temperature_Hook,Time_Hook
- MsgBox = tkinter.messagebox.askquestion ('Delete Temperature Event','Are you sure you want to DELETE temperature event?',icon = 'warning')
+ MsgBox = tk.messagebox.askquestion ('Delete Temperature Event','Are you sure you want to DELETE temperature event?',icon = 'warning')
  if MsgBox == 'yes':        
    Temperature_Hook=False
    b_temp.pack_forget()
  t.destroy()
 
 def temp_button_click():
- t = tkinter.Toplevel(base)
+ t = tk.Toplevel(base)
  t.geometry("+%d+%d" % (100, 300)) 
  t.title('Temperature information')
- Label(t,text="Temperature Event\n\nWhen temperature "+str(Temperature_Hook_Value)+"\n Call macro: "+Temperature_Hook_Macro).pack()
- Button(t, text="OK",command=lambda: t.destroy()).pack()
- Button(t, text="DELETE EVENT",command=lambda: DeleteTemperatureEvent(t)).pack() 
+ tk.Label(t,text="Temperature Event\n\nWhen temperature "+str(Temperature_Hook_Value)+"\n Call macro: "+Temperature_Hook_Macro).pack()
+ tk.Button(t, text="OK",command=lambda: t.destroy()).pack()
+ tk.Button(t, text="DELETE EVENT",command=lambda: DeleteTemperatureEvent(t)).pack() 
  t.grab_set()   
    
 def DeleteTimeEvent(t):
  global Temperature_Hook,Time_Hook        
- MsgBox = tkinter.messagebox.askquestion ('Delete Time Event','Are you sure you want to DELETE time event?',icon = 'warning')
+ MsgBox = tk.messagebox.askquestion ('Delete Time Event','Are you sure you want to DELETE time event?',icon = 'warning')
  if MsgBox == 'yes':        
    Time_Hook=False
    b_clock.pack_forget()
  t.destroy()
 
 def time_button_click():
- t = tkinter.Toplevel(base)
+ t = tk.Toplevel(base)
  t.geometry("+%d+%d" % (100, 300))  
  t.title('Timer information')
- Label(t,text="Timer Event\n\nAt time= "+str(Time_Hook_Value)+"\n Call macro: "+Time_Hook_Macro).pack()
- Button(t, text="OK",command=lambda: t.destroy()).pack()
- Button(t, text="DELETE EVENT",command=lambda: DeleteTimeEvent(t)).pack() 
+ tk.Label(t,text="Timer Event\n\nAt time= "+str(Time_Hook_Value)+"\n Call macro: "+Time_Hook_Macro).pack()
+ tk.Button(t, text="OK",command=lambda: t.destroy()).pack()
+ tk.Button(t, text="DELETE EVENT",command=lambda: DeleteTimeEvent(t)).pack() 
  t.grab_set()
 
 def UserClickedMacro(num):
@@ -1352,10 +1351,10 @@ def Bayesian():
 
 def StartProcedure():
 ##    if connected==0:   
-##        MsgBox = tkinter.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
+##        MsgBox = tk.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
 ##        return
 ##    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
-##        MsgBox = tkinter.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
+##        MsgBox = tk.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
 ##        return
 ##    if SyringeBOT_is_ready():
         filename=wiz.ChooseProcedureFile()
@@ -1378,7 +1377,7 @@ def StartProcedure():
 
 
 #Main window
-base = Tk()
+base = tk.Tk()
 # Apply a default font globally
 base.option_add("*Font", ("Arial", 7))
 CORRO_FONT="Verdana 15 bold"
@@ -1389,125 +1388,125 @@ BUSY_FONT='Helvetica 15 bold'
 readConfigurationFiles()
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
-F = Frame(base)
+F = tk.Frame(base)
 F.pack(side="left",fill="y")
 #Software name
 F.master.title("CO.R.RO 1.2 Build "+str(BuildVersion))
 #Frame F
-lTitle = Label(F, text="CO.R.RO",  font=(CORRO_FONT))
+lTitle = tk.Label(F, text="CO.R.RO",  font=(CORRO_FONT))
 lTitle.pack(side="top")
-connect_icon = PhotoImage(file = r"icons/connect.png")
-disconnect_icon = PhotoImage(file = r"icons/disconnect.png")
-bConnect = Button(F, command=Connect,image = connect_icon, compound = LEFT)
+connect_icon = tk.PhotoImage(file = r"icons/connect.png")
+disconnect_icon = tk.PhotoImage(file = r"icons/disconnect.png")
+bConnect = tk.Button(F, command=Connect,image = connect_icon, compound = "left")
 bConnect.pack(side="top", pady=10)
 ToolTip(bConnect, "Click to Connect/Disconnect")
-##bSend_0 = Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
+##bSend_0 = tk.Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
 ##bSend_0.pack(pady=10)
-##lCommand_0 = Label(F, text="Command:")
+##lCommand_0 = tk.Label(F, text="Command:")
 ##lCommand_0.pack()
 ##eCommand_0 = Entry(F)
 ##eCommand_0.insert(0, 'M304 P100 I1.5 D800')
 ##eCommand_0.pack()
-##bSetTemp = Button(F, text="SetTemp", command=lambda: sendcommand("M140 S"+eTemperature.get(),0))
+##bSetTemp = tk.Button(F, text="SetTemp", command=lambda: sendcommand("M140 S"+eTemperature.get(),0))
 ##bSetTemp.pack(pady=10)
-##bOFFTemp = Button(F, text="Heating OFF", command=lambda: sendcommand("M140 S0",0))
+##bOFFTemp = tk.Button(F, text="Heating OFF", command=lambda: sendcommand("M140 S0",0))
 ##bOFFTemp.pack(pady=10)
-##lTemperature = Label(F, text="Temperature: (°C)")
+##lTemperature = tk.Label(F, text="Temperature: (°C)")
 ##lTemperature.pack()
 ##eTemperature = Entry(F)
 ##eTemperature.insert(0, 60)
 ##eTemperature.pack()
 '''
 if (HasRobot):
- bSend_1 = Button(F, text="Send to robot", command=lambda: sendcommand(eCommand_1.get(),1))
+ bSend_1 = tk.Button(F, text="Send to robot", command=lambda: sendcommand(eCommand_1.get(),1))
  bSend_1.pack(pady=10)
- lCommand_1 = Label(F, text="Command:")
+ lCommand_1 = tk.Label(F, text="Command:")
  lCommand_1.pack()
  eCommand_1 = Entry(F)
  eCommand_1.insert(0, 'G28 X Y')
  eCommand_1.pack()
 ''' 
-##Button(F, text="load gcode", command=LoadGcode).pack();
-rec_icon = PhotoImage(file = r"icons/rec.png")
-#Button(F, text="REC", command=Record,image = rec_icon, compound = LEFT).pack();
-canc_icon = PhotoImage(file = r"icons/stop.png")
-#Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = LEFT).pack();
-procedure_icon = PhotoImage(file = r"icons/erlenmeyer.png")
-bProcedure=Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = LEFT)
+##tk.Button(F, text="load gcode", command=LoadGcode).pack();
+rec_icon = tk.PhotoImage(file = r"icons/rec.png")
+#tk.Button(F, text="REC", command=Record,image = rec_icon, compound = "left").pack();
+canc_icon = tk.PhotoImage(file = r"icons/stop.png")
+#tk.Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = "left").pack();
+procedure_icon = tk.PhotoImage(file = r"icons/erlenmeyer.png")
+bProcedure=tk.Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = "left")
 bProcedure.pack()
 ToolTip(bProcedure, "Click to run a saved procedure")
-conf_icon = PhotoImage(file = r"icons/configurator.png")
-bConf=Button(F, text="configurator", command=Configurator,image = conf_icon, compound = LEFT)
+conf_icon = tk.PhotoImage(file = r"icons/configurator.png")
+bConf=tk.Button(F, text="configurator", command=Configurator,image = conf_icon, compound = "left")
 bConf.pack()
 ToolTip(bConf, "Click to configure the system")
-wiz_icon = PhotoImage(file = r"icons/wizard.png")
-bWiz=Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = LEFT)
+wiz_icon = tk.PhotoImage(file = r"icons/wizard.png")
+bWiz=tk.Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = "left")
 bWiz.pack()
 ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
-bo_icon = PhotoImage(file = r"icons/BO.png")
-bBO=Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = LEFT)
+bo_icon = tk.PhotoImage(file = r"icons/BO.png")
+bBO=tk.Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = "left")
 bBO.pack()
 ToolTip(bBO, "Click to start the reaction optimization by Bayesian Algorithm")
-exit_icon = PhotoImage(file = r"icons/exit.png")
-bClose = Button(F, text="EXIT", command=Close,image = exit_icon, compound = LEFT)
+exit_icon = tk.PhotoImage(file = r"icons/exit.png")
+bClose = tk.Button(F, text="EXIT", command=Close,image = exit_icon, compound = "left")
 bClose.pack(pady=10)
 ToolTip(bClose, "Exit the program. You should not be connected")
-temp_icon = PhotoImage(file = r"icons"+os.sep+"temp.png")
-b_temp=Button(F, image=temp_icon,command=temp_button_click)
-clock_icon = PhotoImage(file = r"icons"+os.sep+"clock.png")
-b_clock=Button(F, image=clock_icon,command=time_button_click)
-Z = Frame(base,bd=2,relief=RIDGE) #macros frame
+temp_icon = tk.PhotoImage(file = r"icons"+os.sep+"temp.png")
+b_temp=tk.Button(F, image=temp_icon,command=temp_button_click)
+clock_icon = tk.PhotoImage(file = r"icons"+os.sep+"clock.png")
+b_clock=tk.Button(F, image=clock_icon,command=time_button_click)
+Z = tk.Frame(base,bd=2,relief=tk.RIDGE) #macros frame
 if ShowMacrosPalettes: Z.pack(side="left",fill="y")
 try:  #read macros and decide if we have to create a second palette
  for file in os.listdir("macros"):
     if file.endswith(".txt"): #all files in macros folder having .txt extension are considered macros
         macrolist.append(file[:-4]) #remove .txt from name
 except:
-    tkinter.messagebox.showerror("ERROR", "MACRO directory unreachable")
+    tk.messagebox.showerror("ERROR", "MACRO directory unreachable")
 else:
   macrolist.sort()     
   if len(macrolist)>28:
-          ZZ = Frame(base,bd=2,relief=RIDGE) #second macros frame
+          ZZ = tk.Frame(base,bd=2,relief=tk.RIDGE) #second macros frame
           if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
-          #Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
-Z2 = Frame(base,bd=2,relief=RIDGE) #functions frame
+          #tk.Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
+Z2 = tk.Frame(base,bd=2,relief=tk.RIDGE) #functions frame
 #if ShowMacrosPalettes: Z2.pack(side="left",fill="y")        macro functions palette
-##Zcore = Frame(base,bd=2,relief=RIDGE) #core macros frame
+##Zcore = tk.Frame(base,bd=2,relief=tk.RIDGE) #core macros frame
 ##if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
-##Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
-GRP = Frame(base,bd=2,relief=RIDGE) #graph controls frame
+##tk.Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
+GRP = tk.Frame(base,bd=2,relief=tk.RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
-Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
-Button(GRP, text="reset chart", command=ResetChart).pack();
-Zoom_B=Button(GRP, text="View All", command=GraphZoom_Unzoom)
+tk.Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
+tk.Button(GRP, text="reset chart", command=ResetChart).pack();
+Zoom_B=tk.Button(GRP, text="View All", command=GraphZoom_Unzoom)
 Zoom_B.pack()
 try:
  num=macrolist.index("INIT_ALL")
 except:
- tkinter.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
+ tk.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
 
 
 '''
-K = Frame(F)
+K = tk.Frame(F)
 K.pack(side="bottom")
-J = Frame(F)
+J = tk.Frame(F)
 J.pack(side="bottom")
-I = Frame(F)
+I = tk.Frame(F)
 I.pack(side="bottom")
-H = Frame(F)
+H = tk.Frame(F)
 H.pack(side="bottom")
-G = Frame(F)
+G = tk.Frame(F)
 G.pack(side="bottom")
 '''
-Graph=Frame(base)  #frame for graph showing values
+Graph=tk.Frame(base)  #frame for graph showing values
 Graph.pack(side="bottom")
-w=Canvas(Graph,width=chart_w,height=chart_h)
-w.pack(expand=YES,fill=BOTH)
+w=tk.Canvas(Graph,width=chart_w,height=chart_h)
+w.pack(expand="yes",fill="both")
 #w.config(width=chart_w,height=chart_h)
 #IM.pack() #show graphical control
-IM=Frame(base)   #frame for main image with syringebot scheme
+IM=tk.Frame(base)   #frame for main image with syringebot scheme
 IM.pack(side="left")
-w2=Canvas(IM,width=900,height=800)
+w2=tk.Canvas(IM,width=900,height=800)
 w2.bind("<Button-1>", onclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-2>", onmiddleclick) #bind click procedure to syringebot scheme
 w2.bind("<Button-3>", onrightclick) #bind click procedure to syringebot scheme
@@ -1521,8 +1520,8 @@ else:
         resized_image =original_image
 # Convert to Tkinter-compatible image format
 Aimage = ImageTk.PhotoImage(resized_image)
-#Aimage=PhotoImage(file=SchematicImage) # load the scheme of the current configuration
-w2.create_image(0, 0, image = Aimage, anchor=NW) #show image on canvas w2
+#Aimage=tk.PhotoImage(file=SchematicImage) # load the scheme of the current configuration
+w2.create_image(0, 0, image = Aimage, anchor=tk.NW) #show image on canvas w2
 if noprint_debug: w2.create_text(400,15,text="DEBUG MODE. NO DATA IS SENT TO SYRINGEBOT. Gcode commands are saved in gcodecmds.txt",fill="red") 
 original_mask = PIL.Image.open(MaskImage) # load the mask here
 if (RESIZE_IMAGES):
@@ -1535,40 +1534,40 @@ pix = resized_mask.load()
 #Frames G,H,I,J,K
 if (HasRobot):
  step=StringVar()
- lControl = Label(G, text="ROBOT MANUAL CONTROL",font=HEADER_FONT,bg='pink')
+ lControl = tk.Label(G, text="ROBOT MANUAL CONTROL",font=HEADER_FONT,bg='pink')
  lControl.pack()
- Button(H, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(H, text="+Y", command=lambda: MoveRobot('+Y'),width=3).pack(side=LEFT)
- Button(H, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(H, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(H, text="+Z", command=lambda: MoveRobot('+Z'),width=3).pack(side=LEFT)
- Button(I, text="-X", command=lambda: MoveRobot('-X'),width=3).pack(side=LEFT)
- Button(I, text="XY0", command=lambda: MoveRobot('XY0'),width=3).pack(side=LEFT)
- Button(I, text="+X", command=lambda: MoveRobot('+X'),width=3).pack(side=LEFT)
- Button(I, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(I, text="Z0",command=lambda: MoveRobot('Z0'),width=3).pack(side=LEFT)
- Button(J, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(J, text="-Y", command=lambda: MoveRobot('-Y'),width=3).pack(side=LEFT)
- Button(J, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(J, text="", state=DISABLED,bd=0,width=3).pack(side=LEFT)
- Button(J, text="-Z", command=lambda: MoveRobot('-Z'),width=3).pack(side=LEFT)
- Label(K, text="Step:").pack(side=LEFT)
+ tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(H, text="+Y", command=lambda: MoveRobot('+Y'),width=3).pack(side="left")
+ tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(H, text="+Z", command=lambda: MoveRobot('+Z'),width=3).pack(side="left")
+ tk.Button(I, text="-X", command=lambda: MoveRobot('-X'),width=3).pack(side="left")
+ tk.Button(I, text="XY0", command=lambda: MoveRobot('XY0'),width=3).pack(side="left")
+ tk.Button(I, text="+X", command=lambda: MoveRobot('+X'),width=3).pack(side="left")
+ tk.Button(I, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(I, text="Z0",command=lambda: MoveRobot('Z0'),width=3).pack(side="left")
+ tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(J, text="-Y", command=lambda: MoveRobot('-Y'),width=3).pack(side="left")
+ tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
+ tk.Button(J, text="-Z", command=lambda: MoveRobot('-Z'),width=3).pack(side="left")
+ tk.Label(K, text="Step:").pack(side="left")
  eStep = Entry(K,width=4,textvariable=step)
- eStep.pack(side=LEFT)
+ eStep.pack(side="left")
  step.set(10)
- Label(K, text="mm/deg").pack(side=LEFT)
+ tk.Label(K, text="mm/deg").pack(side="left")
 '''
 
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
-  Label(Z, text="MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
-  Button(Z, text="CREATE MACRO",command=CreateMacroButtonProc).pack()
-  ToggleB=Button(Z, text="EDIT MACRO",command=EditMacroButtonProc)
+  tk.Label(Z, text="MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
+  tk.Button(Z, text="CREATE MACRO",command=CreateMacroButtonProc).pack()
+  ToggleB=tk.Button(Z, text="EDIT MACRO",command=EditMacroButtonProc)
   ToggleB.pack()
-  ToggleB2=Button(Z, text="DELETE MACRO",command=DeleteMacroButtonProc)
+  ToggleB2=tk.Button(Z, text="DELETE MACRO",command=DeleteMacroButtonProc)
   ToggleB2.pack()
-  Button(Z, text="", state=DISABLED,bd=0).pack() #space between buttons
-##  Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
+  tk.Button(Z, text="", state="disabled",bd=0).pack() #space between buttons
+##  tk.Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
   i=0
   buttons_in_palette1=0
   for macro in macrolist:  #create a button for each macro
@@ -1581,7 +1580,7 @@ if len(macrolist)>0:
        buttons_in_palette1+=1
        if buttons_in_palette1>28:
                palette=ZZ
-   macrob.append(Button(palette, text=macro,command=lambda j=i : UserClickedMacro(j)))
+   macrob.append(tk.Button(palette, text=macro,command=lambda j=i : UserClickedMacro(j)))
    macrob[i].pack()
    i=i+1
 
