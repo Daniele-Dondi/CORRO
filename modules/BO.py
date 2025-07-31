@@ -308,6 +308,11 @@ def StartBO_Window(window, **kwargs):
         elif selection == "DOE":
             DOE_Type=ttk.Combobox(frameOpt, values = ("Full Factorial","Level Full-Factorial","Level Fractional-Factorial","Plackett-Burman"), state = 'readonly',width=20)
             DOE_Type.pack(side="left")
+            Label2=tk.Label(frameOpt, text="Number of Levels: ")
+            Label2.pack(side="left")
+            NumLevels=tk.Spinbox(frameOpt, from_=1, to=10, repeatdelay=500, repeatinterval=200,width=4)
+            NumLevels.pack(side="left")
+            
 
     def on_select(event):
         selected_option = OptimizationType.get()
