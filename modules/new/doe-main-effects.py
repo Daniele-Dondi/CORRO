@@ -18,10 +18,20 @@ def plot_main_effects(df, response_column):
         axes = [axes]  # make it iterable
     
     for ax, factor in zip(axes, factors):
-        sns.pointplot(x=factor, y=response_column, data=df, ci=None, ax=ax)
+        sns.pointplot(x=factor, y=response_column, data=df, errorbar=None, ax=ax)
         ax.set_title(f"Main Effect: {factor}")
         ax.set_ylabel(response_column)
         ax.grid(True)
     
     plt.tight_layout()
     plt.show()
+
+#EXAMPLE USAGE
+df = pd.DataFrame({
+    "Temperature (°C)": [50, 50, 70, 70],
+    "pH": [6, 8, 6, 8],
+    "Time (min)": [30, 30, 30, 30],
+    "Yield (%)": [65, 70, 80, 85]
+})
+
+plot_main_effects(df, response_column="Yield (%)")
