@@ -17,7 +17,6 @@
 # Date: 2025
 
 import tkinter as tk
-from tkinter import *
 from tkinter import ttk, filedialog
 import os
 import modules.wizard as wiz
@@ -284,8 +283,8 @@ def StartBO_Window(window, **kwargs):
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
     BO_Window.geometry('1000x800+400+10')
     BO_Window.grab_set()
-    menubar = Menu(BO_Window)
-    file_menu = Menu(menubar,tearoff=0)
+    menubar = tk.Menu(BO_Window)
+    file_menu = tk.Menu(menubar,tearoff=0)
     file_menu.add_command(label='Clear All',command=AskDeleteAll)
     file_menu.add_separator()    
     file_menu.add_command(label='Load Procedure to be optimized',command=New_Setup)
@@ -294,7 +293,7 @@ def StartBO_Window(window, **kwargs):
     file_menu.add_command(label='Save Optimization',command=AskSaveOptimizer)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
-    #settings_menu = Menu(menubar,tearoff=0)
+    #settings_menu = tk.Menu(menubar,tearoff=0)
     #settings_menu.add_command(label='Default macro settings')
     BO_Window.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
@@ -325,12 +324,12 @@ def StartBO_Window(window, **kwargs):
 ##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
 ##    frame3.pack(side="bottom")
     
-    my_canvas = Canvas(BO_Window)
-    my_canvas.pack(side=LEFT,fill=BOTH,expand=1)
-    y_scrollbar = ttk.Scrollbar(BO_Window,orient=VERTICAL,command=my_canvas.yview)
-    y_scrollbar.pack(side=RIGHT,fill=Y)
+    my_canvas = tk.Canvas(BO_Window)
+    my_canvas.pack(side="left",fill=tk.BOTH,expand=1)
+    y_scrollbar = ttk.Scrollbar(BO_Window,orient=tk.VERTICAL,command=my_canvas.yview)
+    y_scrollbar.pack(side="right",fill=tk.Y)
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
-    my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
+    my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(tk.ALL)))
     BO_Window.bind("<MouseWheel>", on_mousewheel)
 ##    BO_Window.bind("<Button-1>", drag_start_canvas)
 ##    BO_Window.bind("<B1-Motion>", drag_motion_canvas)
@@ -340,36 +339,36 @@ def StartBO_Window(window, **kwargs):
     frame2.pack()
 
     #Selection frame, composed by 4 stretched buttons
-    pixel = PhotoImage(width=1, height=1)        
-    SelTopButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelBottomButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelLeftButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelRightButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    pixel = tk.PhotoImage(width=1, height=1)        
+    SelTopButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelBottomButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelLeftButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelRightButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
     
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     
     # Create a canvas inside the frame
-    SelectionCanvas = Canvas(frame2,height=10000,width=1000,bg="white")
+    SelectionCanvas = tk.Canvas(frame2,height=10000,width=1000,bg="white")
     SelectionCanvas.pack()
 
-    New_icon = PhotoImage(file = r"icons/new_setup.png")
-    bNewSetup=Button(frame1, text="NEW", command=New_Setup,image = New_icon, compound = LEFT)
+    New_icon = tk.PhotoImage(file = r"icons/new_setup.png")
+    bNewSetup=tk.Button(frame1, text="NEW", command=New_Setup,image = New_icon, compound = tk.LEFT)
     bNewSetup.pack(side="left",padx=10)
-    Load_icon = PhotoImage(file = r"icons/load_setup.png")
-    bLoad=Button(frame1, text="LOAD", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = LEFT)
+    Load_icon = tk.PhotoImage(file = r"icons/load_setup.png")
+    bLoad=tk.Button(frame1, text="LOAD", command=lambda: Edit_Setup(Optimizer_Window),image = Load_icon, compound = tk.LEFT)
     bLoad.pack(side="left",padx=10)
-    Save_icon = PhotoImage(file = r"icons/save_setup.png")
-    bSave=Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = LEFT)
+    Save_icon = tk.PhotoImage(file = r"icons/save_setup.png")
+    bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = tk.LEFT)
     bSave.pack(side="left",padx=10)
-    Run_icon = PhotoImage(file = r"icons/run_setup.png")
-    bRun=Button(frame1, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = LEFT)
+    Run_icon = tk.PhotoImage(file = r"icons/run_setup.png")
+    bRun=tk.Button(frame1, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = tk.LEFT)
     bRun.pack(side="left",padx=10)
-    Exit_icon = PhotoImage(file = r"icons/exit_setup.png")
-    bExit=Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = LEFT)
+    Exit_icon = tk.PhotoImage(file = r"icons/exit_setup.png")
+    bExit=tk.Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = tk.LEFT)
     bExit.pack(side="left",padx=10)
 
-    Help_icon = PhotoImage(file = r"icons/help_setup.png")
-    bHelp=Button(frame1, text="HELP", command=Close,image = Help_icon, compound = LEFT)
+    Help_icon = tk.PhotoImage(file = r"icons/help_setup.png")
+    bHelp=tk.Button(frame1, text="HELP", command=Close,image = Help_icon, compound = tk.LEFT)
     bHelp.pack(side="left",padx=20)
     
     InitVars()

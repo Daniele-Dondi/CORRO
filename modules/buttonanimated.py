@@ -38,7 +38,7 @@ class AnimatedButton:
 ##
 ##    def place(self, **kwargs):
 ##        self.button.place(**kwargs)
-
-root = tk.Tk()
-animated_btn = AnimatedButton(root, "run.gif", delay=100)
-root.mainloop()
+##
+##root = tk.Tk()
+##animated_btn = AnimatedButton(root, "run.gif", delay=100)
+##root.mainloop()
