@@ -60,12 +60,12 @@ class MinMaxApp:
         self.max_entry.grid(row=1, column=1, padx=5, pady=5)
 
     def SetMin(self,value):
-        value=round(value,2)
+        value=round(float(value),2)
         self.min_entry.delete(0,tk.END)
         self.min_entry.insert(0,str(value))
 
     def SetMax(self,value):
-        value=round(value,2)
+        value=round(float(value),2)
         self.max_entry.delete(0,tk.END)
         self.max_entry.insert(0,str(value))
 
@@ -101,7 +101,7 @@ class BO_Object(tk.Frame):
     def SelectedColor(self,num):
         return self.Colors[num%len(self.Colors)]        
 
-    def UserClicked(self,num):
+    def ButtonClicked(self,num):
         if self.Objects[num].config('relief')[-1] == 'raised':
             num_MinMax=num//2            
             self.Objects[num].config(relief='sunken',bg=self.SelectedColor(num_MinMax))
@@ -115,7 +115,7 @@ class BO_Object(tk.Frame):
             disable_widgets(SelectedMinMax)
             SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
 
-    def SetValues(self,element):
+    def InitValues(self,element):
         #[['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
         text=element[1]
         self.text=element[1]
@@ -126,27 +126,29 @@ class BO_Object(tk.Frame):
             if num % 2==0:
                 self.Objects.append(tk.Label(self.Line1, text=part, font="Verdana 12"))
             else:
-                self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.UserClicked(j)))
+                self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.ButtonClicked(j)))
                 self.Height=105
                 self.ParametersToChange.append(part)
                 ThisMinMax=MinMaxApp(self.Line2)
                 self.MinMaxs.append(ThisMinMax)
                 FloatValue=float(values[int(part)])
                 ThisMinMax.SetMin(FloatValue*0.8) #fill entries with +- 20% of current value
-                ThisMinMax.SetMax(FloatValue*1.2)
+                ThisMinMax.SetMax(FloatValue*1.2) #fill entries with +- 20% of current value
                 disable_widgets(ThisMinMax.frame)
             self.Objects[-1].pack(side="left")
-        if len(element)>2:
-            for num,parameter in enumerate(element[2]):
-                ThisMinMax=self.MinMaxs[num]
-                ThisMinMax.SetMin(parameter[0]) #fill entries with +- 20% of current value
-                ThisMinMax.SetMax(parameter[1])
-            for num,parameter in enumerate(element[3]):
-                ThisMinMax=self.MinMaxs[num].frame
-                if parameter=="disabled":
-                    disable_widgets(ThisMinMax)
-                else:
-                    enable_widgets(ThisMinMax)
+
+    def SetValues(self,element):
+        for num,parameter in enumerate(element[2]):
+            ThisMinMax=self.MinMaxs[num]
+            enable_widgets(ThisMinMax.frame) #enable widget, if not changes do not occur
+            ThisMinMax.SetMin(parameter[0])
+            ThisMinMax.SetMax(parameter[1])
+        for num,parameter in enumerate(element[3]):
+            ThisMinMax=self.MinMaxs[num].frame
+            if parameter=="disabled":
+                disable_widgets(ThisMinMax)
+            else:
+                self.ButtonClicked(1+num*2)
 
     def GetValues(self):
         output=[self.values,self.text]
@@ -194,7 +196,7 @@ def StartBO_Window(window, **kwargs):
         for element in OptimizerCode:
             Obj=BO_Object(frame2)
             CreatedProcedures.append(Obj)
-            Obj.SetValues(element)
+            Obj.InitValues(element)
             YSize=Obj.Height
             Obj.place(x=10,y=CurrentY)
             CurrentY+=YSize
@@ -209,7 +211,19 @@ def StartBO_Window(window, **kwargs):
         if filename=="": return
         LoadOptimization(filename)
 
+    def SetObjValues(Values):
+        global CreatedProcedures
+        if not(len(Values)==len(CreatedProcedures)):
+            tk.messagebox.showerror("ERROR","The number of objects differs with respect to number of parameters.")
+            return
+        for num,Value in enumerate(Values):
+            CreatedProcedures[num].SetValues(Value)
+
+    def SetOptParams(OptParams):
+        print(OptParams)
+
     def LoadOptimization(filename):
+        global ProcedureName,CRC_Value,File_Size
         fin=open(filename, 'rb')
         ProcedureName=pickle.load(fin)
         CRC_Value=pickle.load(fin)
@@ -228,8 +242,8 @@ def StartBO_Window(window, **kwargs):
             tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" contains errors.")
             return
         RenderOptimizerCode(OptimizerCode)
-##        SetObjValues()
-##        SetOptParms()
+        SetObjValues(Values)
+        SetOptParams(OptParams)
 
     def GetOptimizationParms(): #no error checking! Launch OptimizationParametersAreCorrect first
         Opt_Type=OptimizationType.get()
