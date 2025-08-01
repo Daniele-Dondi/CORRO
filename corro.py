@@ -1391,7 +1391,7 @@ base.bind('<Key>', keypress)
 F = tk.Frame(base)
 F.pack(side="left",fill="y")
 #Software name
-F.master.title("CO.R.RO 1.2 Build "+str(BuildVersion))
+F.master.title("CO.R.RO 2.0 Build "+str(BuildVersion))
 #Frame F
 lTitle = tk.Label(F, text="CO.R.RO",  font=(CORRO_FONT))
 lTitle.pack(side="top")
