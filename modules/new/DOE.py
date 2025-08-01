@@ -61,6 +61,7 @@ df_pb.index = [f"Run {i+1}" for i in range(len(df_pb))]
 
 print(df_pb)
 
+#####################################################
 print("without libraries")
 import itertools
 
@@ -105,6 +106,6 @@ doe = DesignOfExperiments(levels, min_vals, max_vals)
 matrix = doe.get_design()
 
 # Print a few rows
-for row in matrix[:5]:
+for row in matrix:
     print(row)
 
