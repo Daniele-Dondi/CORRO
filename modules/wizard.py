@@ -17,7 +17,6 @@
 # Date: 2025
 
 import tkinter as tk
-from tkinter import *
 from tkinter import ttk
 import os
 from modules.configurator import *
@@ -1985,12 +1984,12 @@ def StartWizard(window, **kwargs):
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
     frame3.pack(side="bottom")
     
-    my_canvas = Canvas(WizardWindow)
-    my_canvas.pack(side=LEFT,fill=BOTH,expand=1)
-    y_scrollbar = ttk.Scrollbar(WizardWindow,orient=VERTICAL,command=my_canvas.yview)
-    y_scrollbar.pack(side=RIGHT,fill=Y)
+    my_canvas = tk.Canvas(WizardWindow)
+    my_canvas.pack(side="left",fill="both",expand=1)
+    y_scrollbar = ttk.Scrollbar(WizardWindow,orient=tk.VERTICAL,command=my_canvas.yview)
+    y_scrollbar.pack(side="right",fill=tk.Y)
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
-    my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(ALL)))
+    my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(tk.ALL)))
     WizardWindow.bind("<MouseWheel>", on_mousewheel)
     WizardWindow.bind("<Button-1>", drag_start_canvas)
     WizardWindow.bind("<B1-Motion>", drag_motion_canvas)
@@ -2000,16 +1999,16 @@ def StartWizard(window, **kwargs):
     frame2.pack()
 
     #Selection frame, composed by 4 stretched buttons
-    pixel = PhotoImage(width=1, height=1)        
-    SelTopButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelBottomButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelLeftButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-    SelRightButton = Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    pixel = tk.PhotoImage(width=1, height=1)        
+    SelTopButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelBottomButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelLeftButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
+    SelRightButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
     
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     
     # Create a canvas inside the frame
-    SelectionCanvas = Canvas(frame2,height=10000,width=1000,bg="white")
+    SelectionCanvas = tk.Canvas(frame2,height=10000,width=1000,bg="white")
     SelectionCanvas.pack()
 
     tk.Button(frame1,text="Pour liquid",command=lambda: CreateNewObject("Pour")).pack(side="left")
