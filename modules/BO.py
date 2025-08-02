@@ -221,6 +221,19 @@ def StartBO_Window(window, **kwargs):
 
     def SetOptParams(OptParams):
         print(OptParams)
+        OptType=OptParams[0]
+        OptimizationType.set(OptType)
+        create_widgets(OptType)
+        if OptType=="Bayesian Optimization":
+            MaxIterations.delete(0,tk.END)
+            MaxIterations.insert(0,OptParams[1])
+            kappa.delete(0,tk.END)
+            kappa.insert(0,OptParams[2])
+            xi.delete(0,tk.END)
+            xi.insert(0,OptParams[3])
+        else:
+            tk.messagebox.showerror("ERROR","not yet implemented")
+
 
     def LoadOptimization(filename):
         global ProcedureName,CRC_Value,File_Size
