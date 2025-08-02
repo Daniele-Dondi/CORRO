@@ -234,6 +234,26 @@ def StartBO_Window(window, **kwargs):
         else:
             tk.messagebox.showerror("ERROR","not yet implemented")
 
+    def check_file_path(filepath):
+       # Extract the filename only
+       target_filename = os.path.basename(filepath)
+
+       # Check if the file exists
+       if os.path.isfile(filepath):
+           return filepath
+       else:
+           tk.messagebox.showinfo("Information", f"Could not find the file {target_filename}\nPlease indicate the new location of the file: {target_filename}")
+           # Ask for new location with file type filter (all extensions allowed, name restricted)
+           new_path = tk.filedialog.askopenfilename(
+               title=f"Select {target_filename}",
+               filetypes=[("Matching file", target_filename)],
+           )
+
+           # Validate the new selection
+           if os.path.basename(new_path) == target_filename:
+               return new_path
+           else:
+               return None
 
     def LoadOptimization(filename):
         global ProcedureName,CRC_Value,File_Size
@@ -244,6 +264,10 @@ def StartBO_Window(window, **kwargs):
         Values=pickle.load(fin)
         OptParams=pickle.load(fin)
         fin.close()
+        ProcedureName=check_file_path(ProcedureName) #check if the file exists, if it is not, maybe file is located somewhere else, so ask for the new location
+        if ProcedureName==None:
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file was not found.")
+            return
         if not(CRC(ProcedureName)==CRC_Value):
             tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
             return
