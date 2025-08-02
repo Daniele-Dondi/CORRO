@@ -116,7 +116,19 @@ class BO_Object(tk.Frame):
             SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
 
     def InitValues(self,element):
-        #[['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
+##        Structure of the array:
+##        [[object array taken from procedure],
+##        [String with possible variable to be optimized included in $num$. num is the position of the value in the previous array],
+##        [array containing Min and Max values for each opt parameter],
+##        [array indicating if the opt. variable is selected or not. "disabled"=not selected, "normal"=selected ]]
+##
+##        Note: the array cannot start with the numeric value to change. So, after splitting the string by "$", the odd values will be labels and the even values will be possible opt. variables
+##        
+##        Example:
+##        [['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
+##        [['Reactor1', '50', '10', 1, '25'], "Heat 'Reactor1' at $1$ °C and keep for $2$ min", [['4.0', '544.0'], ['8.0', '12.0']], ['normal', 'normal']], 
+##        [['Reactant: Water', 'Apparatus: Reactor1', '3', '150.0'], "Wash 'Apparatus: Reactor1' with 'Reactant: Water'", [], []]
+        
         text=element[1]
         self.text=element[1]
         values=element[0]
@@ -190,6 +202,27 @@ def StartBO_Window(window, **kwargs):
 
     def Close():
         BO_Window.destroy()
+
+    def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
+        Var_Position=[]
+        segments=Value.split("$")
+        for i,segment in enumerate(segments):
+            if not(i % 2==0):
+                Var_Position.append(int(segment))
+        return Var_Position
+
+    def GetParmsToOptimize():
+        AllValues=GetAllValues()
+        OptValues=[]
+        for num,Value in enumerate(AllValues):
+            Var_Position=RetrieveOptVarsPosition(Value[1])
+            if len(Var_Position)==0:
+                continue
+            for pos,element in enumerate(Value[3]):
+                if element=="normal":
+                    OptValues.append([Value[2][pos], num, Var_Position[pos]]) # return an array with [[min, max value],object position in procedure,position in the object array]
+        print(OptValues)
+        return OptValues
 
     def RenderOptimizerCode(OptimizerCode):
         global CurrentY,CreatedProcedures
@@ -282,7 +315,7 @@ def StartBO_Window(window, **kwargs):
         SetObjValues(Values)
         SetOptParams(OptParams)
 
-    def GetOptimizationParms(): #no error checking! Launch OptimizationParametersAreCorrect first
+    def GetOptimizationParms(): 
         Opt_Type=OptimizationType.get()
         if Opt_Type=="Bayesian Optimization":
             MaxIter=int(MaxIterations.get())
@@ -338,19 +371,25 @@ def StartBO_Window(window, **kwargs):
             return CanOptimize
         return "OK"
 
-    def SaveOptimization(filename):
-        global ProcedureName,CRC_Value,File_Size,CreatedProcedures
+    def GetAllValues():
+        global CreatedProcedures
         AllValues=[]
         for obj in CreatedProcedures:
             AllValues.append(obj.GetValues())
         print(AllValues)
+        return AllValues
+
+    def SaveOptimization(filename):
+        global ProcedureName,CRC_Value,File_Size,CreatedProcedures
+        AllValues=GetAllValues()
         fout=open(filename, 'wb')
         pickle.dump(ProcedureName,fout)
         pickle.dump(CRC_Value,fout)
         pickle.dump(File_Size,fout)
         pickle.dump(AllValues,fout)
         pickle.dump(GetOptimizationParms(),fout)
-        fout.close()        
+        fout.close()
+        GetParmsToOptimize()
 
     def AskSaveOptimizer():
         global CreatedProcedures
