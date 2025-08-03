@@ -313,6 +313,7 @@ def StartBO_Window(window, **kwargs):
 
     def LoadOptimization(filename):
         global ProcedureName,CRC_Value,File_Size
+        SetNotSaved(False)
         fin=open(filename, 'rb')
         ProcedureName=pickle.load(fin)
         CRC_Value=pickle.load(fin)
@@ -337,7 +338,7 @@ def StartBO_Window(window, **kwargs):
         RenderOptimizerCode(OptimizerCode)
         SetObjValues(Values)
         SetOptParams(OptParams)
-        SetNotSaved(False)
+        
 
     def GetOptimizationParms(): 
         Opt_Type=OptimizationType.get()
@@ -463,25 +464,30 @@ def StartBO_Window(window, **kwargs):
             return True
         return False
 
+    def on_key_release(event):
+        SetNotSaved(True)
+
     def create_widgets(selection):
         # Clear old widgets
         for widget in frameOpt.winfo_children():
             widget.destroy()
-        SetNotSaved(True)
         if selection == "Bayesian Optimization":
             global MaxIterations,kappa,xi
             Label2=tk.Label(frameOpt, text="Max number of iterations: ")
             Label2.pack(side="left")
             MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
             MaxIterations.pack(side="left")
+            MaxIterations.bind("<KeyRelease>", on_key_release)
             Label3=tk.Label(frameOpt, text="kappa: ")
             Label3.pack(side="left")
             kappa=tk.Entry(frameOpt,state="normal",width=10)
             kappa.pack(side="left")
+            kappa.bind("<KeyRelease>", on_key_release)
             Label4=tk.Label(frameOpt, text="xi: ")
             Label4.pack(side="left")
             xi=tk.Entry(frameOpt,state="normal",width=10)
             xi.pack(side="left")
+            xi.bind("<KeyRelease>", on_key_release)
         elif selection == "DOE":
             global DOE_Type,NumLevels
             DOE_Type=ttk.Combobox(frameOpt, values = ("Full Factorial","Level Full-Factorial","Level Fractional-Factorial","Plackett-Burman"), state = 'readonly',width=20)
@@ -494,6 +500,7 @@ def StartBO_Window(window, **kwargs):
 
     def on_select(event):
         selected_option = OptimizationType.get()
+        SetNotSaved(True)
         create_widgets(selected_option)    
 
     BO_Window=tk.Toplevel(window)
