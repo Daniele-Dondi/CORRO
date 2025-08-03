@@ -306,6 +306,7 @@ def StartBO_Window(window, **kwargs):
 
            # Validate the new selection
            if os.path.basename(new_path) == target_filename:
+               SetNotSaved(True)
                return new_path
            else:
                return None
@@ -336,6 +337,7 @@ def StartBO_Window(window, **kwargs):
         RenderOptimizerCode(OptimizerCode)
         SetObjValues(Values)
         SetOptParams(OptParams)
+        SetNotSaved(False)
 
     def GetOptimizationParms(): 
         Opt_Type=OptimizationType.get()
@@ -465,7 +467,7 @@ def StartBO_Window(window, **kwargs):
         # Clear old widgets
         for widget in frameOpt.winfo_children():
             widget.destroy()
-
+        SetNotSaved(True)
         if selection == "Bayesian Optimization":
             global MaxIterations,kappa,xi
             Label2=tk.Label(frameOpt, text="Max number of iterations: ")
