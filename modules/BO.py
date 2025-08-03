@@ -22,156 +22,173 @@ import os
 import modules.wizard as wiz
 from modules.buildvercalculator import CRC
 import pickle
+global NotSaved
 
-def disable_widgets(frame):
-    for widget in frame.winfo_children():
-        try:
-            widget.configure(state='disabled')
-        except tk.TclError:
-            # Skip widgets that don't support 'state' (e.g. labels)
-            pass
+def StartBO_Window(window, **kwargs):
+    global ProcedureName,CRC_Value,File_Size,CurrentY
+    global CreatedProcedures
+    global NotSaved
 
-def enable_widgets(frame):
-    for widget in frame.winfo_children():
-        try:
-            widget.configure(state='normal')
-        except tk.TclError:
-            # Skip widgets that don't support 'state' (e.g. labels)
-            pass        
+    NotSaved=False
 
-class MinMaxApp:
-    def __init__(self, root):
-        self.root = root
-        
-        # Create a frame
-        self.frame = tk.Frame(self.root,relief=tk.GROOVE,borderwidth=4)
-        self.frame.pack(side="left")#pady=20)
+    def disable_widgets(frame):
+        for widget in frame.winfo_children():
+            try:
+                widget.configure(state='disabled')
+            except tk.TclError:
+                # Skip widgets that don't support 'state' (e.g. labels)
+                pass
 
-        # Min Entry
-        label1=tk.Label(self.frame, text="Min Value:")
-        label1.grid(row=0, column=0)
-        self.min_entry = tk.Entry(self.frame)
-        self.min_entry.grid(row=0, column=1, padx=5, pady=5)
+    def enable_widgets(frame):
+        for widget in frame.winfo_children():
+            try:
+                widget.configure(state='normal')
+            except tk.TclError:
+                # Skip widgets that don't support 'state' (e.g. labels)
+                pass        
 
-        # Max Entry
-        label2=tk.Label(self.frame, text="Max Value:")
-        label2.grid(row=1, column=0)
-        self.max_entry = tk.Entry(self.frame)
-        self.max_entry.grid(row=1, column=1, padx=5, pady=5)
+    class MinMaxApp:
+        def __init__(self, root):
+            self.root = root
+            
+            # Create a frame
+            self.frame = tk.Frame(self.root,relief=tk.GROOVE,borderwidth=4)
+            self.frame.pack(side="left")#pady=20)
 
-    def SetMin(self,value):
-        value=round(float(value),2)
-        self.min_entry.delete(0,tk.END)
-        self.min_entry.insert(0,str(value))
+            # Min Entry
+            label1=tk.Label(self.frame, text="Min Value:")
+            label1.grid(row=0, column=0)
+            self.min_entry = tk.Entry(self.frame)
+            self.min_entry.grid(row=0, column=1, padx=5, pady=5)
+            self.min_entry.bind("<KeyRelease>", self.on_key_release)
 
-    def SetMax(self,value):
-        value=round(float(value),2)
-        self.max_entry.delete(0,tk.END)
-        self.max_entry.insert(0,str(value))
+            # Max Entry
+            label2=tk.Label(self.frame, text="Max Value:")
+            label2.grid(row=1, column=0)
+            self.max_entry = tk.Entry(self.frame)
+            self.max_entry.grid(row=1, column=1, padx=5, pady=5)
+            self.max_entry.bind("<KeyRelease>", self.on_key_release)
 
-    def GetValues(self):
-        min_val = self.min_entry.get()
-        max_val = self.max_entry.get()
-        return [min_val, max_val]
+        def on_key_release(self,event):
+            SetNotSaved(True)
 
-    def GetEnabled(self):
-        MinMaxEnabled = self.min_entry.cget("state")
-        return MinMaxEnabled
+        def SetMin(self,value):
+            value=round(float(value),2)
+            self.min_entry.delete(0,tk.END)
+            self.min_entry.insert(0,str(value))
+
+        def SetMax(self,value):
+            value=round(float(value),2)
+            self.max_entry.delete(0,tk.END)
+            self.max_entry.insert(0,str(value))
+
+        def GetValues(self):
+            min_val = self.min_entry.get()
+            max_val = self.max_entry.get()
+            return [min_val, max_val]
+
+        def GetEnabled(self):
+            MinMaxEnabled = self.min_entry.cget("state")
+            return MinMaxEnabled
 
 
-class BO_Object(tk.Frame):
-    def __init__(self,container):
-        self.Height=40
-        self.Objects=[]
-        self.MinMaxs=[] #links to minmax objects
-        self.ParametersToChange=[] #contains the number of variable to change associate with possible BO variables
-        self.text="" #display text with $..$ indicating possible BO variables
-        self.values="" #values retrieved for the object
-        self.Colors=["Cyan","Crimson","Purple","Red"]
-        super().__init__(container)
-        self.config(relief=tk.GROOVE,borderwidth=4)        
-        self.create_widgets()
+    class BO_Object(tk.Frame):
+        def __init__(self,container):
+            self.Height=40
+            self.Objects=[]
+            self.MinMaxs=[] #links to minmax objects
+            self.ParametersToChange=[] #contains the number of variable to change associate with possible BO variables
+            self.text="" #display text with $..$ indicating possible BO variables
+            self.values="" #values retrieved for the object
+            self.Colors=["Cyan","Crimson","Purple","Red"]
+            super().__init__(container)
+            self.config(relief=tk.GROOVE,borderwidth=4)        
+            self.create_widgets()
 
-    def create_widgets(self):
-        self.Line1=tk.Frame(self)
-        self.Line1.pack()
-        self.Line2=tk.Frame(self)
-        self.Line2.pack(side="left")
+        def create_widgets(self):
+            self.Line1=tk.Frame(self)
+            self.Line1.pack()
+            self.Line2=tk.Frame(self)
+            self.Line2.pack(side="left")
 
-    def SelectedColor(self,num):
-        return self.Colors[num%len(self.Colors)]        
+        def SelectedColor(self,num):
+            return self.Colors[num%len(self.Colors)]        
 
-    def ButtonClicked(self,num):
-        if self.Objects[num].config('relief')[-1] == 'raised':
-            num_MinMax=num//2            
-            self.Objects[num].config(relief='sunken',bg=self.SelectedColor(num_MinMax))
-            SelectedMinMax=self.MinMaxs[num_MinMax].frame
-            enable_widgets(SelectedMinMax)
-            SelectedMinMax.config(highlightbackground=self.SelectedColor(num_MinMax), highlightthickness=1)
-        else:
-            self.Objects[num].config(relief='raised',bg="white")
-            num_MinMax=num//2
-            SelectedMinMax=self.MinMaxs[num_MinMax].frame
-            disable_widgets(SelectedMinMax)
-            SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
-
-    def InitValues(self,element):
-##        Structure of the array:
-##        [[object array taken from procedure],
-##        [String with possible variable to be optimized included in $num$. num is the position of the value in the previous array],
-##        [array containing Min and Max values for each opt parameter],
-##        [array indicating if the opt. variable is selected or not. "disabled"=not selected, "normal"=selected ]]
-##
-##        Note: the array cannot start with the numeric value to change. So, after splitting the string by "$", the odd values will be labels and the even values will be possible opt. variables
-##        
-##        Example:
-##        [['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
-##        [['Reactor1', '50', '10', 1, '25'], "Heat 'Reactor1' at $1$ °C and keep for $2$ min", [['4.0', '544.0'], ['8.0', '12.0']], ['normal', 'normal']], 
-##        [['Reactant: Water', 'Apparatus: Reactor1', '3', '150.0'], "Wash 'Apparatus: Reactor1' with 'Reactant: Water'", [], []]
-        
-        text=element[1]
-        self.text=element[1]
-        values=element[0]
-        self.values=element[0]
-        parts=text.split("$")
-        for num,part in enumerate(parts):
-            if num % 2==0:
-                self.Objects.append(tk.Label(self.Line1, text=part, font="Verdana 12"))
+        def ButtonClicked(self,num):
+            if self.Objects[num].config('relief')[-1] == 'raised':
+                num_MinMax=num//2            
+                self.Objects[num].config(relief='sunken',bg=self.SelectedColor(num_MinMax))
+                SelectedMinMax=self.MinMaxs[num_MinMax].frame
+                enable_widgets(SelectedMinMax)
+                SelectedMinMax.config(highlightbackground=self.SelectedColor(num_MinMax), highlightthickness=1)
             else:
-                self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.ButtonClicked(j)))
-                self.Height=105
-                self.ParametersToChange.append(part)
-                ThisMinMax=MinMaxApp(self.Line2)
-                self.MinMaxs.append(ThisMinMax)
-                FloatValue=float(values[int(part)])
-                ThisMinMax.SetMin(FloatValue*0.8) #fill entries with +- 20% of current value
-                ThisMinMax.SetMax(FloatValue*1.2) #fill entries with +- 20% of current value
-                disable_widgets(ThisMinMax.frame)
-            self.Objects[-1].pack(side="left")
+                self.Objects[num].config(relief='raised',bg="white")
+                num_MinMax=num//2
+                SelectedMinMax=self.MinMaxs[num_MinMax].frame
+                disable_widgets(SelectedMinMax)
+                SelectedMinMax.config(highlightbackground=None, highlightthickness=0)
 
-    def SetValues(self,element):
-        for num,parameter in enumerate(element[2]):
-            ThisMinMax=self.MinMaxs[num]
-            enable_widgets(ThisMinMax.frame) #enable widget, if not changes do not occur
-            ThisMinMax.SetMin(parameter[0])
-            ThisMinMax.SetMax(parameter[1])
-        for num,parameter in enumerate(element[3]):
-            ThisMinMax=self.MinMaxs[num].frame
-            if parameter=="disabled":
-                disable_widgets(ThisMinMax)
-            else:
-                self.ButtonClicked(1+num*2)
+        def UserClickedButton(self,num):
+            SetNotSaved(True)
+            self.ButtonClicked(num)
 
-    def GetValues(self):
-        output=[self.values,self.text]
-        MinMaxValues=[]
-        MinMaxEnabled=[]
-        for MinMax in self.MinMaxs:
-            MinMaxValues.append(MinMax.GetValues())
-            MinMaxEnabled.append(MinMax.GetEnabled())
-        output.append(MinMaxValues)
-        output.append(MinMaxEnabled)
-        return output
+        def InitValues(self,element):
+    ##        Structure of the array:
+    ##        [[object array taken from procedure],
+    ##        [String with possible variable to be optimized included in $num$. num is the position of the value in the previous array],
+    ##        [array containing Min and Max values for each opt parameter],
+    ##        [array indicating if the opt. variable is selected or not. "disabled"=not selected, "normal"=selected ]]
+    ##
+    ##        Note: the array cannot start with the numeric value to change. So, after splitting the string by "$", the odd values will be labels and the even values will be possible opt. variables
+    ##        
+    ##        Example:
+    ##        [['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
+    ##        [['Reactor1', '50', '10', 1, '25'], "Heat 'Reactor1' at $1$ °C and keep for $2$ min", [['4.0', '544.0'], ['8.0', '12.0']], ['normal', 'normal']], 
+    ##        [['Reactant: Water', 'Apparatus: Reactor1', '3', '150.0'], "Wash 'Apparatus: Reactor1' with 'Reactant: Water'", [], []]
+            
+            text=element[1]
+            self.text=element[1]
+            values=element[0]
+            self.values=element[0]
+            parts=text.split("$")
+            for num,part in enumerate(parts):
+                if num % 2==0:
+                    self.Objects.append(tk.Label(self.Line1, text=part, font="Verdana 12"))
+                else:
+                    self.Objects.append(tk.Button(self.Line1, text=values[int(part)], font="Verdana 12",bg="white",command=lambda j=num : self.UserClickedButton(j)))
+                    self.Height=105
+                    self.ParametersToChange.append(part)
+                    ThisMinMax=MinMaxApp(self.Line2)
+                    self.MinMaxs.append(ThisMinMax)
+                    FloatValue=float(values[int(part)])
+                    ThisMinMax.SetMin(FloatValue*0.8) #fill entries with +- 20% of current value
+                    ThisMinMax.SetMax(FloatValue*1.2) #fill entries with +- 20% of current value
+                    disable_widgets(ThisMinMax.frame)
+                self.Objects[-1].pack(side="left")
+
+        def SetValues(self,element):
+            for num,parameter in enumerate(element[2]):
+                ThisMinMax=self.MinMaxs[num]
+                enable_widgets(ThisMinMax.frame) #enable widget, if not changes do not occur
+                ThisMinMax.SetMin(parameter[0])
+                ThisMinMax.SetMax(parameter[1])
+            for num,parameter in enumerate(element[3]):
+                ThisMinMax=self.MinMaxs[num].frame
+                if parameter=="disabled":
+                    disable_widgets(ThisMinMax)
+                else:
+                    self.ButtonClicked(1+num*2)
+
+        def GetValues(self):
+            output=[self.values,self.text]
+            MinMaxValues=[]
+            MinMaxEnabled=[]
+            for MinMax in self.MinMaxs:
+                MinMaxValues.append(MinMax.GetValues())
+                MinMaxEnabled.append(MinMax.GetEnabled())
+            output.append(MinMaxValues)
+            output.append(MinMaxEnabled)
+            return output
 
     
 ################################################################## end of classes ##################################################################
@@ -179,15 +196,17 @@ class BO_Object(tk.Frame):
 ################################################################## end of classes ##################################################################
 
 
-def Edit_Setup(window):
-    return
 
-def Run_Setup(window):
-    return
 
-def StartBO_Window(window, **kwargs):
-    global ProcedureName,CRC_Value,File_Size,CurrentY
-    global CreatedProcedures
+    def SetNotSaved(Value):
+        # Function to update title based on NotSaved
+        global NotSaved
+        NotSaved=Value
+        base_title = "BAYESIAN OPTIMIZATION SETUP"
+        if NotSaved:
+            BO_Window.title(f"{base_title} - Not Saved")
+        else:
+            BO_Window.title(base_title)
 
     def InitVars():
         global CreatedProcedures, ProcedureName, CRC_Value, File_Size, CurrentY
@@ -202,6 +221,9 @@ def StartBO_Window(window, **kwargs):
 
     def Close():
         BO_Window.destroy()
+
+    def Run_Setup(window):
+        return
 
     def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
         Var_Position=[]
@@ -388,8 +410,9 @@ def StartBO_Window(window, **kwargs):
         pickle.dump(File_Size,fout)
         pickle.dump(AllValues,fout)
         pickle.dump(GetOptimizationParms(),fout)
+        pickle.dump(GetParmsToOptimize(),fout)
         fout.close()
-        GetParmsToOptimize()
+        SetNotSaved(False)
 
     def AskSaveOptimizer():
         global CreatedProcedures
@@ -434,6 +457,7 @@ def StartBO_Window(window, **kwargs):
             MsgBox = tk.messagebox.askquestion ('New Optimization','Are you sure you want to delete all?',icon = 'warning')
         if MsgBox == 'yes':
             DeleteAll()
+            SetNotSaved(False)
             return True
         return False
 
@@ -542,7 +566,7 @@ def StartBO_Window(window, **kwargs):
     bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = tk.LEFT)
     bSave.pack(side="left",padx=10)
     Run_icon = tk.PhotoImage(file = r"icons/run_setup.png")
-    bRun=tk.Button(frame1, text="RUN", command=lambda: Run_Setup(Optimizer_Window),image = Run_icon, compound = tk.LEFT)
+    bRun=tk.Button(frame1, text="RUN", command=Run_Setup,image = Run_icon, compound = tk.LEFT)
     bRun.pack(side="left",padx=10)
     Exit_icon = tk.PhotoImage(file = r"icons/exit_setup.png")
     bExit=tk.Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = tk.LEFT)
