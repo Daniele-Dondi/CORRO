@@ -22,6 +22,8 @@ import os
 import modules.wizard as wiz
 from modules.buildvercalculator import CRC
 import pickle
+import modules.helpview as Help
+
 global NotSaved
 
 def StartBO_Window(window, **kwargs):
@@ -565,6 +567,10 @@ def StartBO_Window(window, **kwargs):
     SelectionCanvas = tk.Canvas(frame2,height=10000,width=1000,bg="white")
     SelectionCanvas.pack()
 
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(base_dir)
+    help_path = os.path.join(parent_dir, "help","Optimizer")
+
     New_icon = tk.PhotoImage(file = r"icons/new_setup.png")
     bNewSetup=tk.Button(frame1, text="NEW", command=New_Setup,image = New_icon, compound = tk.LEFT)
     bNewSetup.pack(side="left",padx=10)
@@ -582,7 +588,7 @@ def StartBO_Window(window, **kwargs):
     bExit.pack(side="left",padx=10)
 
     Help_icon = tk.PhotoImage(file = r"icons/help_setup.png")
-    bHelp=tk.Button(frame1, text="HELP", command=Close,image = Help_icon, compound = tk.LEFT)
+    bHelp=tk.Button(frame1, text="HELP", command=lambda: Help.ShowHelp(help_path),image = Help_icon, compound = tk.LEFT)
     bHelp.pack(side="left",padx=20)
     
     InitVars()
