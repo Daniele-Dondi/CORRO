@@ -183,7 +183,7 @@ def readConfigurationFiles():
          tk.messagebox.showwarning("Warning","Current schematic has no colors defined with macros")    
     except:
         tk.messagebox.showerror("ERROR","Error reading configuration file. Please quit program")
-    conf.LoadConfFile('startup.conf')    
+    conf.LoadConfFile()    
 
 def SyringeBOT_is_ready():
     global SyringeBOT_IS_BUSY,Temperature_Hook,Time_Hook

@@ -21,6 +21,7 @@ from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
 import serial
 import time
+import os
 from modules.listserialports import AvailableSerialPorts
 from .serialmon import SerialMon
 
@@ -33,6 +34,8 @@ def InitAllData():
     global PlugsArray,CurrentPlug,DefaultPlugParameters
     global CurrentFileName
     global FileIsModified
+    global DefaultConfigurationFile
+    DefaultConfigurationFile=os.path.join("conf", "default.conf")
     ReactantsArray=[]
     CurrentReactant=1
     ValveOptions=["Not in use","Air/Waste"]
@@ -220,9 +223,11 @@ def SplitDevicesArray():
         USB_deviceready.append(SensorEnabled)
         USB_last_values.append(("0.0 "*int(NumVariables)).strip())
 
-def LoadConfFile(filename):
+def LoadConfFile(filename=DefaultConfigurationFile):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
     global CurrentFileName
+    #DefaultConfigurationFile="conf/default.conf"
+    if filename=="": filename=DefaultConfiguration
     InitAllData()
     try:
      fin=open(filename, 'rb')
@@ -235,7 +240,8 @@ def LoadConfFile(filename):
      fin.close()
     except Exception as e:
      print(e)
-     messagebox.showerror("ERROR", "Cannot load "+filename)
+     messagebox.showerror("ERROR", "Cannot load "+filename+"\nCreate the correct configuration in order to use CORRO")
+     CurrentFileName=DefaultConfigurationFile
     else:
      CurrentFileName=filename
 
@@ -847,15 +853,12 @@ def StartConfigurator(window):
         ApparatusType.set(parms[1])
         thermo.set(parms[2])
         heated.set(parms[3])
-        stirred.set(parms[4])
-        onoff.set(parms[5])
-        otheronoff.set(parms[6])
-        minvol.insert(0,parms[7])
-        maxvol.insert(0,parms[8])
+        minvol.insert(0,parms[4])
+        maxvol.insert(0,parms[5])
         maxinputs.delete(0,tk.END)
-        maxinputs.insert(0,parms[9])
+        maxinputs.insert(0,parms[6])
         maxoutputs.delete(0,tk.END)
-        maxoutputs.insert(0,parms[10])
+        maxoutputs.insert(0,parms[7])
         EnableDisableTab2()   
 
     def AskLoadApparatusParameters():
@@ -870,7 +873,7 @@ def StartConfigurator(window):
          SetTab2Variables(ApparatusArray[CurrentApparatus-1])
 
     def GetTab2Variables():
-        return [ApparatusName.get(),ApparatusType.get(),thermo.get(),heated.get(),stirred.get(),onoff.get(),otheronoff.get(),minvol.get(),maxvol.get(),maxinputs.get(),maxoutputs.get()]
+        return [ApparatusName.get(),ApparatusType.get(),thermo.get(),heated.get(),minvol.get(),maxvol.get(),maxinputs.get(),maxoutputs.get()]
 
     def SaveApparatusParameters():
         global CurrentApparatus,FileIsModified
@@ -893,9 +896,6 @@ def StartConfigurator(window):
           ApparatusType.set("")
           thermo.set("None")
           heated.set("None")
-          stirred.set("None")
-          onoff.set("None")
-          otheronoff.set("None")
           minvol.delete(0,tk.END)
           maxvol.delete(0,tk.END)
           maxinputs.delete(0,tk.END)
@@ -920,7 +920,7 @@ def StartConfigurator(window):
         if answer: ClearAllValuesT2()
 
     def Tab2HavingDefaultValues():
-        return GetTab2Variables()==['', '', 'None', 'None', 'None', 'None', 'None', '', '', '1', '1']
+        return GetTab2Variables()==['', '', 'None', 'None', '', '', '1', '1']
 
     def NotSavedDataTab2():
         global CurrentApparatus
@@ -1002,9 +1002,6 @@ def StartConfigurator(window):
     ApparatusType.pack(); ApparatusType.bind("<<ComboboxSelected>>", ApparatusTypeCallback)
     ttk.Label(tab2,text ="Thermocouple connection").pack(); thermo=ttk.Combobox(tab2, values = ThermoList, state = "readonly"); thermo.current(0); thermo.pack() 
     ttk.Label(tab2,text ="Heater connection").pack(); heated=ttk.Combobox(tab2, values = PIDList, state = "readonly"); heated.current(0); heated.pack()
-    ttk.Label(tab2,text ="Stirrer connection").pack(); stirred=ttk.Combobox(tab2, values = PowerList, state = "readonly"); stirred.current(0); stirred.pack()
-    ttk.Label(tab2,text ="Power ON/OFF connection").pack(); onoff=ttk.Combobox(tab2, values = PowerList, state = "readonly"); onoff.current(0); onoff.pack()
-    ttk.Label(tab2,text ="Other ON/OFF connection").pack(); otheronoff=ttk.Combobox(tab2, values = PowerList, state = "readonly"); otheronoff.current(0); otheronoff.pack()    
     ttk.Label(tab2,text ="Min. volume (mL)").pack(); minvol=ttk.Entry(tab2); minvol.pack()
     ttk.Label(tab2,text ="Max. volume (mL)").pack(); maxvol=ttk.Entry(tab2); maxvol.pack()
     ttk.Label(tab2,text ="Number of inputs:").pack(); maxinputs=tk.Spinbox(tab2, from_=1, to=10, repeatdelay=500, repeatinterval=200); maxinputs.pack()
@@ -1054,6 +1051,7 @@ def StartConfigurator(window):
 
     def LoadSyringeParameters():
         global CurrentSyringe
+        if not(len(SyringesArray)>CurrentSyringe-1): return
         SetTab3Variables(SyringesArray[CurrentSyringe-1])
         
     def SaveSyringeParameters():
@@ -1185,7 +1183,7 @@ def StartConfigurator(window):
 
     def LoadDeviceParameters():
          global DevicesArray,CurrentDevice
-         if (len(DevicesArray)<CurrentDevice-1): return
+         if not(len(DevicesArray)>CurrentDevice-1): return         
          tabControl.unbind("<<NotebookTabChanged>>")
          SetTab4Variables(DevicesArray[CurrentDevice-1])
          tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
@@ -1351,7 +1349,7 @@ def StartConfigurator(window):
     ttk.Label(tab4,text ="Device USB").pack(); DeviceUSB=ttk.Combobox(tab4, values = AvailableSerialPorts()); DeviceUSB.pack(); #DeviceUSB.bind("<<ComboboxSelected>>", ReactantTypecallback)
     ttk.Label(tab4,text ="USB Baudrate").pack(); USBBaudRate=ttk.Combobox(tab4, values =("9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "250000", "256000")); USBBaudRate.pack();
     protlabel=ttk.Label(tab4,text ="Protocol"); protlabel.pack(); Protocol=ttk.Combobox(tab4, values =("Readonly","Read/Write","Writeonly"),state="readonly"); Protocol.pack(); Protocol.bind("<<ComboboxSelected>>", DeviceTypecallback)
-    SensorEnabled=tk.BooleanVar(); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.pack()
+    SensorEnabled=tk.BooleanVar(); SensorEnabled.set(True); DevEnabled=tk.Checkbutton(tab4,text="Device enabled",variable=SensorEnabled); DevEnabled.pack()
     ttk.Label(tab4,text ="Num. of Variables to read").pack(); NumVariables=tk.Spinbox(tab4, from_=0, to=10000, repeatdelay=500, repeatinterval=200); NumVariables.pack()
     ttk.Label(tab4,text ="Variable names (base name or space separated)").pack(); VarNames=ttk.Entry(tab4); VarNames.pack(); 
     USBlabel=ttk.Label(tab4,text ="---"); USBlabel.pack();
@@ -1572,7 +1570,7 @@ def StartConfigurator(window):
 ####################################
     
 
-    LoadConfFile('startup.conf')
+    LoadConfFile()
     SetSyringeOptions()
     ShowData()      
     #ConfiguratorWindow.mainloop()
