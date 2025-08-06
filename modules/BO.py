@@ -136,12 +136,13 @@ def StartBO_Window(window, **kwargs):
 
         def InitValues(self,element):
     ##        Structure of the array:
-    ##        [[object array taken from procedure],
-    ##        [String with possible variable to be optimized included in $num$. num is the position of the value in the previous array],
+    ##        [[object array taken from procedure object],
+    ##        [String with possible variable(s) to be optimized included in $num$. num is the position of the value(s) in the previous array],
     ##        [array containing Min and Max values for each opt parameter],
     ##        [array indicating if the opt. variable is selected or not. "disabled"=not selected, "normal"=selected ]]
     ##
-    ##        Note: the array cannot start with the numeric value to change. So, after splitting the string by "$", the odd values will be labels and the even values will be possible opt. variables
+    ##        Note: The array cannot start with the numeric value to change.
+    ##        So, after splitting the string by "$", the odd values will be labels and the even values will be opt. variables
     ##        
     ##        Example:
     ##        [['Put', 'of', 'in', '10', 'mL', 'Reactant: Water', 'Apparatus: Reactor1 IN', 'Syringe 0 10.0 mL'], "Put $3$ mL of 'Reactant: Water' into 'Apparatus: Reactor1 IN'", [['8.0', '12.0']], ['disabled']]
@@ -426,7 +427,7 @@ def StartBO_Window(window, **kwargs):
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
-            if Check[0]=="ERROR":
+            if Check[0]=="ERROR":  #Check[0] could be either "ERROR" or "WARNING"
                 return
         filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
         filename=filedialog.asksaveasfilename(filetypes=filetypes)
