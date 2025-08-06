@@ -1071,7 +1071,7 @@ class Grid(tk.Toplevel):
         self.file_menu = Menu(self.menubar,tearoff=0)
         self.file_menu.add_command(label='Save',command=self.SaveData)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label='Exit')
+        self.file_menu.add_command(label='Exit',command=self.destroy)
         self.config(menu=self.menubar)
         self.menubar.add_cascade(label="File",menu=self.file_menu)
     def SaveData(self):

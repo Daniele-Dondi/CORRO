@@ -73,8 +73,8 @@ def GetAllReactorApparatus():
     for apparatus in ApparatusArray:
         if "reactor" in apparatus[1]:
             outlist.append(apparatus[0])
-    if len(outlist)==0:
-        messagebox.showinfo(message="It looks like no Apparatus are connected to SyringeBOT.\nPlease run Configurator.")            
+##    if len(outlist)==0:
+##        messagebox.showinfo(message="It looks like no Apparatus are connected to SyringeBOT.\nPlease run Configurator.")            
     return outlist
 
 def GetAllHeatingApparatus():
@@ -83,8 +83,8 @@ def GetAllHeatingApparatus():
     for apparatus in ApparatusArray:
         if apparatus[1]=="Heated reactor":
             outlist.append(apparatus[0])
-    if len(outlist)==0:
-        messagebox.showinfo(message="It looks like no Heating apparatus are connected to SyringeBOT.\nPlease run Configurator.")            
+##    if len(outlist)==0:
+##        messagebox.showinfo(message="It looks like no Heating apparatus are connected to SyringeBOT.\nPlease run Configurator.")            
     return outlist
 
 def GetMaxVolumeApparatus(Name):
@@ -138,8 +138,8 @@ def GetAllSyringeInputs():
           if ("Reactant" in connection or ("Apparatus" in connection and "OUT" in connection)) and not connection in value:
             value.append(connection) #value.append([str(Syringe),str(Exit),connection])
     value.sort()
-    if len(value)==0:
-        messagebox.showinfo(message="It looks like syringes are not connected to any chemicals.\nPlease run Configurator.")
+##    if len(value)==0:
+##        messagebox.showinfo(message="It looks like syringes are not connected to any chemicals.\nPlease run Configurator.")
     return value
 
 def GetAllSyringeOutputs():
@@ -149,8 +149,8 @@ def GetAllSyringeOutputs():
           if ("Apparatus" in connection and "IN" in connection) and not connection in value:
             value.append(connection) #value.append([str(Syringe),str(Exit),connection])
     value.sort()
-    if len(value)==0:
-        messagebox.showinfo(message="It looks like syringes are not connected to any outputs.\nPlease run Configurator.")
+##    if len(value)==0:
+##        messagebox.showinfo(message="It looks like syringes are not connected to any outputs.\nPlease run Configurator.")
     return value
 
 def GetAllOutputsOfSyringe(num):
