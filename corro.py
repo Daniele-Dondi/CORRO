@@ -29,7 +29,7 @@ import os
 import serial
 import modules.configurator as conf
 import modules.wizard as wiz
-from modules.listserialports import AvailableSerialPorts
+#from modules.listserialports import AvailableSerialPorts
 from modules.buildvercalculator import GetBuildVersion
 import modules.BO as Bay
 from modules.tooltip import ToolTip
@@ -188,10 +188,10 @@ def readConfigurationFiles():
 def SyringeBOT_is_ready():
     global SyringeBOT_IS_BUSY,Temperature_Hook,Time_Hook
     if SyringeBOT_IS_BUSY:
-     MsgBox = tk.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
+     tk.messagebox.showerror ('SyringeBOT is BUSY','SyringeBOT IS BUSY! Wait for the task end',icon = 'error')
      return False
     if (Temperature_Hook) or (Time_Hook):
-     MsgBox = tk.messagebox.showerror ('SyringeBOT is event-driven','SyringeBOT is waiting for Time or Temperature events. An action could create problems',icon = 'error')
+     tk.messagebox.showerror ('SyringeBOT is event-driven','SyringeBOT is waiting for Time or Temperature events. An action could create problems',icon = 'error')
      return False
     return True
         
@@ -300,7 +300,7 @@ def MacroEditor(macronumber): #edit a macro or create a new one
         text_file.close()
         a.insert(tk.INSERT, text)
      a.pack()
-     tk.Button(t, text="SAVE",command=lambda: SaveMacro(a.get("1.0",END),macronumber,t)).pack()
+     tk.Button(t, text="SAVE",command=lambda: SaveMacro(a.get("1.0",tk.END),macronumber,t)).pack()
      tk.Button(t, text="CANCEL",command=lambda: t.destroy()).pack()
      t.grab_set()
 
@@ -367,7 +367,7 @@ def Parse(line,variables):    #parse macro line and execute statements
       commands[0]=commands[0][4:] # remove ask
       for c in range(len(commands)-1):
           commands[c+1]=SubstituteVarValues(commands[c+1],variables)
-      newWin = Tk()
+      newWin = tk.Tk()
       #But make it invisible
       newWin.withdraw()    
       x = tk.simpledialog.askfloat(commands[1], commands[2]+' ['+str(commands[4])+' ... '+str(commands[5]+']'),initialvalue=float(commands[3]), minvalue=float(commands[4]), maxvalue=float(commands[5]),parent=newWin)

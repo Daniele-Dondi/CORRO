@@ -19,8 +19,8 @@
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
-import serial
-import time
+# import serial
+# import time
 import os
 from modules.listserialports import AvailableSerialPorts
 from .serialmon import SerialMon
@@ -226,6 +226,7 @@ def SplitDevicesArray():
 def LoadConfFile(filename=DefaultConfigurationFile):
     global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
     global CurrentFileName
+    global DefaultConfiguration
     #DefaultConfigurationFile="conf/default.conf"
     if filename=="": filename=DefaultConfiguration
     InitAllData()
@@ -819,30 +820,30 @@ def StartConfigurator(window):
         if not(item=="None") and item in InUseHeater:
                 messagebox.showerror("ERROR", "Heather connection "+item+" already used in other apparatus")
                 return False
-        testarray=[]
-        item=stirred.get()
-        if not(item=="None"):
-            testarray.append(item)
-            if item in InUseBT:
-                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
-                return False
-        item=onoff.get()
-        if not(item=="None"):
-            if item in InUseBT:
-                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
-                return False
-            if item in testarray:
-                messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
-                return False
-            testarray.append(item)
-        item=otheronoff.get()
-        if not(item=="None"):
-            if item in InUseBT:
-                messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
-                return False
-            if item in testarray:
-                messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
-                return False
+#
+        # item=stirred.get()
+        # if not(item=="None"):
+        #     testarray.append(item)
+        #     if item in InUseBT:
+        #         messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+        #         return False
+        # item=onoff.get()
+        # if not(item=="None"):
+        #     if item in InUseBT:
+        #         messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+        #         return False
+        #     if item in testarray:
+        #         messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
+        #         return False
+        #     testarray.append(item)
+        # item=otheronoff.get()
+        # if not(item=="None"):
+        #     if item in InUseBT:
+        #         messagebox.showerror("ERROR", "Connection "+item+" already used in other apparatus")
+        #         return False
+        #     if item in testarray:
+        #         messagebox.showerror("ERROR", "Cannot use the same BT connection for more devices.")
+        #         return False
         return True
 
     def EnableDisableTab2():
@@ -1327,11 +1328,11 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT4()
 
     def Try2Connect():
-        data_str=""
+#
         try:
             parms=GetTab4Variables()
             if parms[2]=="" or parms[3]=="": return
-            app = SerialMon(ConfiguratorWindow,parms[2],parms[3])
+            SerialMon(ConfiguratorWindow,parms[2],parms[3])
             #Test=serial.Serial(parms[2],parms[3])
             #time.sleep(0.5)
         except:
@@ -1523,11 +1524,11 @@ def StartConfigurator(window):
         SetStatusNextPrevButtonsT5()
 
     def Try2Trigger():
-        data_str=""
+#        data_str=""
         try:
             parms=GetTab5Variables()
             if parms[2]=="" or parms[3]=="": return
-            app = SerialMon(ConfiguratorWindow,parms[2],parms[3])
+            SerialMon(ConfiguratorWindow,parms[2],parms[3])
             #Test=serial.Serial(parms[2],parms[3])
             #time.sleep(0.5)
         except:
