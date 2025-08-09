@@ -29,7 +29,6 @@ import os
 import serial
 import modules.configurator as conf
 import modules.wizard as wiz
-#from modules.listserialports import AvailableSerialPorts
 from modules.buildvercalculator import GetBuildVersion
 import modules.BO as Bay
 from modules.tooltip import ToolTip
