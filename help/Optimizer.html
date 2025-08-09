@@ -64,9 +64,47 @@
     <p>Before starting, you need to have a saved working procedure with the actual configuration (use Wizard to do it).</p>
   </section>
 
-  <section id="usage">
-    <h2>Usage</h2>
-    <p>Include details on how to import or launch the Optimizer in your application.</p>
+<section id="usage">
+  <h2>🚀 Usage: Getting Started with the Optimizer Module</h2>
+  <p>The Optimizer module is designed to help you fine-tune your procedure by identifying the most effective reaction conditions. Here's a step-by-step guide to using it:</p>
+
+  <h3>🧭 Step-by-Step Instructions</h3>
+  <ol>
+    <li>
+      <strong>Create a new Optimizer</strong><br>
+      Click the <em>New</em> button to begin a new optimization session.<br>
+      A prompt will appear allowing you to select the <strong>procedure</strong> you want to optimize. Make sure the procedure is already saved and properly configured using the Wizard tool.
+    </li>
+    <li>
+      <strong>Explore the Procedure</strong><br>
+      Once the procedure is loaded, you'll see a comprehensive list of all <strong>operations</strong> included in it.<br>
+      Each operation may contain values that can be optimized. These values are visually indicated as <strong>interactive buttons</strong>.
+    </li>
+    <li>
+      <strong>Select Variables for Optimization</strong><br>
+      Click on any of the highlighted buttons to open the variable selection panel.<br>
+      Choose the <strong>variables</strong> you wish to modify during the optimization process. These could include temperature, time, concentration, or other relevant parameters.
+    </li>
+    <li>
+      <strong>Define Optimization Ranges</strong><br>
+      By default, the Optimizer sets the <strong>minimum and maximum range</strong> for each variable to ±20% of its current value.<br>
+      You can adjust these ranges manually if needed to better reflect your experimental constraints or goals.
+    </li>
+    <li>
+      <strong>Choose Optimization Type</strong><br>
+      Select the type of optimization you want to perform: <strong>Bayesian Optimization</strong> or <strong>Design of Experiments (DoE)</strong>.<br>
+      Fill in all the required fields specific to the chosen method to ensure accurate and efficient optimization.
+    </li>
+    <li>
+      <strong>Save Optimization File</strong><br>
+      Save the current configuration in a .configuration file. A check of all the inserted parameters will be performed. Eventually you will receive warnings if some parameters are not set      correctly.
+    </li>
+    <li>
+      <strong>Run the Optimization</strong><br>
+      After selecting variables and confirming ranges, initiate the optimization process.<br>
+      The module will evaluate different combinations within the defined ranges to identify the most promising conditions.
+    </li>
+  </ol>
   </section>
 
   <section id="parameters">
