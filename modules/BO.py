@@ -223,9 +223,23 @@ def StartBO_Window(window, **kwargs):
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def Close():
-        BO_Window.destroy()
+        global NotSaved
+        if NotSaved:
+            MsgBox = tk.messagebox.askquestion('Exit Optimizer','Are you sure you want to exit the Optimizer?\nCurrent Data are not saved.',icon = 'warning')
+            if MsgBox == 'yes':
+                BO_Window.destroy()
 
-    def Run_Setup(window):
+    def RunOptimization():
+        global NotSaved
+        Check=ValuesAreCorrect()
+        if not(Check=="OK"):
+            tk.messagebox.showerror(Check[0], Check[1])
+            if Check[0]=="ERROR":  #Check[0] could be either "ERROR" or "WARNING"
+                return
+        if NotSaved:
+            MsgBox = tk.messagebox.showerror('DATA ARE NOT SAVED','Please save first current data before running Optimization',icon = 'warning')
+            return
+
         return
 
     def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
@@ -314,7 +328,25 @@ def StartBO_Window(window, **kwargs):
            else:
                return None
 
-    def LoadOptimization(filename):
+    def RetrieveOptimizerCode():
+        global ProcedureName,CRC_Value,File_Size
+        ProcedureName=check_file_path(ProcedureName) #check if the file exists, if it is not, maybe file is located somewhere else, so ask for the new location
+        if ProcedureName==None:
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file was not found.")
+            return False
+        if not(CRC(ProcedureName)==CRC_Value):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
+            return False
+        if not(os.path.getsize(ProcedureName)==File_Size):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
+            return False
+        OptimizerCode=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Optimizer")
+        if wiz.ThereAreErrors(window,OptimizerCode):
+            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" contains errors.")
+            return False
+        return OptimizerCode
+
+    def LoadOptimization(filename): #filename must exist
         global ProcedureName,CRC_Value,File_Size
         SetNotSaved(False)
         fin=open(filename, 'rb')
@@ -324,19 +356,8 @@ def StartBO_Window(window, **kwargs):
         Values=pickle.load(fin)
         OptParams=pickle.load(fin)
         fin.close()
-        ProcedureName=check_file_path(ProcedureName) #check if the file exists, if it is not, maybe file is located somewhere else, so ask for the new location
-        if ProcedureName==None:
-            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file was not found.")
-            return
-        if not(CRC(ProcedureName)==CRC_Value):
-            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
-            return
-        if not(os.path.getsize(ProcedureName)==File_Size):
-            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" has changed.")
-            return
-        OptimizerCode=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Optimizer")
-        if wiz.ThereAreErrors(window,OptimizerCode):
-            tk.messagebox.showerror("ERROR","Cannot continue, the procedure file "+ProcedureName+" contains errors.")
+        OptimizerCode=RetrieveOptimizerCode()
+        if OptimizerCode==False:
             return
         RenderOptimizerCode(OptimizerCode)
         SetObjValues(Values)
@@ -376,6 +397,8 @@ def StartBO_Window(window, **kwargs):
 
     def ValuesAreCorrect():
         global CreatedProcedures
+        if len(CreatedProcedures)==0:
+            return ["ERROR","Nothing to optimize"]
         ThereIsSomethingToOptimize=False
         for obj in CreatedProcedures:
             Values=obj.GetValues()
@@ -420,10 +443,17 @@ def StartBO_Window(window, **kwargs):
         fout.close()
         SetNotSaved(False)
 
-    def AskSaveOptimizer():
+    def ProcessCheck():
         global CreatedProcedures
-        if len(CreatedProcedures)==0:
-            return
+        Check=ValuesAreCorrect()
+        if not(Check=="OK"):
+            tk.messagebox.showerror(Check[0], Check[1])
+            if Check[0]=="ERROR":  #Check[0] could be either "ERROR" or "WARNING"
+                return
+        RetrieveOptimizerCode()
+
+    def AskSaveOptimization():
+        global CreatedProcedures
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
@@ -517,7 +547,7 @@ def StartBO_Window(window, **kwargs):
     file_menu.add_command(label='Load Procedure to be optimized',command=New_Setup)
     file_menu.add_separator()
     file_menu.add_command(label='Load Optimization',command=AskLoadOptimization)
-    file_menu.add_command(label='Save Optimization',command=AskSaveOptimizer)
+    file_menu.add_command(label='Save Optimization',command=AskSaveOptimization)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
     #settings_menu = tk.Menu(menubar,tearoff=0)
@@ -525,7 +555,7 @@ def StartBO_Window(window, **kwargs):
     BO_Window.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
     #menubar.add_cascade(label="Settings",menu=settings_menu)
-    menubar.add_cascade(label="Process Check")#,command=CheckProcedure)
+    menubar.add_cascade(label="Process Check",command=ProcessCheck)
     frame1 = tk.Frame(BO_Window)
     frame1.pack(side="top")
     Optimizer = tk.Frame(BO_Window, bd=1, relief=tk.RAISED, background="#e0e0e0")
@@ -579,10 +609,10 @@ def StartBO_Window(window, **kwargs):
     bLoad=tk.Button(frame1, text="LOAD", command=AskLoadOptimization,image = Load_icon, compound = tk.LEFT)
     bLoad.pack(side="left",padx=10)
     Save_icon = tk.PhotoImage(file = r"icons/save_setup.png")
-    bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimizer,image = Save_icon, compound = tk.LEFT)
+    bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimization,image = Save_icon, compound = tk.LEFT)
     bSave.pack(side="left",padx=10)
     Run_icon = tk.PhotoImage(file = r"icons/run_setup.png")
-    bRun=tk.Button(frame1, text="RUN", command=Run_Setup,image = Run_icon, compound = tk.LEFT)
+    bRun=tk.Button(frame1, text="RUN", command=RunOptimization,image = Run_icon, compound = tk.LEFT)
     bRun.pack(side="left",padx=10)
     Exit_icon = tk.PhotoImage(file = r"icons/exit_setup.png")
     bExit=tk.Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = tk.LEFT)
