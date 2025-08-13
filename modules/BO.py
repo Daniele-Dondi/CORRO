@@ -232,7 +232,7 @@ def StartBO_Window(window, **kwargs):
         else:
             BO_Window.destroy()
 
-    def RunOptimization():
+    def RunOptimization(): #--------------------------------------------------------------------------------------------------------------------------------------------------------
         global NotSaved
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
@@ -242,8 +242,22 @@ def StartBO_Window(window, **kwargs):
         if NotSaved:
             tk.messagebox.showerror('DATA ARE NOT SAVED','Please save first current data before running Optimization',icon = 'warning')
             return
-
-        return
+        MaxSteps=GetNumberOfOptimizationSteps()
+        if MaxSteps==False:
+            tk.messagebox.showerror('ERROR','Cannot retrieve the maximum number of optimization steps',icon = 'warning')
+            return
+        Opt_Parms=GetParmsToOptimize()
+        MinValues=[]
+        MaxValues=[]
+        for Parm in Opt_Parms: # Parms must be [[min, max value],object position in procedure,position in the object array]
+            MinMax,Obj_Pos,PosArray=Parm
+            MinValues.append[MinMax[0],ObjPos,PosArray] #split the min and max values in two different arrays
+            MaxValues.append[MinMax[1],ObjPos,PosArray]
+        MinVolumes=wiz.StartWizard(base,Hide=True,File=filename,Mode="Volumes",New_Values=MinValues) #volumes=[ReactantsUsed,ApparatusUsed,StepByStepOps]
+        MaxVolumes=wiz.StartWizard(base,Hide=True,File=filename,Mode="Volumes",New_Values=MaxValues)
+        
+        print(Volumes)
+        
 
     def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
         Var_Position=[]
@@ -377,6 +391,16 @@ def StartBO_Window(window, **kwargs):
         elif Opt_Type=="DoE":
             return []
 
+    def GetNumberOfOptimizationSteps():
+        Opt_Type=OptimizationType.get()
+        if Opt_Type=="Bayesian Optimization":
+            try:
+                MaxIter=int(MaxIterations.get())
+            except:
+                return False
+        else:
+            return False
+
     def OptimizationParametersAreCorrect():
         Opt_Type=OptimizationType.get()
         if Opt_Type=="Bayesian Optimization":
@@ -390,8 +414,8 @@ def StartBO_Window(window, **kwargs):
                 return  ["ERROR","Number of iterations must be >=0 !"]
             if K<=0: 
                 return  ["ERROR","K must be >=0 !"]
-            if XI<=0: 
-                return  ["ERROR","xi must be >=0 !"]                         
+            if XI<0: 
+                return  ["ERROR","xi must be >0 !"]                         
         elif Opt_Type=="DoE":
             return ["ERROR","Function not yet implemented"]
         else:

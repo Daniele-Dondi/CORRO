@@ -1548,7 +1548,7 @@ def StartWizard(window, **kwargs):
         Phantom_Mode=False
         GetCodeAndExit=False
         GetVolumesAndExit=False
-        GetOptimizerParameteraAndExit=False
+        GetOptimizerParametersAndExit=False
 
         for k, val in kwargs.items():
             if k=="Hide":
@@ -1559,7 +1559,19 @@ def StartWizard(window, **kwargs):
                 elif val=="Volumes":
                     GetVolumesAndExit=True
                 elif val=="Optimizer":
-                    GetOptimizerParameteraAndExit=True
+                    GetOptimizerParametersAndExit=True
+            if k=="New_Values":
+                New_Values=val #each element of the new_values array should be: [value, object position in procedure, position in the object's array]
+                for element in New_Values:
+                    new_value=element[0]
+                    Obj_Pos=element[1]
+                    Value_Pos=element[2]
+                    Sorted=GetYStack()
+                    Obj=Sorted[Obj_Pos]
+                    CurrentValues=Obj.GetValues() #retrieve current object values
+                    CurrentValues[Value_Pos]=new_value
+                    Obj.SetValues(CurrentValues) #save the modified values into the object
+                    
         
         def UpdateVolumes(Input,Quantity,NamesArray,VolumesArray):
             if Input in NamesArray:
@@ -1794,7 +1806,7 @@ def StartWizard(window, **kwargs):
         #print(OptimizerCode)
         if GetCodeAndExit:
             return CompiledCode
-        if GetOptimizerParameteraAndExit:
+        if GetOptimizerParametersAndExit:
             return OptimizerCode
         if GetVolumesAndExit:
             return [ReactantsUsed,ApparatusUsed,StepByStepOps]
@@ -2041,8 +2053,8 @@ def StartWizard(window, **kwargs):
         if Hidden:
             WizardWindow.withdraw()
         LoadProcedures(filename)
-        CompiledCode=CheckProcedure(**kwargs)
+        ReturnCode=CheckProcedure(**kwargs)
         WizardWindow.destroy()
-        return CompiledCode
+        return ReturnCode
     
     WizardWindow.mainloop()
