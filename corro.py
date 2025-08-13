@@ -539,7 +539,7 @@ def Parse(line,variables):    #parse macro line and execute statements
          Time_Hook_Macro=macro_command
          b_clock.pack()
        else:
-         a=1/0
+         1/0
        if macro_command=="":
                if (debug): print("WAIT CYCLE")
                while not(HookTriggered()):

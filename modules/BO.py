@@ -237,7 +237,7 @@ def StartBO_Window(window, **kwargs):
             if Check[0]=="ERROR":  #Check[0] could be either "ERROR" or "WARNING"
                 return
         if NotSaved:
-            MsgBox = tk.messagebox.showerror('DATA ARE NOT SAVED','Please save first current data before running Optimization',icon = 'warning')
+            tk.messagebox.showerror('DATA ARE NOT SAVED','Please save first current data before running Optimization',icon = 'warning')
             return
 
         return

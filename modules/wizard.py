@@ -1228,7 +1228,7 @@ def GetYStack():
         Result.append([item.winfo_y(),item])
     try:
      Result.sort() #now we have the array of objects ordered w. respect to Y pos
-    except Exception as e:
+    except:  # Exception as e:
      #print(e)   
      pass
     return Result
@@ -1847,7 +1847,7 @@ def StartWizard(window, **kwargs):
             ObjType=Procedure[0]
             ObjValues=Procedure[1]
             ObjXPos=Procedure[2]
-            ObjYPos=Procedure[3]
+            #ObjYPos=Procedure[3]
             Obj=CreateNewObject(ObjType)
             CreatedProcedures.append(Obj)
             Obj.SetValues(ObjValues)
