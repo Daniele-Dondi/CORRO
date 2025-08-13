@@ -19,7 +19,6 @@
 import tkinter as tk
 from tkinter import ttk
 import os
-#from modules.configurator import *
 import modules.configurator as conf
 import pickle
 
