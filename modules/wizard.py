@@ -19,12 +19,14 @@
 import tkinter as tk
 from tkinter import ttk
 import os
-from modules.configurator import *
+#from modules.configurator import *
+import modules.configurator as conf
+import pickle
 
 class Pour(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.AvailableInputs=GetAllSyringeInputs()
+        self.AvailableInputs=conf.GetAllSyringeInputs()
         self.Height=50
         self.IsContainer=False
         self.MacroName="Pour" #bind to macro name in macros folder
@@ -162,13 +164,13 @@ class Pour(tk.Frame):
             self.AlertButtonMaxVol.pack_forget()
     
     def MaxVolumeAlert(self):
-        messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
+        tk.messagebox.showerror("ERROR", "Volume exceeds the maximum capacity of reactor")
 
     def MinVolumeAlert(self):
-        messagebox.showerror("Warning", "Volume exceedingly small")    
+        tk.messagebox.showerror("Warning", "Volume exceedingly small")    
 
     def WasteVolumeAlert(self):
-        messagebox.showerror("Warning", "Liquid poured into waste exit")
+        tk.messagebox.showerror("Warning", "Liquid poured into waste exit")
 
     def CheckUnit(self):
         Unit=self.Units.get()
@@ -250,7 +252,7 @@ class Pour(tk.Frame):
 class Heat(tk.Frame):
     def __init__(self,container):
         self.Action=[]
-        self.AvailableApparatus=GetAllHeatingApparatus()
+        self.AvailableApparatus=conf.GetAllHeatingApparatus()
         self.Height=75
         self.IsContainer=False
         super().__init__(container)
@@ -354,7 +356,7 @@ class Heat(tk.Frame):
                 self.HighTempAlertButton.pack_forget()            
     
     def HighTempAlert(self):
-        messagebox.showerror("Warning", "The reactor will be hot after this step")
+        tk.messagebox.showerror("Warning", "The reactor will be hot after this step")
     
     def MaxCharsInList(self,List):
         maxlength=8
@@ -367,9 +369,9 @@ class Heat(tk.Frame):
 
 class Wash(tk.Frame):
     def __init__(self,container):
-        AvailableOutputs=GetAllSyringeOutputs()
+        AvailableOutputs=conf.GetAllSyringeOutputs()
         AvailableOutputs=[AvailableOutputs[i][:-3] for i in range(len(AvailableOutputs))] #remove IN
-        AvailableInputs=GetAllSyringeInputs()
+        AvailableInputs=conf.GetAllSyringeInputs()
         AvailableInputs=[AvailableInputs[i][:-4] for i in range(len(AvailableInputs))]    #remove OUT
         self.AvailableApparatus=[]
         for Apparatus in AvailableOutputs:
@@ -587,7 +589,7 @@ class IF(tk.Frame):
         self.IfType.set("Sensor vars")
         self.IfType.bind("<<ComboboxSelected>>", self.IfTypeCallback)
         self.IfType.pack(side="left")
-        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=10,state = 'readonly')
+        self.Variable=ttk.Combobox(self.Line1, values = conf.GetAllSensorsVarNames(), width=10,state = 'readonly')
         self.Variable.pack(side="left")
         self.Condition=ttk.Combobox(self.Line1, values = ["<",">","=","<>",">=","<="], width=4,state = 'readonly')
         self.Condition.pack(side="left")        
@@ -753,7 +755,7 @@ class GET(tk.Frame):
         self.Label1.pack(side="left")
         self.Value=tk.Entry(self.Line1,state="normal",width=10)
         self.Value.pack(side="left")
-        self.Variable=ttk.Combobox(self.Line1, values = GetAllSensorsVarNames(), width=4,state = 'readonly')
+        self.Variable=ttk.Combobox(self.Line1, values = conf.GetAllSensorsVarNames(), width=4,state = 'readonly')
         self.Variable.pack(side="left")
         self.Check=tk.Button(self.Line1,text="check",command=self.CheckValues)
         self.Check.pack(side="left")
@@ -1067,8 +1069,8 @@ class Grid(tk.Toplevel):
         self.Column=0
         self.Data=[]
         self.Line=""
-        self.menubar = Menu(self)
-        self.file_menu = Menu(self.menubar,tearoff=0)
+        self.menubar = tk.Menu(self)
+        self.file_menu = tk.Menu(self.menubar,tearoff=0)
         self.file_menu.add_command(label='Save',command=self.SaveData)
         self.file_menu.add_separator()
         self.file_menu.add_command(label='Exit',command=self.destroy)
@@ -1076,7 +1078,7 @@ class Grid(tk.Toplevel):
         self.menubar.add_cascade(label="File",menu=self.file_menu)
     def SaveData(self):
      filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
-     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
      if not ".csv" in filename: filename+=".csv"
      fout=open(filename, 'w')
@@ -1135,7 +1137,7 @@ def GetAvailMacros():
             AvailableMacros.append([file[:-4],num_vars,function_header]) #remove .txt from name
     except Exception as e:
      print(e)
-     messagebox.showerror("ERROR", "MACRO directory unreachable")
+     tk.messagebox.showerror("ERROR", "MACRO directory unreachable")
     return AvailableMacros
 
 def GetAvailCommands():
@@ -1170,7 +1172,7 @@ def GetAvailCommands():
                     command_header=""
     except Exception as e:
      print(e)
-     messagebox.showerror("ERROR", "Error reading commands.txt")
+     tk.messagebox.showerror("ERROR", "Error reading commands.txt")
     return AvailableCommands
         
 def InitVars():
@@ -1241,11 +1243,11 @@ def DeleteObjByIdentifier(ObjIdentifier):
 
 def ChooseProcedureFile():
     filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
-    filename = filedialog.askopenfilename(filetypes=filetypes)
+    filename = tk.filedialog.askopenfilename(filetypes=filetypes)
     return filename
 
 def AskToShowMissingConnections(window,Missing):
-    response = messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
+    response = tk.messagebox.askyesno("ERROR", "Cannot execute procedure. \nDo you want to see the missing objects?")
     if response:  # True if "Yes" is clicked
         if len(Missing)>1:
             plural="s"
@@ -1270,7 +1272,7 @@ def ThereAreErrors(window,CompiledCode):
 
 def StartWizard(window, **kwargs):
     InitVars()
-    LoadConfFile()
+    conf.LoadConfFile()
 
     global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
     global Dragging_Objects
@@ -1492,7 +1494,7 @@ def StartWizard(window, **kwargs):
             Obj2.Last=Obj2
             return
         else:
-            messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
+            tk.messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
         YSize=Obj.Height
         Obj.place(x=10,y=CurrentY)
@@ -1524,12 +1526,12 @@ def StartWizard(window, **kwargs):
                     MissingConnections.append(result)
             except:
                 pass
-        AvailableReactants=GetReactantsNames()
+        AvailableReactants=conf.GetReactantsNames()
         for reactant in ReactantsUsed:
             if not(reactant in AvailableReactants):
                 #print(reactant,"is missing")
                 MissingConnections.append(reactant)
-        AvailableApparatus=GetApparatusNames()
+        AvailableApparatus=conf.GetApparatusNames()
         for apparatus in ApparatusUsed:
             if apparatus[-3:]==" IN":
                 apparatus=apparatus[:-3]
@@ -1639,7 +1641,7 @@ def StartWizard(window, **kwargs):
             Object.CheckValues() #most of the objects needs to setup internal variables before retrieving the action
             Action=Object.GetAction()
             if len(Action)==0:
-                messagebox.showerror("ERROR", "Invalid or unfinished settings are present")
+                tk.messagebox.showerror("ERROR", "Invalid or unfinished settings are present")
                 return
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
@@ -1658,7 +1660,7 @@ def StartWizard(window, **kwargs):
                  if MaxVol>0:
                      CurrentLiquid=ApparatusVolContent(Output2)
                      if Quantity+CurrentLiquid>MaxVol:
-                         messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output2+" in step n."+str(Step+1))
+                         tk.messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output2+" in step n."+str(Step+1))
                          Object.StatusLabel.config(text="ERROR")
                          return                     
                  UpdateVolumes(Output2,Quantity,ApparatusUsed,VolumesInApparatus)
@@ -1883,7 +1885,7 @@ def StartWizard(window, **kwargs):
             MsgBox = tk.messagebox.askquestion ('Append Procedures','Import Procedure will add Procedures to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
                 filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
-                filename = filedialog.askopenfilename(filetypes=filetypes)
+                filename = tk.filedialog.askopenfilename(filetypes=filetypes)
                 if filename=="": return
                 LoadProcedures(filename)                
 
@@ -1942,7 +1944,7 @@ def StartWizard(window, **kwargs):
 
     def AskSaveProcedures():
      filetypes=(('SyringeBOT Procedure files','*.Procedure'),('All files','*.*'))
-     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
      if filename=="": return
      if not ".Procedure" in filename: filename+=".Procedure"
      SaveProcedures(filename)
@@ -1967,8 +1969,8 @@ def StartWizard(window, **kwargs):
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
-    menubar = Menu(WizardWindow)
-    file_menu = Menu(menubar,tearoff=0)
+    menubar = tk.Menu(WizardWindow)
+    file_menu = tk.Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)
     file_menu.add_separator()    
     file_menu.add_command(label='Load Procedure',command=AskLoadProcedures)
