@@ -19,8 +19,6 @@
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox, filedialog
 import pickle
-# import serial
-# import time
 import os
 from modules.listserialports import AvailableSerialPorts
 from .serialmon import SerialMon
