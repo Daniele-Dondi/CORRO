@@ -1144,6 +1144,7 @@ def GetAvailCommands():
        command_header=""
        command=""
        FirstLine=False
+       num_vars=0
        with open('conf'+os.sep+"commands.txt", encoding='utf-8') as f:
            for line in f:
             line = line.strip()

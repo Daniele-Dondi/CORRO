@@ -932,9 +932,9 @@ def sendcommand(cmd,where): #send a gcode command
         else:
           cmdfile.write("                     "+str(DT.datetime.now())+"\n")
           cmdfile.write(cmd+"\n") 
-      else:         #1 = robot
-       if (HasRobot):   
-        if noprint_debug: robot.send(cmd)
+      # else:         #1 = robot
+       # if (HasRobot):   
+       #  if noprint_debug: robot.send(cmd)
       if(debug): print(cmd,"->",destination[where])
     else:    tk.messagebox.showerror("ERROR","Not connected. Connect first")
 

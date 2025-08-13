@@ -1,5 +1,5 @@
 import requests
-import time
+#import time
 
 def TurnPlugON(SHELLY_IP):
     BASE_URL = f"http://{SHELLY_IP}/relay/0" 
