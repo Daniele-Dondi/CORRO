@@ -948,7 +948,7 @@ class LOOP(tk.Frame):
         parms=self.GetValues()
         if parms[0]=="Forever": return "LOOP"
         if parms[0]=="Num Cycles": return "LOOP $1$ cycles"
-        if parms[0]=="If Condition True": return"LOOP IF "+parms[2]+"=True"
+        if parms[0]=="If Condition True": return "LOOP IF "+parms[2]+"=True"
         return "Heat '"+parms[0]+"' at $1$ °C and keep for $2$ min"
 
     def RetrieveConnections(self):
@@ -1968,6 +1968,7 @@ def StartWizard(window, **kwargs):
     WizardWindow.title("CORRO WIZARD")
     WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
+    WizardWindow.wm_iconphoto(True, tk.PhotoImage(file='icons/wizard.png'))
     menubar = tk.Menu(WizardWindow)
     file_menu = tk.Menu(menubar,tearoff=0)
     file_menu.add_command(label='New',command=New)

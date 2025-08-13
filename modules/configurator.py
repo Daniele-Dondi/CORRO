@@ -252,6 +252,7 @@ def StartConfigurator(window):
     ConfiguratorWindow.title("CORRO CONFIGURATOR")
     ConfiguratorWindow.geometry('500x620+500+150')
     ConfiguratorWindow.grab_set()
+    ConfiguratorWindow.wm_iconphoto(True, tk.PhotoImage(file='icons/configurator.png'))
     
     def Close():
       if NotSavedDataTab1() or NotSavedDataTab2() or NotSavedDataTab3() or FileIsModified:  

@@ -23,6 +23,7 @@ import modules.wizard as wiz
 from modules.buildvercalculator import CRC
 import pickle
 import modules.helpview as Help
+import modules.configurator as conf
 
 global NotSaved
 
@@ -371,7 +372,7 @@ def StartBO_Window(window, **kwargs):
             K=float(kappa.get())
             XI=float(xi.get())
             return [Opt_Type, MaxIter,K,XI]
-        elif Opt_Type=="DOE":
+        elif Opt_Type=="DoE":
             return []
 
     def OptimizationParametersAreCorrect():
@@ -389,7 +390,7 @@ def StartBO_Window(window, **kwargs):
                 return  ["ERROR","K must be >=0 !"]
             if XI<=0: 
                 return  ["ERROR","xi must be >=0 !"]                         
-        elif Opt_Type=="DOE":
+        elif Opt_Type=="DoE":
             return ["ERROR","Function not yet implemented"]
         else:
             return ["ERROR","Please select an optimization method"]
@@ -510,24 +511,27 @@ def StartBO_Window(window, **kwargs):
             Label2.pack(side="left")
             MaxIterations=tk.Entry(frameOpt,state="normal",width=10)
             MaxIterations.pack(side="left")
+            MaxIterations.insert(0,"5")
             MaxIterations.bind("<KeyRelease>", on_key_release)
             Label3=tk.Label(frameOpt, text="kappa: ")
             Label3.pack(side="left")
             kappa=tk.Entry(frameOpt,state="normal",width=10)
             kappa.pack(side="left")
+            kappa.insert(0,"2.5")
             kappa.bind("<KeyRelease>", on_key_release)
             Label4=tk.Label(frameOpt, text="xi: ")
             Label4.pack(side="left")
             xi=tk.Entry(frameOpt,state="normal",width=10)
             xi.pack(side="left")
+            xi.insert(0,"0.0")
             xi.bind("<KeyRelease>", on_key_release)
-        elif selection == "DOE":
+        elif selection == "DoE":
             global DOE_Type,NumLevels
             DOE_Type=ttk.Combobox(frameOpt, values = ("Full Factorial","Level Full-Factorial","Level Fractional-Factorial","Plackett-Burman"), state = 'readonly',width=20)
             DOE_Type.pack(side="left")
             Label2=tk.Label(frameOpt, text="Number of Levels: ")
             Label2.pack(side="left")
-            NumLevels=tk.Spinbox(frameOpt, from_=1, to=10, repeatdelay=500, repeatinterval=200,width=4)
+            NumLevels=tk.Spinbox(frameOpt, from_=2, to=10, repeatdelay=500, repeatinterval=200,width=4)
             NumLevels.pack(side="left")
             
 
@@ -540,6 +544,7 @@ def StartBO_Window(window, **kwargs):
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
     BO_Window.geometry('1000x800+400+10')
     BO_Window.grab_set()
+    BO_Window.wm_iconphoto(True, tk.PhotoImage(file='icons/BO.png'))    
     menubar = tk.Menu(BO_Window)
     file_menu = tk.Menu(menubar,tearoff=0)
     file_menu.add_command(label='Clear All',command=AskDeleteAll)
@@ -562,11 +567,17 @@ def StartBO_Window(window, **kwargs):
     Optimizer.pack(side="top",pady=10)
     frameOpt = tk.Frame(BO_Window, bd=1, relief=tk.RAISED, background="#e0e0e0")
     frameOpt.pack(side="top")    
-    Label1=tk.Label(Optimizer, text="Optimizzation Type:")
+    Label1=tk.Label(Optimizer, text="Optimization Type:")
     Label1.pack(side="left")
-    OptimizationType=ttk.Combobox(Optimizer, values = ('Bayesian Optimization','DOE'), state = 'readonly',width=20)
+    OptimizationType=ttk.Combobox(Optimizer, values = ('Bayesian Optimization','DoE'), state = 'readonly',width=20)
     OptimizationType.pack(side="left")
     OptimizationType.bind("<<ComboboxSelected>>", on_select)
+    Label2=tk.Label(Optimizer, text="Output verification:")
+    Label2.pack(side="left",padx=10)
+    OutputType=ttk.Combobox(Optimizer, values = ('MANUAL',conf.GetAllSensorsVarNames()),width=20)
+    OutputType.pack(side="left")
+    #OutputType.bind("<<ComboboxSelected>>", on_select)
+    
     
 ##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
 ##    frame3.pack(side="bottom")

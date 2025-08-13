@@ -1382,8 +1382,7 @@ base.option_add("*Font", ("Arial", 7))
 CORRO_FONT="Verdana 15 bold"
 HEADER_FONT="Verdana 8 bold"
 BUSY_FONT='Helvetica 15 bold'
-#base.iconbitmap("icons/main_icon.ico")
-#Load configuration file
+base.iconbitmap("icons/main_icon.ico")
 readConfigurationFiles()
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
