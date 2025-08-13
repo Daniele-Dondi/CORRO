@@ -229,6 +229,8 @@ def StartBO_Window(window, **kwargs):
             MsgBox = tk.messagebox.askquestion('Exit Optimizer','Are you sure you want to exit the Optimizer?\nCurrent Data are not saved.',icon = 'warning')
             if MsgBox == 'yes':
                 BO_Window.destroy()
+        else:
+            BO_Window.destroy()
 
     def RunOptimization():
         global NotSaved
