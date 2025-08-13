@@ -111,10 +111,10 @@ class Pour(tk.Frame):
         except:
             self.StatusLabel.config(text="Check quantity error")
             return
-        syrnums=WhichSyringeIsConnectedTo(Input)
+        syrnums=conf.WhichSyringeIsConnectedTo(Input)
         AvailableSyringes=[]
         for syringe in syrnums:
-            Outputs=GetAllOutputsOfSyringe(int(syringe))
+            Outputs=conf.GetAllOutputsOfSyringe(int(syringe))
             for connection in Outputs:
              if Output in connection:
                 AvailableSyringes.append(syringe)
@@ -126,7 +126,7 @@ class Pour(tk.Frame):
         elif Unit=="mol" or Unit=="mmol":
             if Unit=="mmol": Quantity=Quantity/1000        
             try:
-                M=GetMolarityOfInput(Input)
+                M=conf.GetMolarityOfInput(Input)
                 if M>0:
                     Quantity=Quantity/M*1000
                 else:
@@ -137,8 +137,8 @@ class Pour(tk.Frame):
         elif Unit=="g" or Unit=="mg":
             if Unit=="mg": Quantity=Quantity/1000
             try:
-                M=GetMolarityOfInput(Input)
-                MM=GetMMOfInput(Input)
+                M=conf.GetMolarityOfInput(Input)
+                MM=conf.GetMMOfInput(Input)
                 if M>0 and MM>0:
                     Quantity=Quantity/MM/M*1000
                 else:
@@ -157,7 +157,7 @@ class Pour(tk.Frame):
             self.AlertButtonWaste.pack_forget()    
         self.StatusLabel.config(text="Syringe "+' or '.join(AvailableSyringes)+" "+str(Quantity)+" mL")
         self.Action=[AvailableSyringes,Quantity,Amount,Unit,Input,Output] #Quantity=mL, Amount measured in Unit
-        MaxVol=GetMaxVolumeApparatus(Output)
+        MaxVol=conf.GetMaxVolumeApparatus(Output)
         if MaxVol>0 and Quantity>MaxVol:
             self.AlertButtonMaxVol.pack(side="left")
         else:
@@ -175,7 +175,7 @@ class Pour(tk.Frame):
     def CheckUnit(self):
         Unit=self.Units.get()
         if Unit=="ALL":
-            MaxVol=GetMaxVolumeApparatus(self.Source.get())
+            MaxVol=conf.GetMaxVolumeApparatus(self.Source.get())
             if MaxVol>0:
                 self.Amount.delete(0,tk.END)
                 self.Amount.insert(0,str(MaxVol))
@@ -201,16 +201,16 @@ class Pour(tk.Frame):
         if Input=="" or Output=="": return
         PossibleUnits=["mL","L"]
         if "Reactant" in Input:
-            M=GetMolarityOfInput(Input)
+            M=conf.GetMolarityOfInput(Input)
             if M>0:
                 PossibleUnits.append("mmol")            
                 PossibleUnits.append("mol")
-                MM=GetMMOfInput(Input)
+                MM=conf.GetMMOfInput(Input)
                 if MM>0:
                     PossibleUnits.append("mg")                
                     PossibleUnits.append("g")
         elif "Apparatus" in Input:
-            MaxVol=GetMaxVolumeApparatus(Input)
+            MaxVol=conf.GetMaxVolumeApparatus(Input)
             if MaxVol>0:
              PossibleUnits.append("ALL")
         self.Units.config(values=PossibleUnits, state="readonly",width=self.MaxCharsInList(PossibleUnits)+2)
@@ -224,7 +224,7 @@ class Pour(tk.Frame):
             self.Label1.config(text="Put")        
             self.Label2.config(text="of")
             self.Label3.config(text="in")        
-        SyrNums=WhichSyringeIsConnectedTo(Input)
+        SyrNums=conf.WhichSyringeIsConnectedTo(Input)
         OutputsList=[]
         if len(SyrNums)==0: #database has changed meanwhile
             #self.Source.set("")
@@ -232,7 +232,7 @@ class Pour(tk.Frame):
             #print("Cannot find any connections to "+Input)
             return "Cannot find any connections to "+Input
         for SyringeNum in SyrNums:
-            AvailableOutputs=GetAllOutputsOfSyringe(int(SyringeNum))
+            AvailableOutputs=conf.GetAllOutputsOfSyringe(int(SyringeNum))
             for Out in AvailableOutputs:
                 if Out not in OutputsList:
                     OutputsList.append(Out)
@@ -427,15 +427,15 @@ class Wash(tk.Frame):
 
     def CheckInput(self):
         Vessel=self.Destination.get()
-        SyrInputs=WhichSyringeIsConnectedTo(Vessel+" IN")
-        self.SyrOutputs=WhichSyringeIsConnectedTo(Vessel+" OUT")
+        SyrInputs=conf.WhichSyringeIsConnectedTo(Vessel+" IN")
+        self.SyrOutputs=conf.WhichSyringeIsConnectedTo(Vessel+" OUT")
         InputsList=[]
         for SyringeNum in SyrInputs:
-            AvailableInputs=GetAllInputsOfSyringe(int(SyringeNum))
+            AvailableInputs=conf.GetAllInputsOfSyringe(int(SyringeNum))
             for Input in AvailableInputs:
                 if Input not in InputsList:
                     InputsList.append(Input)
-        self.MaxVol=GetMaxVolumeApparatus(Vessel+" IN")
+        self.MaxVol=conf.GetMaxVolumeApparatus(Vessel+" IN")
         self.AllButton.config(state="normal")
         try:
           vol=float(self.Volume.get())  
@@ -482,7 +482,7 @@ class Wash(tk.Frame):
         Source=self.Source.get()
         Cycles=self.Cycles.get()
         Volume=self.Volume.get()
-        SyrInputs=WhichSyringeIsConnectedTo(Source)
+        SyrInputs=conf.WhichSyringeIsConnectedTo(Source)
         try:
             Volume=float(Volume)
         except:
@@ -1001,7 +1001,6 @@ class ENDLOOP(tk.Frame):
         return []
 
     def GetOptimizableParameters(self):
-        parms=self.GetValues()
         return "ENDLOOP"
 
     def RetrieveConnections(self):
@@ -1585,7 +1584,7 @@ def StartWizard(window, **kwargs):
             BiggestVol=-1
             BiggestSyr=-1
             for Syringe in ListOfSyringes:
-                SyrMaxVol=float(GetSyringeVolume(int(Syringe)))
+                SyrMaxVol=float(conf.GetSyringeVolume(int(Syringe)))
                 if SyrMaxVol>BiggestVol: BiggestSyr=Syringe
                 if SyrMaxVol<SmallestVol: SmallestSyr=Syringe
                 if (Volume<SyrMaxVol) and (Volume>SyrMaxVol/100): #not too big, not too small
@@ -1646,7 +1645,7 @@ def StartWizard(window, **kwargs):
             if ObjType=="Pour":
                 AvailableSyringes,Quantity,Amount,Unit,Input,Output=Action
                 Quantity=float(Quantity)
-                Transfered=Quantity
+                #Transfered=Quantity
                 if "Reactant" in Input:
                  UpdateVolumes(Input,Quantity,ReactantsUsed,VolumesOfReactantsUsed)
                 if "Apparatus" in Input:
@@ -1655,7 +1654,7 @@ def StartWizard(window, **kwargs):
                  if Quantity>CurrentLiquid: Quantity=CurrentLiquid
                  UpdateVolumes(Input,-Quantity,ApparatusUsed,VolumesInApparatus)
                 if "Apparatus" in Output:
-                 MaxVol=GetMaxVolumeApparatus(Output)
+                 MaxVol=conf.GetMaxVolumeApparatus(Output)
                  Output2=Output[:-3]   #remove IN   Output2 is like output but without " IN"
                  if MaxVol>0:
                      CurrentLiquid=ApparatusVolContent(Output2)
@@ -1665,9 +1664,9 @@ def StartWizard(window, **kwargs):
                          return                     
                  UpdateVolumes(Output2,Quantity,ApparatusUsed,VolumesInApparatus)
                  SyringeToUse=int(ChooseProperSyringe(AvailableSyringes,Quantity))
-                 V_in=ValvePositionFor(SyringeToUse,Input)
-                 V_out=ValvePositionFor(SyringeToUse,Output)
-                 V_waste=ValvePositionFor(SyringeToUse,'Air/Waste') 
+                 V_in=conf.ValvePositionFor(SyringeToUse,Input)
+                 V_out=conf.ValvePositionFor(SyringeToUse,Output)
+                 V_waste=conf.ValvePositionFor(SyringeToUse,'Air/Waste') 
                  CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
                  OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                  
@@ -1678,19 +1677,19 @@ def StartWizard(window, **kwargs):
                 try:
                     ResidualVolume=VolumesInApparatus[ApparatusUsed.index(Destination)]
                     if ResidualVolume>0: #reactor not empty. Before the washing we have to remove the content
-                        V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
-                        V_waste=ValvePositionFor(BestOutputSyringe,'Air/Waste')
+                        V_in=conf.ValvePositionFor(BestOutputSyringe,Destination+" OUT")
+                        V_waste=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                         V_out=V_waste
                         CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste))
                 except:
                     print("error wash 3")
                 for i in range(int(Cycles)):
-                    V_in=ValvePositionFor(BestInputSyringe,Source)
-                    V_out=ValvePositionFor(BestInputSyringe,Destination+" IN")
-                    V_waste=ValvePositionFor(BestInputSyringe,'Air/Waste')
+                    V_in=conf.ValvePositionFor(BestInputSyringe,Source)
+                    V_out=conf.ValvePositionFor(BestInputSyringe,Destination+" IN")
+                    V_waste=conf.ValvePositionFor(BestInputSyringe,'Air/Waste')
                     CompiledCode.append(CreateMacroCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste))
-                    V_in=ValvePositionFor(BestOutputSyringe,Destination+" OUT")
-                    V_out=ValvePositionFor(BestOutputSyringe,'Air/Waste')
+                    V_in=conf.ValvePositionFor(BestOutputSyringe,Destination+" OUT")
+                    V_out=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                     V_waste=V_out
                     CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste))
                     
