@@ -91,7 +91,7 @@ def GetMaxVolumeApparatus(Name):
     else: Name=Name[:-3] #removes IN
     try:    
        NamesArray=["Apparatus: "+ApparatusArray[i][0] for i in range(len(ApparatusArray))]
-       MaxVol=float(ApparatusArray[NamesArray.index(Name)][8])
+       MaxVol=float(ApparatusArray[NamesArray.index(Name)][5])
     except:
        MaxVol=0.0
     return MaxVol

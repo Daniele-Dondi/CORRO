@@ -197,7 +197,7 @@ class Pour(tk.Frame):
     def CheckInput(self): 
         Input=self.Source.get()
         Output=self.Destination.get()
-        if Input=="" or Output=="": return
+##        if Input=="" or Output=="": return
         PossibleUnits=["mL","L"]
         if "Reactant" in Input:
             M=conf.GetMolarityOfInput(Input)
@@ -1567,7 +1567,7 @@ def StartWizard(window, **kwargs):
                     Obj_Pos=element[1]
                     Value_Pos=element[2]
                     Sorted=GetYStack()
-                    Obj=Sorted[Obj_Pos]
+                    Obj=Sorted[Obj_Pos][1]
                     CurrentValues=Obj.GetValues() #retrieve current object values
                     CurrentValues[Value_Pos]=new_value
                     Obj.SetValues(CurrentValues) #save the modified values into the object
@@ -1673,7 +1673,7 @@ def StartWizard(window, **kwargs):
                      if Quantity+CurrentLiquid>MaxVol:
                          tk.messagebox.showerror("ERROR", "Exceeding the maximum volume of "+Output2+" in step n."+str(Step+1))
                          Object.StatusLabel.config(text="ERROR")
-                         return                     
+                         return ["ERROR", "Exceeding the maximum volume of "+Output2+" in step n."+str(Step+1)]                   
                  UpdateVolumes(Output2,Quantity,ApparatusUsed,VolumesInApparatus)
                  SyringeToUse=int(ChooseProperSyringe(AvailableSyringes,Quantity))
                  V_in=conf.ValvePositionFor(SyringeToUse,Input)

@@ -216,7 +216,6 @@ def onclick(event):
          print("onclick error:",e)
      except:
         print("Clicked out of image")
-        pass
 
 def onmiddleclick(event):
     global pix,pixboundedmacro,colorsbound    
@@ -244,7 +243,7 @@ def onrightclick(event):
     comboMacro = ttk.Combobox(binder, values=macrolist, width=40)
     comboMacro.pack()
     tk.Button(binder, text="OK",command=lambda: Bind(comboMacro.get(),color,binder)).pack()
-    tk.Button(binder, text="CANCEL",command=lambda: binder.destroy()).pack()
+    tk.Button(binder, text="CANCEL",command=binder.destroy).pack()
     binder.grab_set()
 
 def Bind(text,color,window):
@@ -306,7 +305,7 @@ def MacroEditor(macronumber): #edit a macro or create a new one
 def Stringify(item):
     if isinstance(item, (float, int)):
         return str(item)
-    elif isinstance(item, str):
+    if isinstance(item, str):
         return item
     else:
         return '0'  # fallback
@@ -1109,7 +1108,7 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     else:  #if it is connected, disconnect
      MsgBox = tk.messagebox.askquestion ('Disconnect','Are you sure you want to disconnect?',icon = 'warning')
      if MsgBox == 'yes':
-      connected=0;
+      connected=0
       time.sleep(1) #wait to stop all threads
       Time_Hook=False
       b_clock.pack_forget()
@@ -1145,7 +1144,7 @@ def SyringeBOTCycle(): #listen and send messages to SyringeBOT
        #print("   SyringeBOT Ready",data_str)
     try:   
      if (data_str.find(' B:')>0 and data_str.find('root')<0):
-        temp=data_str[data_str.find('B')+2:data_str.find('@')]; #filter all messages but temperature
+        temp=data_str[data_str.find('B')+2:data_str.find('@')] #filter all messages but temperature
         [T1, T2]=temp.split('/',2)
         T_Actual=float(T1)
         T_SetPoint=float(T2)
@@ -1475,7 +1474,7 @@ Z2 = tk.Frame(base,bd=2,relief=tk.RIDGE) #functions frame
 GRP = tk.Frame(base,bd=2,relief=tk.RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
 tk.Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
-tk.Button(GRP, text="reset chart", command=ResetChart).pack();
+tk.Button(GRP, text="reset chart", command=ResetChart).pack()
 Zoom_B=tk.Button(GRP, text="View All", command=GraphZoom_Unzoom)
 Zoom_B.pack()
 try:

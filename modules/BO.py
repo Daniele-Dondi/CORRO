@@ -233,7 +233,7 @@ def StartBO_Window(window, **kwargs):
             BO_Window.destroy()
 
     def RunOptimization(): #--------------------------------------------------------------------------------------------------------------------------------------------------------
-        global NotSaved
+        global NotSaved,ProcedureName
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
@@ -250,13 +250,33 @@ def StartBO_Window(window, **kwargs):
         MinValues=[]
         MaxValues=[]
         for Parm in Opt_Parms: # Parms must be [[min, max value],object position in procedure,position in the object array]
-            MinMax,Obj_Pos,PosArray=Parm
-            MinValues.append[MinMax[0],ObjPos,PosArray] #split the min and max values in two different arrays
-            MaxValues.append[MinMax[1],ObjPos,PosArray]
-        MinVolumes=wiz.StartWizard(base,Hide=True,File=filename,Mode="Volumes",New_Values=MinValues) #volumes=[ReactantsUsed,ApparatusUsed,StepByStepOps]
-        MaxVolumes=wiz.StartWizard(base,Hide=True,File=filename,Mode="Volumes",New_Values=MaxValues)
+            Min_Max, Obj_Pos, Pos_Array=Parm
+            MinValues.append([Min_Max[0],Obj_Pos,Pos_Array]) #split the min and max values in two different arrays
+            MaxValues.append([Min_Max[1],Obj_Pos,Pos_Array])
+        MinVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MinValues) #volumes=[ReactantsUsed,ApparatusUsed,StepByStepOps]
+        MaxVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MaxValues)
+        if "ERROR" in MaxVolumes:
+            tk.messagebox.showerror('MAX VOLUME REACHED','Maximum capacity of reactor reached. Consider to scale down quantities',icon = 'warning')
+            return
+        ReactantsUsed=MinVolumes[0]
+        print()
+        print(ReactantsUsed)
+        for culo in ReactantsUsed:
+            print(culo)
+        LastMinReactantVolumes=[vol*MaxSteps for vol in MinVolumes[-1][-1][0]]
+        LastMaxReactantVolumes=[vol*MaxSteps for vol in MaxVolumes[-1][-1][0]]
+        print(LastMinReactantVolumes,LastMaxReactantVolumes)
+        VolumesUsed=wiz.Grid(window)
+        VolumesUsed.WriteOnHeader("Reagent Name")
+        VolumesUsed.WriteOnHeader("Minimum volume used for the optimization")
+        VolumesUsed.WriteOnHeader("Maximum volume used for the optimization")
+        VolumesUsed.CloseHeader()
+        for num,chemical in enumerate(ReactantsUsed):
+            VolumesUsed.AddItemToRow(chemical)
+            VolumesUsed.AddItemToRow(LastMinReactantVolumes[num])
+            VolumesUsed.AddItemToRow(LastMaxReactantVolumes[num])
+            VolumesUsed.NextRow()
         
-        print(Volumes)
         
 
     def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
@@ -396,6 +416,7 @@ def StartBO_Window(window, **kwargs):
         if Opt_Type=="Bayesian Optimization":
             try:
                 MaxIter=int(MaxIterations.get())
+                return MaxIter
             except:
                 return False
         else:
@@ -488,8 +509,8 @@ def StartBO_Window(window, **kwargs):
                 return
         filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
         filename=filedialog.asksaveasfilename(filetypes=filetypes)
+        if filename=="": return          
         if not ".Optimizer" in filename: filename+=".Optimizer"        
-        if filename=="": return        
         SaveOptimization(filename)
 
     def New_Setup():
