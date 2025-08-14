@@ -1682,7 +1682,7 @@ def StartWizard(window, **kwargs):
                  CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
                  OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                  
-            elif ObjType=="Wash":
+            elif ObjType=="Wash": #if the syringe is not connected to the input of the apparatus, the procedure is NOT giving an error
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
                 BestInputSyringe=ChooseProperSyringe(SyrInputs,Volume)
                 BestOutputSyringe=ChooseProperSyringe(SyrOutputs,Volume)

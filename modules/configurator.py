@@ -118,7 +118,8 @@ def ValvePositionFor(syr,name):
     global ValvesArray
     try:
        return (ValvesArray[int(syr)].index(name))
-    except:
+    except Exception as e:
+        print(e)
         print("ERROR Valvepos")
         return -1
 
