@@ -267,6 +267,7 @@ def StartBO_Window(window, **kwargs):
         LastMaxReactantVolumes=[vol*MaxSteps for vol in MaxVolumes[-1][-1][0]]
         print(LastMinReactantVolumes,LastMaxReactantVolumes)
         VolumesUsed=wiz.Grid(window)
+        VolumesUsed.ChangeTitle("OPTIMIZATION REACTANTS USED SUMMARY")
         VolumesUsed.WriteOnHeader("Reagent Name")
         VolumesUsed.WriteOnHeader("Minimum volume used for the optimization")
         VolumesUsed.WriteOnHeader("Maximum volume used for the optimization")

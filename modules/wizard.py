@@ -442,7 +442,7 @@ class Wash(tk.Frame):
             self.AllVolume()
         except:
           pass
-        PossibleInputs=[InputsList[i][0] for i in range(len(InputsList))]
+        PossibleInputs=InputsList
         PossibleInputs.sort()
         self.Source.config(values = PossibleInputs,state="readonly",width=self.MaxCharsInList(PossibleInputs))
         if not self.Source.get() in PossibleInputs:
@@ -477,11 +477,17 @@ class Wash(tk.Frame):
 
     def CheckValues(self):
         self.CheckInput()
-        Destination=self.Destination.get()
-        Source=self.Source.get()
+        Destination=self.Destination.get() #apparatus to wash
+        Source=self.Source.get() #solvent to use
         Cycles=self.Cycles.get()
         Volume=self.Volume.get()
         SyrInputs=conf.WhichSyringeIsConnectedTo(Source)
+        InputsList=[]
+        for SyringeNum in SyrInputs:
+            AvailableInputs=conf.GetAllConnectionsOfSyringe(int(SyringeNum))
+            for Input in AvailableInputs:
+                if Input==Destination+" IN" and SyringeNum not in InputsList:
+                    InputsList.append(SyringeNum)
         try:
             Volume=float(Volume)
         except:
@@ -489,8 +495,8 @@ class Wash(tk.Frame):
         self.Action=[]
         self.StatusLabel.config(text="---")
         if not Destination=="" and not Source=="" and Volume>0.0:
-         self.Action=[Destination,Source,Cycles,Volume,SyrInputs,self.SyrOutputs]
-         self.StatusLabel.config(text="Input syringe "+' or '.join(SyrInputs)+", Output syringe "+' or '.join(self.SyrOutputs))         
+         self.Action=[Destination,Source,Cycles,Volume,InputsList,self.SyrOutputs]
+         self.StatusLabel.config(text="Input syringe "+' or '.join(InputsList)+", Output syringe "+' or '.join(self.SyrOutputs))         
         else:
          self.Action=[]
          self.StatusLabel.config(text="---")   
@@ -1082,6 +1088,8 @@ class Grid(tk.Toplevel):
      fout=open(filename, 'w')
      fout.writelines(self.Data)
      fout.close()
+    def ChangeTitle(self,Item):
+        self.title(Item)
     def WriteOnHeader(self,Item):
         text=str(Item)
         E=tk.Label(self,text=text)
@@ -1684,6 +1692,7 @@ def StartWizard(window, **kwargs):
                  
             elif ObjType=="Wash": #if the syringe is not connected to the input of the apparatus, the procedure is NOT giving an error
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
+                print(Action)
                 BestInputSyringe=ChooseProperSyringe(SyrInputs,Volume)
                 BestOutputSyringe=ChooseProperSyringe(SyrOutputs,Volume)
                 try:
@@ -1692,6 +1701,7 @@ def StartWizard(window, **kwargs):
                         V_in=conf.ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                         V_waste=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                         V_out=V_waste
+                        if V_in<0 or V_waste<0 or V_out<0: print("E1")
                         CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste))
                 except:
                     print("error wash 3")
@@ -1699,10 +1709,12 @@ def StartWizard(window, **kwargs):
                     V_in=conf.ValvePositionFor(BestInputSyringe,Source)
                     V_out=conf.ValvePositionFor(BestInputSyringe,Destination+" IN")
                     V_waste=conf.ValvePositionFor(BestInputSyringe,'Air/Waste')
+                    if V_in<0 or V_waste<0 or V_out<0: print("E2")
                     CompiledCode.append(CreateMacroCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste))
                     V_in=conf.ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                     V_out=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                     V_waste=V_out
+                    if V_in<0 or V_waste<0 or V_out<0: print("E3")
                     CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste))
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)

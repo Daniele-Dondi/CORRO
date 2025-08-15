@@ -163,8 +163,11 @@ def GetAllInputsOfSyringe(num):
     value=[]
     for Exit,connection in enumerate(ValvesArray[num]):
       if ("Reactant" in connection) and not connection in value:
-        value.append([connection]) #value.append([str(Exit),connection])
+        value.append(connection) #value.append([str(Exit),connection])
     return value
+
+def GetAllConnectionsOfSyringe(num):
+    return ValvesArray[num]
 
 def GetSyringeVolume(num):
     if num<len(SyringesArray):
