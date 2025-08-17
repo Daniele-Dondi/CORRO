@@ -24,6 +24,7 @@ from modules.buildvercalculator import CRC
 import pickle
 import modules.helpview as Help
 import modules.configurator as conf
+from modules.DOE import DesignOfExperiments
 
 global NotSaved
 
@@ -233,7 +234,7 @@ def StartBO_Window(window, **kwargs):
             BO_Window.destroy()
 
     def RunOptimization(): #--------------------------------------------------------------------------------------------------------------------------------------------------------
-        global NotSaved,ProcedureName
+        global NotSaved
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
@@ -242,43 +243,79 @@ def StartBO_Window(window, **kwargs):
         if NotSaved:
             tk.messagebox.showerror('DATA ARE NOT SAVED','Please save first current data before running Optimization',icon = 'warning')
             return
-        MaxSteps=GetNumberOfOptimizationSteps()
-        if MaxSteps==False:
-            tk.messagebox.showerror('ERROR','Cannot retrieve the maximum number of optimization steps',icon = 'warning')
+        result=CalcVolUsedForOptimization()
+        if result==False: #something went wrong
             return
+
+    def CalcVolUsedForOptimization():
+        global ProcedureName
         Opt_Parms=GetParmsToOptimize()
         MinValues=[]
         MaxValues=[]
-        for Parm in Opt_Parms: # Parms must be [[min, max value],object position in procedure,position in the object array]
+        for Parm in Opt_Parms: # Parms must be [[min value, max value], object position in procedure, position in the object array]
             Min_Max, Obj_Pos, Pos_Array=Parm
             MinValues.append([Min_Max[0],Obj_Pos,Pos_Array]) #split the min and max values in two different arrays
             MaxValues.append([Min_Max[1],Obj_Pos,Pos_Array])
-        MinVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MinValues) #volumes=[ReactantsUsed,ApparatusUsed,StepByStepOps]
-        MaxVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MaxValues)
-        if "ERROR" in MaxVolumes:
-            tk.messagebox.showerror('MAX VOLUME REACHED','Maximum capacity of reactor reached. Consider to scale down quantities',icon = 'warning')
-            return
-        ReactantsUsed=MinVolumes[0]
-        print()
-        print(ReactantsUsed)
-        for culo in ReactantsUsed:
-            print(culo)
-        LastMinReactantVolumes=[vol*MaxSteps for vol in MinVolumes[-1][-1][0]]
-        LastMaxReactantVolumes=[vol*MaxSteps for vol in MaxVolumes[-1][-1][0]]
-        print(LastMinReactantVolumes,LastMaxReactantVolumes)
-        VolumesUsed=wiz.Grid(window)
-        VolumesUsed.ChangeTitle("OPTIMIZATION REACTANTS USED SUMMARY")
-        VolumesUsed.WriteOnHeader("Reagent Name")
-        VolumesUsed.WriteOnHeader("Minimum volume used for the optimization")
-        VolumesUsed.WriteOnHeader("Maximum volume used for the optimization")
-        VolumesUsed.CloseHeader()
-        for num,chemical in enumerate(ReactantsUsed):
-            VolumesUsed.AddItemToRow(chemical)
-            VolumesUsed.AddItemToRow(LastMinReactantVolumes[num])
-            VolumesUsed.AddItemToRow(LastMaxReactantVolumes[num])
-            VolumesUsed.NextRow()
-        
-        
+        OptParms=GetOptimizationParms()
+        if OptParms==False:
+            return False
+        elif OptParms[0]=="Bayesian Optimization":
+            MaxSteps=GetNumberOfOptimizationSteps()
+            if MaxSteps==False:
+                tk.messagebox.showerror('ERROR','Cannot retrieve the maximum number of optimization steps',icon = 'warning')
+                return False
+            MinVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MinValues) #volumes=[ReactantsUsed,ApparatusUsed,StepByStepOps]
+            MaxVolumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=MaxValues)
+            if "ERROR" in MaxVolumes:
+                tk.messagebox.showerror('MAX VOLUME REACHED','Maximum capacity of reactor reached. Consider to scale down quantities',icon = 'warning')
+                return False
+            ReactantsUsed=MinVolumes[0]
+            LastMinReactantVolumes=[vol*MaxSteps for vol in MinVolumes[-1][-1][0]]
+            LastMaxReactantVolumes=[vol*MaxSteps for vol in MaxVolumes[-1][-1][0]]
+            VolumesUsed=wiz.Grid(window)
+            VolumesUsed.ChangeTitle("REACTANTS USED SUMMARY")
+            VolumesUsed.WriteOnHeader("Reagent Name")
+            VolumesUsed.WriteOnHeader("Minimum volume used for the optimization")
+            VolumesUsed.WriteOnHeader("Maximum volume used for the optimization")
+            VolumesUsed.CloseHeader()
+            for num,chemical in enumerate(ReactantsUsed):
+                VolumesUsed.AddItemToRow(chemical)
+                VolumesUsed.AddItemToRow(LastMinReactantVolumes[num])
+                VolumesUsed.AddItemToRow(LastMaxReactantVolumes[num])
+                VolumesUsed.NextRow()
+            return True
+        elif OptParms[0]=="DoE":
+            Levels=[OptParms[2]]*len(MinValues)
+            Minimums=[float(el[0]) for el in MinValues]
+            Maximums=[float(el[0]) for el in MaxValues]
+            NewValues=MinValues
+            doe = DesignOfExperiments(Levels, Minimums, Maximums)
+            matrix = doe.get_design()
+            TotalExperiments=len(matrix)
+            tk.messagebox.showinfo("Information", "For this optimization run "+str(TotalExperiments)+" experiments will be performed.")
+            Sum=[] 
+            for line in matrix:
+                for num,element in enumerate(line):
+                    NewValues[num][0]=element
+                Volumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=NewValues)
+                ReactantVolumes=[vol for vol in Volumes[-1][-1][0]]
+                if Sum==[]:
+                    Sum=ReactantVolumes
+                else:
+                    Sum = [a + b for a, b in zip(ReactantVolumes, Sum)]
+            ReactantsUsed=Volumes[0]
+            VolumesUsed=wiz.Grid(window)
+            VolumesUsed.ChangeTitle("REACTANTS USED SUMMARY")
+            VolumesUsed.WriteOnHeader("Reagent Name")
+            VolumesUsed.WriteOnHeader("TOTAL volume used for the optimization")
+            VolumesUsed.CloseHeader()
+            for num,chemical in enumerate(ReactantsUsed):
+                VolumesUsed.AddItemToRow(chemical)
+                VolumesUsed.AddItemToRow(Sum[num])
+                VolumesUsed.NextRow()
+            return True
+        else:
+            return False
 
     def RetrieveOptVarsPosition(Value): #return an array with the position number of optimizable variable. The number refers to the position in the procedure object array.
         Var_Position=[]
@@ -297,9 +334,8 @@ def StartBO_Window(window, **kwargs):
                 continue
             for pos,element in enumerate(Value[3]):
                 if element=="normal":
-                    OptValues.append([Value[2][pos], num, Var_Position[pos]]) # return an array with [[min, max value],object position in procedure,position in the object array]
-        print(OptValues)
-        return OptValues
+                    OptValues.append([Value[2][pos], num, Var_Position[pos]]) 
+        return OptValues # return an array with [[min, max value], object position in procedure, position in the object array]
 
     def RenderOptimizerCode(OptimizerCode):
         global CurrentY,CreatedProcedures
@@ -330,7 +366,6 @@ def StartBO_Window(window, **kwargs):
             CreatedProcedures[num].SetValues(Value)
 
     def SetOptParams(OptParams):
-        print(OptParams)
         OptType=OptParams[0]
         OptimizationType.set(OptType)
         create_widgets(OptType)
@@ -341,6 +376,10 @@ def StartBO_Window(window, **kwargs):
             kappa.insert(0,OptParams[2])
             xi.delete(0,tk.END)
             xi.insert(0,OptParams[3])
+        elif OptType=="DoE":
+            DOE_Type.set(OptParams[1])
+            NumLevels.delete(0,tk.END)
+            NumLevels.insert(0,str(OptParams[2]))
         else:
             tk.messagebox.showerror("ERROR","not yet implemented")
 
@@ -410,7 +449,12 @@ def StartBO_Window(window, **kwargs):
             XI=float(xi.get())
             return [Opt_Type, MaxIter,K,XI]
         elif Opt_Type=="DoE":
-            return []
+            DT=DOE_Type.get()
+            if DT=="Full Factorial":
+                Levels=int(NumLevels.get())
+                return [Opt_Type, DT, Levels]
+            else:
+                return False
 
     def GetNumberOfOptimizationSteps():
         Opt_Type=OptimizationType.get()
@@ -439,7 +483,12 @@ def StartBO_Window(window, **kwargs):
             if XI<0: 
                 return  ["ERROR","xi must be >0 !"]                         
         elif Opt_Type=="DoE":
-            return ["ERROR","Function not yet implemented"]
+            try:
+                Levels=int(NumLevels.get())
+            except:
+                return ["ERROR","Levels value must be a valid integer"]
+            if DOE_Type.get()=="":
+                return ["ERROR","Select a DoE type"]
         else:
             return ["ERROR","Please select an optimization method"]
         return "OK"
@@ -476,7 +525,6 @@ def StartBO_Window(window, **kwargs):
         AllValues=[]
         for obj in CreatedProcedures:
             AllValues.append(obj.GetValues())
-        print(AllValues)
         return AllValues
 
     def SaveOptimization(filename):
@@ -525,7 +573,6 @@ def StartBO_Window(window, **kwargs):
         if wiz.ThereAreErrors(window,OptimizerCode): return
         CRC_Value=CRC(ProcedureName)
         File_Size=os.path.getsize(ProcedureName)
-        print(ProcedureName,CRC_Value,File_Size)
         RenderOptimizerCode(OptimizerCode)
 
     def DeleteAll():
@@ -689,6 +736,5 @@ def StartBO_Window(window, **kwargs):
             ProcedureName=val
             CRC_Value=CRC(ProcedureName)
             File_Size=os.path.getsize(ProcedureName)
-            print(ProcedureName,CRC_Value,File_Size)
     
     BO_Window.mainloop()

@@ -1692,7 +1692,6 @@ def StartWizard(window, **kwargs):
                  
             elif ObjType=="Wash": #if the syringe is not connected to the input of the apparatus, the procedure is NOT giving an error
                 Destination,Source,Cycles,Volume,SyrInputs,SyrOutputs=Action
-                print(Action)
                 BestInputSyringe=ChooseProperSyringe(SyrInputs,Volume)
                 BestOutputSyringe=ChooseProperSyringe(SyrOutputs,Volume)
                 try:
