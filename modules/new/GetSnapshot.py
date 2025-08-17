@@ -1,0 +1,65 @@
+import http.client
+from urllib.parse import urlparse
+from html.parser import HTMLParser
+
+def fetch_ip_camera_image(camera_url):
+    class ImageParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.image_src = None
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "img":
+                for attr, value in attrs:
+                    if attr == "src":
+                        self.image_src = value
+
+    try:
+        # Parse the camera URL
+        parsed = urlparse(camera_url)
+        host = parsed.hostname
+        snapshot_path = parsed.path
+
+        # Fetch the HTML page
+        conn = http.client.HTTPConnection(host,timeout=5)
+        conn.request("GET", snapshot_path)
+        response = conn.getresponse()
+        if response.status != 200:
+            return f"Error: Failed to fetch HTML ({response.status} {response.reason})"
+        html = response.read().decode()
+        conn.close()
+
+        # Parse HTML to find image path
+        parser = ImageParser()
+        parser.feed(html)
+        if not parser.image_src:
+            return "Error: No image tag found in HTML."
+
+        image_path = parser.image_src
+        if not image_path.startswith("/"):
+            image_path = "/" + image_path
+
+        # Fetch the image
+        conn = http.client.HTTPConnection(host)
+        conn.request("GET", image_path)
+        response = conn.getresponse()
+        if response.status != 200:
+            return f"Error: Failed to fetch image ({response.status} {response.reason})"
+        image_data = response.read()
+        conn.close()
+
+        return image_data  # Return raw image bytes
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+#EXAMPLE USAGE
+camera_url = "http://192.168.1.100/snapshot.html"
+result = fetch_ip_camera_image(camera_url)
+
+if isinstance(result, bytes):
+    with open("snapshot.jpg", "wb") as f:
+        f.write(result)
+    print("Image saved successfully.")
+else:
+    print(result)  # This is an error message
