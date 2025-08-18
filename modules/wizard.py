@@ -1067,8 +1067,6 @@ class Grid(tk.Toplevel):
         super().__init__(container)        
         self.title("WIZARD SUMMARY")
         self.grab_set()
-        self.RowWidth=0
-        self.ItemHeight=0
         self.Row=0
         self.Column=0
         self.Data=[]
@@ -1081,22 +1079,19 @@ class Grid(tk.Toplevel):
         self.config(menu=self.menubar)
         self.menubar.add_cascade(label="File",menu=self.file_menu)
     def SaveData(self):
-     filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
-     filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
-     if filename=="": return
-     if not ".csv" in filename: filename+=".csv"
-     fout=open(filename, 'w')
-     fout.writelines(self.Data)
-     fout.close()
+        filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
+        filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
+        if filename=="": return
+        if not ".csv" in filename: filename+=".csv"
+        fout=open(filename, 'w')
+        fout.writelines(self.Data)
+        fout.close()
     def ChangeTitle(self,Item):
         self.title(Item)
     def WriteOnHeader(self,Item):
         text=str(Item)
         E=tk.Label(self,text=text)
         E.grid(row=0,column=self.Column)
-        self.update()
-        self.RowWidth+=E.winfo_width()
-        self.ItemHeight=E.winfo_height()
         self.Line+=text+", "
         self.Column+=1
         self.Row=1
@@ -1111,11 +1106,27 @@ class Grid(tk.Toplevel):
         self.Line+=text+", "
         self.Column+=1
     def NextRow(self):
-        self.geometry(str(self.RowWidth)+'x'+str(self.ItemHeight*(len(self.Data)+1))+'+400+100')
-        self.Data.append(self.Line[:-2]+"\n")
-        self.Line=""        
-        self.Column=0
-        self.Row+=1
+        self.Data.append(self.Line[:-2] + "\n")
+        self.Line = ""
+        self.Column = 0
+        self.Row += 1
+        # Force layout update
+        self.update_idletasks()
+        # Calculate total width and height
+        total_width = 0
+        max_column = 0
+        total_height = 0
+        for child in self.winfo_children():
+            if isinstance(child, tk.Label):
+                x = child.winfo_x()
+                y = child.winfo_y()
+                w = child.winfo_width()
+                h = child.winfo_height()
+                total_width = max(total_width, x + w)
+                total_height = max(total_height, y + h)
+        # Resize window
+        self.geometry(f"{total_width}x{total_height}+400+100")
+
 
     
 ################################################################## end of classes ##################################################################
@@ -1279,7 +1290,7 @@ def ThereAreErrors(window,CompiledCode):
 
 def StartWizard(window, **kwargs):
     InitVars()
-    conf.LoadConfFile()
+    #conf.LoadConfFile()
 
     global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
     global Dragging_Objects
@@ -2068,4 +2079,4 @@ def StartWizard(window, **kwargs):
         WizardWindow.destroy()
         return ReturnCode
     
-    WizardWindow.mainloop()
+##    WizardWindow.mainloop()

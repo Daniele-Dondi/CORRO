@@ -246,6 +246,10 @@ def StartBO_Window(window, **kwargs):
         result=CalcVolUsedForOptimization()
         if result==False: #something went wrong
             return
+        response = tk.messagebox.askokcancel("Confirmation", "Do you want to proceed?")
+        if response:
+            BO_Window.return_code="fewafefadfkjdaslfjlkjf"
+            Close()
 
     def CalcVolUsedForOptimization():
         global ProcedureName
@@ -639,6 +643,7 @@ def StartBO_Window(window, **kwargs):
     BO_Window.title("BAYESIAN OPTIMIZATION SETUP")
     BO_Window.geometry('1000x800+400+10')
     BO_Window.grab_set()
+    BO_Window.return_code=None
     BO_Window.wm_iconphoto(True, tk.PhotoImage(file='icons/BO.png'))    
     menubar = tk.Menu(BO_Window)
     file_menu = tk.Menu(menubar,tearoff=0)
@@ -736,5 +741,7 @@ def StartBO_Window(window, **kwargs):
             ProcedureName=val
             CRC_Value=CRC(ProcedureName)
             File_Size=os.path.getsize(ProcedureName)
-    
-    BO_Window.mainloop()
+
+    BO_Window.wait_window()
+
+    return BO_Window.return_code

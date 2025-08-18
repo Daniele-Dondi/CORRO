@@ -1345,7 +1345,9 @@ def Wizard():
     wiz.StartWizard(base)
 
 def Bayesian():
-    Bay.StartBO_Window(base)
+    run=Bay.StartBO_Window(base)
+    print(run)
+
 
 def StartProcedure():
 ##    if connected==0:
