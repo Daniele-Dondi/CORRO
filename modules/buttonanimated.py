@@ -11,7 +11,7 @@ class AnimatedButton:
 
         self._load_frames()
         self.button = tk.Button(master, image=self.frames[0], **kwargs)
-        self.button.pack()
+        #self.button.pack()
 
         self._animate()
 
@@ -30,15 +30,19 @@ class AnimatedButton:
         self.index = (self.index + 1) % len(self.frames)
         self.master.after(self.delay, self._animate)
 
-##    def pack(self, **kwargs):
-##        self.button.pack(**kwargs)
-##
-##    def grid(self, **kwargs):
-##        self.button.grid(**kwargs)
-##
-##    def place(self, **kwargs):
-##        self.button.place(**kwargs)
-##
+    def pack(self, **kwargs):
+        self.button.pack(**kwargs)
+
+    def pack_forget(self, **kwargs):
+        self.button.pack_forget(**kwargs)
+
+    def grid(self, **kwargs):
+        self.button.grid(**kwargs)
+
+    def place(self, **kwargs):
+        self.button.place(**kwargs)
+
 ##root = tk.Tk()
 ##animated_btn = AnimatedButton(root, "run.gif", delay=100)
+##animated_btn.pack()
 ##root.mainloop()

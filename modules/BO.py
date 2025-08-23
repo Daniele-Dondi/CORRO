@@ -26,7 +26,10 @@ import modules.helpview as Help
 import modules.configurator as conf
 from modules.DOE import DesignOfExperiments
 
-global NotSaved
+global NotSaved, WeAreOptimizing
+
+def CreateNewValues(parms):
+    return parms
 
 def StartBO_Window(window, **kwargs):
     global ProcedureName,OptimizerName,CRC_Value,File_Size,CurrentY
@@ -269,7 +272,8 @@ def StartBO_Window(window, **kwargs):
         if response:
             MinValues, MaxValues, Position=SplitParmsToOptimize()
             Cycle=0
-            BO_Window.return_code=[ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle]
+            Value=0
+            BO_Window.return_code=[ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, Value]
             Close()
         #print(CreateParmsToOptimize(MinValues,Position))
 

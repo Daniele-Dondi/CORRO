@@ -32,6 +32,7 @@ import modules.wizard as wiz
 from modules.buildvercalculator import GetBuildVersion
 import modules.BO as Bay
 from modules.tooltip import ToolTip
+from modules.buttonanimated import AnimatedButton
 import traceback
 
 
@@ -882,40 +883,6 @@ def CancelPrint():
     MsgBox = tk.messagebox.askquestion ('Stop process','Are you sure you want to stop the process?',icon = 'warning')
     if MsgBox == 'yes':
         SyringeBOTWorking=False
-'''
-#Robot direct interface for buttons
-def MoveRobot(cmd):
- global connected,robot
- if connected==1:
-  how_much=step.get()
-  if cmd=='XY0': robot.send("G28 X Y")
-  elif cmd=='Z0': robot.send("G28 Z")
-  elif cmd=='+Y':
-    robot.send("G91") #relative positioning
-    robot.send("G1 Y"+str(how_much))
-    robot.send("G90") #absolute positioning
-  elif cmd=='+X':
-    robot.send("G91") #relative positioning
-    robot.send("G1 X"+str(how_much))
-    robot.send("G90") #absolute positioning
-  elif cmd=='+Z':
-    robot.send("G91") #relative positioning
-    robot.send("G1 Z"+str(how_much))
-    robot.send("G90") #absolute positioning
-  elif cmd=='-Y':
-    robot.send("G91") #relative positioning
-    robot.send("G1 Y-"+str(how_much))
-    robot.send("G90") #absolute positioning
-  elif cmd=='-X':
-    robot.send("G91") #relative positioning
-    robot.send("G1 X-"+str(how_much))
-    robot.send("G90") #absolute positioning
-  elif cmd=='-Z':
-    robot.send("G91") #relative positioning
-    robot.send("G1 Z-"+str(how_much))
-    robot.send("G90") #absolute positioning
- else:    tk.messagebox.showerror("ERROR","Not connected. Connect first")
-'''
 
 def sendcommand(cmd,where): #send a gcode command
     global connected,IsBuffered0,debug,cmdfile,Gcode,SyringeBOTSendNow
@@ -1331,6 +1298,23 @@ def time_button_click():
     tk.Button(t, text="DELETE EVENT",command=lambda: DeleteTimeEvent(t)).pack()
     t.grab_set()
 
+def opt_button_click():
+    t = tk.Toplevel(base)
+    t.geometry("+%d+%d" % (100, 300))
+    t.title('Optimization')
+    tk.Label(t,text="We are optimizing something").pack()
+    tk.Button(t, text="OK",command=lambda: t.destroy()).pack()
+    tk.Button(t, text="STOP OPTIMIZATION",command=lambda: StopOptimization(t)).pack()
+    t.grab_set()
+
+def StopOptimization(t):
+    global Temperature_Hook,Time_Hook
+    MsgBox = tk.messagebox.askquestion ('STOP Optimization','Are you sure you want to STOP optimization?\nSome data could be lost',icon = 'warning')
+    if MsgBox == 'yes':
+        b_RunOpt.pack_forget()
+        Bay.WeAreOptimizing=False
+    t.destroy()
+    
 def UserClickedMacro(num):
     if SyringeBOT_is_ready():
         Macro(num)
@@ -1347,31 +1331,52 @@ def Wizard():
 def Bayesian():
     run=Bay.StartBO_Window(base)
     if run != None:
-        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle]
-        NewValues=Bay.CreateNewValues(run)
-        wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=NewValues)
+##        if WeCanStart():
+        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, Value]
+        b_RunOpt.pack()
+        Bay.WeAreOptimizing=True
+        threading.Timer(0.1, OptimizationCycle, args=([run])).start()  #call OptimizationCycle loop
 
 def RunCompiledCode(CompiledCode):
     macronum=CreateNewMacroNumber("TEMP_FFFF")
     SaveMacroFile(macronum,"\n".join(CompiledCode))
-    Macro(macronum)
+    ExecuteMacro(macronum)
     DeleteMacroFileAndButton(macronum)
+
+def WeCanStart():
+    global connected, SyringeBOT_IS_INITIALIZED
+    if connected==0:
+        MsgBox = tk.messagebox.showerror('Not Connected','Connect first',icon = 'error')
+        return False
+    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
+        MsgBox = tk.messagebox.showerror('SyringeBOT is not initialized','Initialize first',icon = 'error')
+        return False
+    return SyringeBOT_is_ready()
     
 def StartProcedure():
-##    if connected==0:
-##        MsgBox = tk.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
-##        return
-##    if SyringeBOT_IS_INITIALIZED==False: #SyringeBOT is not initialized
-##        MsgBox = tk.messagebox.showerror ('SyringeBOT is not initialized','Initialize first',icon = 'error')
-##        return
-##    if SyringeBOT_is_ready():
-    filename=wiz.ChooseProcedureFile()
-    if filename=="": return
-    CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
-    if wiz.ThereAreErrors(base,CompiledCode):
-        return    
-    RunProcedure(CompiledCode)
+    if WeCanStart():
+        filename=wiz.ChooseProcedureFile()
+        if filename=="": return
+        CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
+        if wiz.ThereAreErrors(base,CompiledCode):
+            return    
+        threading.Timer(0.1, RunCompiledCode, args=(CompiledCode)).start() #execute without waiting
 
+def OptimizationCycle(run): #cycle to start and follow optimization
+    NewValues=Bay.CreateNewValues(run)
+    if NewValues==None:
+        Bay.WeAreOptimizing=False #We finished the optimization procedure
+        return
+##    CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code",New_Values=NewValues)
+##    if wiz.ThereAreErrors(base,CompiledCode):
+##        return    
+##    RunCompiledCode(CompiledCode) # execute and wait
+    #Bay.RetrieveOutputValue()
+    #
+    #print(Bay.WeAreOptimizing,run)
+
+    if connected and Bay.WeAreOptimizing:
+        threading.Timer(1, OptimizationCycle, args=([run])).start() #call itself
 
 
 ############################################################################################################################
@@ -1459,6 +1464,7 @@ temp_icon = tk.PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=tk.Button(F, image=temp_icon,command=temp_button_click)
 clock_icon = tk.PhotoImage(file = r"icons"+os.sep+"clock.png")
 b_clock=tk.Button(F, image=clock_icon,command=time_button_click)
+b_RunOpt = AnimatedButton(F, r"icons"+os.sep+"run.gif", delay=100, command=opt_button_click)
 Z = tk.Frame(base,bd=2,relief=tk.RIDGE) #macros frame
 if ShowMacrosPalettes: Z.pack(side="left",fill="y")
 try:  #read macros and decide if we have to create a second palette
@@ -1490,18 +1496,6 @@ except:
     tk.messagebox.showerror("GENERAL ERROR","Macro INIT_ALL not found. Impossible to continue.\nIn order to work properly, SyringeBOT MUST have a macro called INIT_ALL")
 
 
-'''
-K = tk.Frame(F)
-K.pack(side="bottom")
-J = tk.Frame(F)
-J.pack(side="bottom")
-I = tk.Frame(F)
-I.pack(side="bottom")
-H = tk.Frame(F)
-H.pack(side="bottom")
-G = tk.Frame(F)
-G.pack(side="bottom")
-'''
 Graph=tk.Frame(base)  #frame for graph showing values
 Graph.pack(side="bottom")
 w=tk.Canvas(Graph,width=chart_w,height=chart_h)
@@ -1533,34 +1527,6 @@ if (RESIZE_IMAGES):
 else:
     resized_mask = original_mask
 pix = resized_mask.load()
-
-'''
-#Frames G,H,I,J,K
-if (HasRobot):
- step=StringVar()
- lControl = tk.Label(G, text="ROBOT MANUAL CONTROL",font=HEADER_FONT,bg='pink')
- lControl.pack()
- tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(H, text="+Y", command=lambda: MoveRobot('+Y'),width=3).pack(side="left")
- tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(H, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(H, text="+Z", command=lambda: MoveRobot('+Z'),width=3).pack(side="left")
- tk.Button(I, text="-X", command=lambda: MoveRobot('-X'),width=3).pack(side="left")
- tk.Button(I, text="XY0", command=lambda: MoveRobot('XY0'),width=3).pack(side="left")
- tk.Button(I, text="+X", command=lambda: MoveRobot('+X'),width=3).pack(side="left")
- tk.Button(I, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(I, text="Z0",command=lambda: MoveRobot('Z0'),width=3).pack(side="left")
- tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(J, text="-Y", command=lambda: MoveRobot('-Y'),width=3).pack(side="left")
- tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(J, text="", state="disabled",bd=0,width=3).pack(side="left")
- tk.Button(J, text="-Z", command=lambda: MoveRobot('-Z'),width=3).pack(side="left")
- tk.Label(K, text="Step:").pack(side="left")
- eStep = Entry(K,width=4,textvariable=step)
- eStep.pack(side="left")
- step.set(10)
- tk.Label(K, text="mm/deg").pack(side="left")
-'''
 
 #CREATE MACRO BUTTONS in frame Z and, eventually ZZ and functions in Z2
 if len(macrolist)>0:
