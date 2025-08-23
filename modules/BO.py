@@ -29,7 +29,7 @@ from modules.DOE import DesignOfExperiments
 global NotSaved
 
 def StartBO_Window(window, **kwargs):
-    global ProcedureName,CRC_Value,File_Size,CurrentY
+    global ProcedureName,OptimizerName,CRC_Value,File_Size,CurrentY
     global CreatedProcedures
     global NotSaved
 
@@ -233,8 +233,27 @@ def StartBO_Window(window, **kwargs):
         else:
             BO_Window.destroy()
 
-    def RunOptimization(): #--------------------------------------------------------------------------------------------------------------------------------------------------------
-        global NotSaved
+    def SplitParmsToOptimize():
+        Opt_Parms=GetParmsToOptimize()
+        MinValues=[]
+        MaxValues=[]
+        Position=[]
+        for Parm in Opt_Parms: # Parms must be [[min value, max value], object position in procedure, position in the object array]
+            Min_Max, Obj_Pos, Pos_Array=Parm
+            MinValues.append(Min_Max[0])
+            MaxValues.append(Min_Max[1])
+            Position.append([Obj_Pos,Pos_Array])
+        return [MinValues, MaxValues, Position]
+
+    def CreateParmsToOptimize(values,parms):
+        output=[]
+        for num in range(len(parms)):
+            Obj_Pos, Pos_Array=parms[num]
+            output.append([values[num], Obj_Pos, Pos_Array])
+        return output
+
+    def RunOptimizationButton(): 
+        global NotSaved,ProcedureName,OptimizerName
         Check=ValuesAreCorrect()
         if not(Check=="OK"):
             tk.messagebox.showerror(Check[0], Check[1])
@@ -248,8 +267,11 @@ def StartBO_Window(window, **kwargs):
             return
         response = tk.messagebox.askokcancel("Confirmation", "Do you want to proceed?")
         if response:
-            BO_Window.return_code="fewafefadfkjdaslfjlkjf"
+            MinValues, MaxValues, Position=SplitParmsToOptimize()
+            Cycle=0
+            BO_Window.return_code=[ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle]
             Close()
+        #print(CreateParmsToOptimize(MinValues,Position))
 
     def CalcVolUsedForOptimization():
         global ProcedureName
@@ -302,6 +324,9 @@ def StartBO_Window(window, **kwargs):
                 for num,element in enumerate(line):
                     NewValues[num][0]=element
                 Volumes=wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=NewValues)
+                if "ERROR" in Volumes:
+                    tk.messagebox.showerror('MAX VOLUME REACHED','Maximum capacity of reactor reached. Consider to scale down quantities',icon = 'warning')
+                    return False                
                 ReactantVolumes=[vol for vol in Volumes[-1][-1][0]]
                 if Sum==[]:
                     Sum=ReactantVolumes
@@ -428,8 +453,9 @@ def StartBO_Window(window, **kwargs):
         return OptimizerCode
 
     def LoadOptimization(filename): #filename must exist
-        global ProcedureName,CRC_Value,File_Size
+        global ProcedureName,OptimizerName,CRC_Value,File_Size
         SetNotSaved(False)
+        OptimizerName=filename        
         fin=open(filename, 'rb')
         ProcedureName=pickle.load(fin)
         CRC_Value=pickle.load(fin)
@@ -444,14 +470,13 @@ def StartBO_Window(window, **kwargs):
         SetObjValues(Values)
         SetOptParams(OptParams)
         
-
     def GetOptimizationParms(): 
         Opt_Type=OptimizationType.get()
         if Opt_Type=="Bayesian Optimization":
             MaxIter=int(MaxIterations.get())
             K=float(kappa.get())
             XI=float(xi.get())
-            return [Opt_Type, MaxIter,K,XI]
+            return [Opt_Type, MaxIter, K, XI]
         elif Opt_Type=="DoE":
             DT=DOE_Type.get()
             if DT=="Full Factorial":
@@ -532,8 +557,9 @@ def StartBO_Window(window, **kwargs):
         return AllValues
 
     def SaveOptimization(filename):
-        global ProcedureName,CRC_Value,File_Size,CreatedProcedures
+        global ProcedureName,OptimizerName,CRC_Value,File_Size,CreatedProcedures
         AllValues=GetAllValues()
+        OptimizerName=filename
         fout=open(filename, 'wb')
         pickle.dump(ProcedureName,fout)
         pickle.dump(CRC_Value,fout)
@@ -723,7 +749,7 @@ def StartBO_Window(window, **kwargs):
     bSave=tk.Button(frame1, text="SAVE", command=AskSaveOptimization,image = Save_icon, compound = tk.LEFT)
     bSave.pack(side="left",padx=10)
     Run_icon = tk.PhotoImage(file = r"icons/run_setup.png")
-    bRun=tk.Button(frame1, text="RUN", command=RunOptimization,image = Run_icon, compound = tk.LEFT)
+    bRun=tk.Button(frame1, text="RUN", command=RunOptimizationButton,image = Run_icon, compound = tk.LEFT)
     bRun.pack(side="left",padx=10)
     Exit_icon = tk.PhotoImage(file = r"icons/exit_setup.png")
     bExit=tk.Button(frame1, text="EXIT", command=Close,image = Exit_icon, compound = tk.LEFT)

@@ -1346,9 +1346,17 @@ def Wizard():
 
 def Bayesian():
     run=Bay.StartBO_Window(base)
-    print(run)
+    if run != None:
+        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle]
+        NewValues=Bay.CreateNewValues(run)
+        wiz.StartWizard(window,Hide=True,File=ProcedureName,Mode="Volumes",New_Values=NewValues)
 
-
+def RunCompiledCode(CompiledCode):
+    macronum=CreateNewMacroNumber("TEMP_FFFF")
+    SaveMacroFile(macronum,"\n".join(CompiledCode))
+    Macro(macronum)
+    DeleteMacroFileAndButton(macronum)
+    
 def StartProcedure():
 ##    if connected==0:
 ##        MsgBox = tk.messagebox.askquestion ('Not Connected','Connect first',icon = 'error')
@@ -1361,11 +1369,8 @@ def StartProcedure():
     if filename=="": return
     CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
     if wiz.ThereAreErrors(base,CompiledCode):
-        return
-    macronum=CreateNewMacroNumber("TEMP_FFFF")
-    SaveMacroFile(macronum,"\n".join(CompiledCode))
-    Macro(macronum)
-    DeleteMacroFileAndButton(macronum)
+        return    
+    RunProcedure(CompiledCode)
 
 
 
