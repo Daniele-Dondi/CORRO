@@ -1080,7 +1080,7 @@ class Grid(tk.Toplevel):
         self.menubar.add_cascade(label="File",menu=self.file_menu)
     def SaveData(self):
         filetypes=(('ASCII CSV file','*.csv'),('All files','*.*'))
-        filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
+        filename=tk.filedialog.asksaveasfilename(filetypes=filetypes,initialdir="procedures")
         if filename=="": return
         if not ".csv" in filename: filename+=".csv"
         fout=open(filename, 'w')
@@ -1261,7 +1261,7 @@ def DeleteObjByIdentifier(ObjIdentifier):
 
 def ChooseProcedureFile():
     filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
-    filename = tk.filedialog.askopenfilename(filetypes=filetypes)
+    filename = tk.filedialog.askopenfilename(filetypes=filetypes,initialdir="procedures")
     return filename
 
 def AskToShowMissingConnections(window,Missing):
@@ -1918,7 +1918,7 @@ def StartWizard(window, **kwargs):
             MsgBox = tk.messagebox.askquestion ('Append Procedures','Import Procedure will add Procedures to the current project. Proceed?',icon = 'warning')
             if MsgBox == 'yes':
                 filetypes = (('SyringeBOT Procedure files', '*.Procedure'),('All files', '*.*'))
-                filename = tk.filedialog.askopenfilename(filetypes=filetypes)
+                filename = tk.filedialog.askopenfilename(filetypes=filetypes,initialdir="procedures")
                 if filename=="": return
                 LoadProcedures(filename)                
 
@@ -1977,7 +1977,7 @@ def StartWizard(window, **kwargs):
 
     def AskSaveProcedures():
      filetypes=(('SyringeBOT Procedure files','*.Procedure'),('All files','*.*'))
-     filename=tk.filedialog.asksaveasfilename(filetypes=filetypes)
+     filename=tk.filedialog.asksaveasfilename(filetypes=filetypes,initialdir="procedures")
      if filename=="": return
      if not ".Procedure" in filename: filename+=".Procedure"
      SaveProcedures(filename)

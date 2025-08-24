@@ -294,7 +294,7 @@ def StartConfigurator(window):
          MsgBox="yes"
      if MsgBox == 'yes':  
          filetypes = (('SyringeBOT configuration files', '*.conf'),('All files', '*.*'))
-         filename = filedialog.askopenfilename(filetypes=filetypes)
+         filename = filedialog.askopenfilename(filetypes=filetypes,initialdir="conf")
          if filename=="": return
          LoadConfFile(filename)
          SetSyringeOptions()
@@ -326,7 +326,7 @@ def StartConfigurator(window):
          
     def SaveAsData():
      filetypes=(('SyringeBOT cconfiguration files','*.conf'),('All files','*.*'))
-     filename=filedialog.asksaveasfilename(filetypes=filetypes)
+     filename=filedialog.asksaveasfilename(filetypes=filetypes,initialdir="conf")
      if filename=="": return
      if not filename[-5:]==".conf": filename+=".conf"
      SaveConfFile(filename)

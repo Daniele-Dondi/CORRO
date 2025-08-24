@@ -386,7 +386,7 @@ def StartBO_Window(window, **kwargs):
             if AskDeleteAll()==False:
                 return
         filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
-        filename = filedialog.askopenfilename(filetypes=filetypes)
+        filename = filedialog.askopenfilename(filetypes=filetypes,initialdir="optimizations")
         if filename=="": return
         LoadOptimization(filename)
 
@@ -427,7 +427,7 @@ def StartBO_Window(window, **kwargs):
            tk.messagebox.showinfo("Information", f"Could not find the file {target_filename}\nPlease indicate the new location of the file: {target_filename}")
            # Ask for new location with file type filter (all extensions allowed, name restricted)
            new_path = tk.filedialog.askopenfilename(
-               title=f"Select {target_filename}",
+               title=f"Select {target_filename}",initialdir="procedures",
                filetypes=[("Matching file", target_filename)],
            )
 
@@ -591,7 +591,7 @@ def StartBO_Window(window, **kwargs):
             if Check[0]=="ERROR":  #Check[0] could be either "ERROR" or "WARNING"
                 return
         filetypes=(('SyringeBOT Optimizer files','*.Optimizer'),('All files','*.*'))
-        filename=filedialog.asksaveasfilename(filetypes=filetypes)
+        filename=filedialog.asksaveasfilename(filetypes=filetypes,initialdir="optimizations")
         if filename=="": return          
         if not ".Optimizer" in filename: filename+=".Optimizer"        
         SaveOptimization(filename)
