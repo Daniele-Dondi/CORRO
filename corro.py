@@ -1307,12 +1307,16 @@ def opt_button_click():
     tk.Button(t, text="STOP OPTIMIZATION",command=lambda: StopOptimization(t)).pack()
     t.grab_set()
 
+def RemoveOptButtonAndVar():
+    b_RunOpt.pack_forget()
+    Bay.WeAreOptimizing=False
+    
+
 def StopOptimization(t):
     global Temperature_Hook,Time_Hook
     MsgBox = tk.messagebox.askquestion ('STOP Optimization','Are you sure you want to STOP optimization?\nSome data could be lost',icon = 'warning')
     if MsgBox == 'yes':
-        b_RunOpt.pack_forget()
-        Bay.WeAreOptimizing=False
+        RemoveOptButtonAndVar()
     t.destroy()
     
 def UserClickedMacro(num):
@@ -1332,7 +1336,7 @@ def Bayesian():
     run=Bay.StartBO_Window(base)
     if run != None:
 ##        if WeCanStart():
-        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, Value]
+        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, ReturnValue]
         b_RunOpt.pack()
         Bay.WeAreOptimizing=True
         threading.Timer(0.1, OptimizationCycle, args=([run])).start()  #call OptimizationCycle loop
@@ -1345,6 +1349,7 @@ def RunCompiledCode(CompiledCode):
 
 def WeCanStart():
     global connected, SyringeBOT_IS_INITIALIZED
+    #return True
     if connected==0:
         MsgBox = tk.messagebox.showerror('Not Connected','Connect first',icon = 'error')
         return False
@@ -1360,12 +1365,13 @@ def StartProcedure():
         CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
         if wiz.ThereAreErrors(base,CompiledCode):
             return    
-        threading.Timer(0.1, RunCompiledCode, args=(CompiledCode)).start() #execute without waiting
+        threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute without waiting
 
 def OptimizationCycle(run): #cycle to start and follow optimization
     NewValues=Bay.CreateNewValues(run)
-    if NewValues==None:
-        Bay.WeAreOptimizing=False #We finished the optimization procedure
+    if NewValues==None: #We finished the optimization procedure
+        RemoveOptButtonAndVar()
+        #add here eventually the data treatment/visualization for the optimization
         return
 ##    CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code",New_Values=NewValues)
 ##    if wiz.ThereAreErrors(base,CompiledCode):

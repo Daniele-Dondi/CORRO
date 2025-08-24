@@ -29,7 +29,18 @@ from modules.DOE import DesignOfExperiments
 global NotSaved, WeAreOptimizing
 
 def CreateNewValues(parms):
+    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = parms
+    if Cycle==0: #We have to init optimizers
+        return parms
     return parms
+
+def CreateParmsToOptimize(values,parms):
+    output=[]
+    for num in range(len(parms)):
+        Obj_Pos, Pos_Array=parms[num]
+        output.append([values[num], Obj_Pos, Pos_Array])
+    return output
+
 
 def StartBO_Window(window, **kwargs):
     global ProcedureName,OptimizerName,CRC_Value,File_Size,CurrentY
@@ -248,13 +259,6 @@ def StartBO_Window(window, **kwargs):
             Position.append([Obj_Pos,Pos_Array])
         return [MinValues, MaxValues, Position]
 
-    def CreateParmsToOptimize(values,parms):
-        output=[]
-        for num in range(len(parms)):
-            Obj_Pos, Pos_Array=parms[num]
-            output.append([values[num], Obj_Pos, Pos_Array])
-        return output
-
     def RunOptimizationButton(): 
         global NotSaved,ProcedureName,OptimizerName
         Check=ValuesAreCorrect()
@@ -272,8 +276,8 @@ def StartBO_Window(window, **kwargs):
         if response:
             MinValues, MaxValues, Position=SplitParmsToOptimize()
             Cycle=0
-            Value=0
-            BO_Window.return_code=[ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, Value]
+            RewardValue=None
+            BO_Window.return_code=[ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, RewardValue]
             Close()
         #print(CreateParmsToOptimize(MinValues,Position))
 
@@ -402,17 +406,18 @@ def StartBO_Window(window, **kwargs):
         OptType=OptParams[0]
         OptimizationType.set(OptType)
         create_widgets(OptType)
+        OutputType.set(OptParams[1])
         if OptType=="Bayesian Optimization":
             MaxIterations.delete(0,tk.END)
-            MaxIterations.insert(0,OptParams[1])
+            MaxIterations.insert(0,OptParams[2])
             kappa.delete(0,tk.END)
-            kappa.insert(0,OptParams[2])
+            kappa.insert(0,OptParams[3])
             xi.delete(0,tk.END)
-            xi.insert(0,OptParams[3])
+            xi.insert(0,OptParams[4])
         elif OptType=="DoE":
-            DOE_Type.set(OptParams[1])
+            DOE_Type.set(OptParams[2])
             NumLevels.delete(0,tk.END)
-            NumLevels.insert(0,str(OptParams[2]))
+            NumLevels.insert(0,str(OptParams[3]))
         else:
             tk.messagebox.showerror("ERROR","not yet implemented")
 
@@ -476,16 +481,17 @@ def StartBO_Window(window, **kwargs):
         
     def GetOptimizationParms(): 
         Opt_Type=OptimizationType.get()
+        Reward_Type=OutputType.get()
         if Opt_Type=="Bayesian Optimization":
             MaxIter=int(MaxIterations.get())
             K=float(kappa.get())
             XI=float(xi.get())
-            return [Opt_Type, MaxIter, K, XI]
+            return [Opt_Type, Reward_Type, MaxIter, K, XI]
         elif Opt_Type=="DoE":
             DT=DOE_Type.get()
             if DT=="Full Factorial":
                 Levels=int(NumLevels.get())
-                return [Opt_Type, DT, Levels]
+                return [Opt_Type, Reward_Type, DT, Levels]
             else:
                 return False
 
@@ -502,6 +508,9 @@ def StartBO_Window(window, **kwargs):
 
     def OptimizationParametersAreCorrect():
         Opt_Type=OptimizationType.get()
+        Reward_Type=OutputType.get()
+        if Reward_Type=="":
+            return ["ERROR","Insert a variable to be optimized"]
         if Opt_Type=="Bayesian Optimization":
             try:
                 MaxIter=int(MaxIterations.get())
