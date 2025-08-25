@@ -1302,7 +1302,7 @@ def opt_button_click():
     t = tk.Toplevel(base)
     t.geometry("+%d+%d" % (100, 300))
     t.title('Optimization')
-    tk.Label(t,text="We are optimizing something").pack()
+    tk.Label(t,text=Opt.GetRunInformations()).pack()
     tk.Button(t, text="OK",command=lambda: t.destroy()).pack()
     tk.Button(t, text="STOP OPTIMIZATION",command=lambda: StopOptimization(t)).pack()
     t.grab_set()
@@ -1339,7 +1339,8 @@ def Optimization():
         print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, ReturnValue]
         b_RunOpt.pack()
         Opt.WeAreOptimizing=True
-        threading.Timer(0.1, OptimizationCycle, args=([run])).start()  #call OptimizationCycle loop
+        Opt.run_parameters=run
+        threading.Timer(0.1, OptimizationCycle).start()  #call OptimizationCycle loop
 
 def RunCompiledCode(CompiledCode):
     macronum=CreateNewMacroNumber("TEMP_FFFF")
@@ -1365,25 +1366,28 @@ def StartProcedure():
         CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
         if wiz.ThereAreErrors(base,CompiledCode):
             return    
-        threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute without waiting
+        threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute in background
 
-def OptimizationCycle(run): #cycle to start and follow optimization
-    NewValues=Opt.CreateNewValues(run)
+def OptimizationCycle(): #cycle to start and follow optimization
+    NewValues=Opt.CreateNewValues()
     if NewValues==None: #We finished the optimization procedure
         RemoveOptButtonAndVar()
         #add here eventually the data treatment/visualization for the optimization
         return
-##    CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code",New_Values=NewValues)
-##    if wiz.ThereAreErrors(base,CompiledCode):
-##        return    
+    filename=Opt.run_parameters[0]
+    CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code",New_Values=NewValues)
+    if wiz.ThereAreErrors(base,CompiledCode):
+        return
+    print("RUNNING CODE")
 ##    RunCompiledCode(CompiledCode) # execute and wait
-    #Target_Value=Opt.RetrieveOutputValue()
+    Target_Value=Opt.RetrieveOutputValue()
     #Opt.RecordTargetValues(Target_Value)
     
-    #print(Opt.WeAreOptimizing,run)
+    print(Opt.WeAreOptimizing)
 
-    if connected and Opt.WeAreOptimizing:
-        threading.Timer(1, OptimizationCycle, args=([run])).start() #call itself
+    #if connected and Opt.WeAreOptimizing:
+    if Opt.WeAreOptimizing:
+        threading.Timer(1, OptimizationCycle).start() #call itself
 
 
 ############################################################################################################################
@@ -1432,16 +1436,6 @@ ToolTip(bConnect, "Click to Connect/Disconnect")
 ##eTemperature = Entry(F)
 ##eTemperature.insert(0, 60)
 ##eTemperature.pack()
-'''
-if (HasRobot):
- bSend_1 = tk.Button(F, text="Send to robot", command=lambda: sendcommand(eCommand_1.get(),1))
- bSend_1.pack(pady=10)
- lCommand_1 = tk.Label(F, text="Command:")
- lCommand_1.pack()
- eCommand_1 = Entry(F)
- eCommand_1.insert(0, 'G28 X Y')
- eCommand_1.pack()
-'''
 ##tk.Button(F, text="load gcode", command=LoadGcode).pack();
 rec_icon = tk.PhotoImage(file = r"icons/rec.png")
 #tk.Button(F, text="REC", command=Record,image = rec_icon, compound = "left").pack();

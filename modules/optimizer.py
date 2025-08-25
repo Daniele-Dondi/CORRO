@@ -27,28 +27,80 @@ import modules.configurator as conf
 import modules.BO_n_dimensions as BO
 from modules.DOE import DesignOfExperiments
 
-global NotSaved, WeAreOptimizing
+global NotSaved, WeAreOptimizing, run_parameters, doe_matrix, BO_next_point, MaxIterations
 
-def CreateNewValues(parms):
-    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = parms
+
+def GetRunInformations():
+    global run_parameters, doe_matrix
+    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
+    ProcedureName=os.path.basename(ProcedureName)
+    OptimizerName=os.path.basename(OptimizerName)
+    out_string="Optimization run for the file "+OptimizerName+"\nbased on procedure "+ProcedureName+"\nType of optimization:"
+    Opt_Type=OptimizationParms[0]
+    out_string+=Opt_Type+"\n"
+    if Opt_Type=="Bayesian Optimization":  
+        Opt_Type, Reward_Type, MaxIter, K, XI = OptimizationParms
+        out_string+="Maximum number of iterations: "+str(MaxIter)+"\nkappa="+str(K)+"\nXi="+str(XI)+"\nOutput control: "+Reward_Type+"\n"
+    elif Opt_Type=="DoE":
+        Opt_Type, Reward_Type, DT, Levels = OptimizationParms
+        out_string+="DoE type: "+DT+"\nLevels="+str(Levels)+"\nTotal number of experiments: "+str(len(doe_matrix))+"\n"
+    out_string+="Current Cycle: "+str(Cycle)
+    return out_string
+    
+
+def CreateNewValues():
+    global run_parameters, doe_matrix, BO_next_point, MaxIterations
+    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
     Opt_Type=OptimizationParms[0] ##[Opt_Type, Reward_Type, MaxIter, K, XI] ##[Opt_Type, Reward_Type, DT, Levels]    
     if Cycle==0: #We have to init optimizers
         if Opt_Type=="Bayesian Optimization":  
             Opt_Type, Reward_Type, MaxIter, K, XI = OptimizationParms
             BO.BO_Initialization(K, XI, MinValues, MaxValues, MaxIter)
-            if Cycle >= MaxIter:
-                return None
+            MaxIterations=MaxIter
         elif Opt_Type=="DoE":
             Opt_Type, Reward_Type, DT, Levels = OptimizationParms
+            Levels=[Levels]*len(MinValues)
+            Minimums=[float(el[0]) for el in MinValues]
+            Maximums=[float(el[0]) for el in MaxValues]
+            doe = DesignOfExperiments(Levels, Minimums, Maximums)
+            doe_matrix = doe.get_design()
+            MaxIterations=len(doe_matrix)
+        else:
+            return None
+    Cycle+=1
+    run_parameters = [ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue]
+    if Cycle >= MaxIterations:
+        return None            
     if Opt_Type=="Bayesian Optimization":
-        next_point=BO_Cycle()
+        BO_next_point=BO.BO_Cycle()
+        next_point=float_list = list(BO_next_point.values())
         return CreateParmsToOptimize(next_point, Position)
     elif Opt_Type=="DoE":
-        pass
-
+        next_point=doe_matrix[Cycle]
+        return CreateParmsToOptimize(next_point, Position)
 
 def RecordTargetValues(target):
-    return
+    global run_parameters, BO_next_point
+    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
+    Opt_Type=OptimizationParms[0]
+    if Opt_Type=="Bayesian Optimization":
+        BO_Record(BO_next_point, target)
+    elif Opt_Type=="DoE": #save values somewhere
+        pass
+
+def RetrieveOutputValue():
+    global run_parameters
+    ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
+    Opt_Type=OptimizationParms[0]
+    Reward_Type=OptimizationParms[1]
+    TargetValue=0
+    if Reward_Type=="MANUAL":
+        newWin = tk.Tk()
+        newWin.withdraw()
+        TargetValue = tk.simpledialog.askfloat("Input", "Insert the value to optimize when ready",
+                               parent=newWin)
+        newWin.destroy()
+    return TargetValue
 
 def CreateParmsToOptimize(values,parms):
     output=[]
@@ -333,9 +385,10 @@ def StartBO_Window(window, **kwargs):
                 VolumesUsed.AddItemToRow(LastMinReactantVolumes[num])
                 VolumesUsed.AddItemToRow(LastMaxReactantVolumes[num])
                 VolumesUsed.NextRow()
+            VolumesUsed.wait_window()
             return True
         elif OptParms[0]=="DoE":
-            Levels=[OptParms[2]]*len(MinValues)
+            Levels=[OptParms[3]]*len(MinValues)
             Minimums=[float(el[0]) for el in MinValues]
             Maximums=[float(el[0]) for el in MaxValues]
             NewValues=MinValues
@@ -366,6 +419,7 @@ def StartBO_Window(window, **kwargs):
                 VolumesUsed.AddItemToRow(chemical)
                 VolumesUsed.AddItemToRow(Sum[num])
                 VolumesUsed.NextRow()
+            VolumesUsed.wait_window()
             return True
         else:
             return False
