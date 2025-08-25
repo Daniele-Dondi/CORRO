@@ -24,15 +24,31 @@ from modules.buildvercalculator import CRC
 import pickle
 import modules.helpview as Help
 import modules.configurator as conf
+import modules.BO_n_dimensions as BO
 from modules.DOE import DesignOfExperiments
 
 global NotSaved, WeAreOptimizing
 
 def CreateNewValues(parms):
     ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = parms
+    Opt_Type=OptimizationParms[0] ##[Opt_Type, Reward_Type, MaxIter, K, XI] ##[Opt_Type, Reward_Type, DT, Levels]    
     if Cycle==0: #We have to init optimizers
-        return parms
-    return parms
+        if Opt_Type=="Bayesian Optimization":  
+            Opt_Type, Reward_Type, MaxIter, K, XI = OptimizationParms
+            BO.BO_Initialization(K, XI, MinValues, MaxValues, MaxIter)
+            if Cycle >= MaxIter:
+                return None
+        elif Opt_Type=="DoE":
+            Opt_Type, Reward_Type, DT, Levels = OptimizationParms
+    if Opt_Type=="Bayesian Optimization":
+        next_point=BO_Cycle()
+        return CreateParmsToOptimize(next_point, Position)
+    elif Opt_Type=="DoE":
+        pass
+
+
+def RecordTargetValues(target):
+    return
 
 def CreateParmsToOptimize(values,parms):
     output=[]

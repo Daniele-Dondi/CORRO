@@ -19,16 +19,16 @@ from scipy.spatial import Delaunay
 ## pip install matplotlib
 
 
-def black_box_function(x1,x2,x3,x4):
-    """Function with unknown internals we wish to maximize.
-
-    This is just serving as an example, for all intents and
-    purposes think of the internals of this function, i.e.: the process
-    which generates its output values, as unknown.
-    """
-    value=60-((x1*x2-1)**2-(x3+0.5)**2+(x4-1)**2)
-    if value<0: value=0
-    return value
+##def black_box_function(x1,x2,x3,x4):
+##    """Function with unknown internals we wish to maximize.
+##
+##    This is just serving as an example, for all intents and
+##    purposes think of the internals of this function, i.e.: the process
+##    which generates its output values, as unknown.
+##    """
+##    value=60-((x1*x2-1)**2-(x3+0.5)**2+(x4-1)**2)
+##    if value<0: value=0
+##    return value
 
 def plot_target_estimation(pbounds, optimizer, next_point, cycle): 
     # Setup the grid to plot on
@@ -139,46 +139,42 @@ def plot_target_estimation(pbounds, optimizer, next_point, cycle):
     return fig
   
 
-utility = UtilityFunction(kind="ucb", kappa=2.5, xi=0.0)
-figures=[]
+def BO_Initialization(kappa, xi, start, stop, MaxIter):
+    global utility, optimizer, MaxIterations
+    MaxIterations=MaxIter
+    utility = UtilityFunction(kind="ucb", kappa=kappa, xi=xi)
+    pbounds={'x'+str(i+1): (start[i],stop[i]) for i in range(len(stop))}
+    print(pbounds)
+    optimizer = BayesianOptimization(f=None, pbounds=pbounds, verbose=2, random_state=1)
+
+    #below how to load and continue a previous optimization
+    file_path = './logs.log.json'
+    if os.path.exists(file_path): 
+        print("Log file present")
+        ask=input("Do you want to load the previous log file? [y/n] ").upper()
+        if ask=="Y":
+            load_logs(optimizer, logs=["./logs.log.json"])
+            print("New optimizer is now aware of {} points.".format(len(optimizer.space)))
+
+    logger = JSONLogger(path="./logs.log")
+    optimizer.subscribe(Events.OPTIMIZATION_STEP, logger)
 
 
-# Bounded region of parameter space
-start=[-2,-2,-2,-2]
-stop=[8,8,8,8]
-pbounds={'x'+str(i+1): (start[i],stop[i]) for i in range(len(stop))}
-print(pbounds)
-MaxIterations=20
+def BO_Cycle():
+    global utility, optimizer, MaxIterations
+     #for cycle in range(MaxIterations):
+    next_point = optimizer.suggest(utility)
+    print("-"*30,"Cycle ",str(cycle+1),"/",str(MaxIterations),"-"*30)
+    print("Next point to probe is:", next_point)
+    return next_point
+##    figure=plot_target_estimation(pbounds, optimizer, next_point, cycle)
+##    #figure.savefig("Cycle4D "+str(cycle+1))     
+##    figures.append(figure)
+##    #ask=input('Press ENTER to perform the measurement')
+##    target = black_box_function(**next_point)
 
-optimizer = BayesianOptimization(f=None, pbounds=pbounds, verbose=2, random_state=1)
-
-#below how to load and continue a previous optimization
-file_path = './logs.log.json'
-
-if os.path.exists(file_path): #actually it is not finding anything
-    print("Log file present")
-    ask=input("Do you want to load the previous log file? [y/n] ").upper()
-    if ask=="Y":
-        load_logs(optimizer, logs=["./logs.log.json"])
-        print("New optimizer is now aware of {} points.".format(len(optimizer.space)))
-
-logger = JSONLogger(path="./logs.log")
-optimizer.subscribe(Events.OPTIMIZATION_STEP, logger)
-
-
-for cycle in range(MaxIterations):
-     next_point = optimizer.suggest(utility)
-     print("-"*30,"Cycle ",str(cycle+1),"/",str(MaxIterations),"-"*30)
-     print("Next point to probe is:", next_point)
-     figure=plot_target_estimation(pbounds, optimizer, next_point, cycle)
-     #figure.savefig("Cycle4D "+str(cycle+1))     
-     figures.append(figure)
-     #ask=input('Press ENTER to perform the measurement')
-     target = black_box_function(**next_point)
-     optimizer.register(params=next_point, target=target)
-
-
-for figure in figures:  figure.show() #show all the figures
-
-print('\nMAXIMUM:',optimizer.max)
+def BO_Record(target):
+    global optimizer
+    if target != None:
+        optimizer.register(params=next_point, target=target)
 

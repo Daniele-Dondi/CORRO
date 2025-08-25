@@ -30,7 +30,7 @@ import serial
 import modules.configurator as conf
 import modules.wizard as wiz
 from modules.buildvercalculator import GetBuildVersion
-import modules.BO as Bay
+import modules.optimizer as Opt
 from modules.tooltip import ToolTip
 from modules.buttonanimated import AnimatedButton
 import traceback
@@ -1309,7 +1309,7 @@ def opt_button_click():
 
 def RemoveOptButtonAndVar():
     b_RunOpt.pack_forget()
-    Bay.WeAreOptimizing=False
+    Opt.WeAreOptimizing=False
     
 
 def StopOptimization(t):
@@ -1332,13 +1332,13 @@ def Configurator():
 def Wizard():
     wiz.StartWizard(base)
 
-def Bayesian():
-    run=Bay.StartBO_Window(base)
+def Optimization():
+    run=Opt.StartBO_Window(base)
     if run != None:
 ##        if WeCanStart():
         print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, ReturnValue]
         b_RunOpt.pack()
-        Bay.WeAreOptimizing=True
+        Opt.WeAreOptimizing=True
         threading.Timer(0.1, OptimizationCycle, args=([run])).start()  #call OptimizationCycle loop
 
 def RunCompiledCode(CompiledCode):
@@ -1368,7 +1368,7 @@ def StartProcedure():
         threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute without waiting
 
 def OptimizationCycle(run): #cycle to start and follow optimization
-    NewValues=Bay.CreateNewValues(run)
+    NewValues=Opt.CreateNewValues(run)
     if NewValues==None: #We finished the optimization procedure
         RemoveOptButtonAndVar()
         #add here eventually the data treatment/visualization for the optimization
@@ -1377,11 +1377,12 @@ def OptimizationCycle(run): #cycle to start and follow optimization
 ##    if wiz.ThereAreErrors(base,CompiledCode):
 ##        return    
 ##    RunCompiledCode(CompiledCode) # execute and wait
-    #Bay.RetrieveOutputValue()
-    #
-    #print(Bay.WeAreOptimizing,run)
+    #Target_Value=Opt.RetrieveOutputValue()
+    #Opt.RecordTargetValues(Target_Value)
+    
+    #print(Opt.WeAreOptimizing,run)
 
-    if connected and Bay.WeAreOptimizing:
+    if connected and Opt.WeAreOptimizing:
         threading.Timer(1, OptimizationCycle, args=([run])).start() #call itself
 
 
@@ -1459,9 +1460,9 @@ bWiz=tk.Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = "le
 bWiz.pack()
 ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
 bo_icon = tk.PhotoImage(file = r"icons/BO.png")
-bBO=tk.Button(F, text="B.O.", command=Bayesian,image = bo_icon, compound = "left")
+bBO=tk.Button(F, text="B.O.", command=Optimization,image = bo_icon, compound = "left")
 bBO.pack()
-ToolTip(bBO, "Click to start the reaction optimization by Bayesian Algorithm")
+ToolTip(bBO, "Click to start the reaction optimization")
 exit_icon = tk.PhotoImage(file = r"icons/exit.png")
 bClose = tk.Button(F, text="EXIT", command=Close,image = exit_icon, compound = "left")
 bClose.pack(pady=10)
