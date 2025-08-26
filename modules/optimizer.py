@@ -58,7 +58,7 @@ def CreateNewValues():
             BO.BO_Initialization(K, XI, MinValues, MaxValues, MaxIter)
             MaxIterations=MaxIter
         elif Opt_Type=="DoE":
-            Opt_Type, Reward_Type, DT, Levels = OptimizationParms
+            Opt_Type, Reward_Type, DT, Levels = OptimizationParms # we ignore DT
             Levels=[Levels]*len(MinValues)
             Minimums=[float(el[0]) for el in MinValues]
             Maximums=[float(el[0]) for el in MaxValues]
@@ -84,7 +84,7 @@ def RecordTargetValues(target):
     ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
     Opt_Type=OptimizationParms[0]
     if Opt_Type=="Bayesian Optimization":
-        BO_Record(BO_next_point, target)
+        BO.BO_Record(BO_next_point, target)
     elif Opt_Type=="DoE": #save values somewhere
         pass
 
