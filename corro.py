@@ -1336,7 +1336,7 @@ def Optimization():
     run=Opt.StartBO_Window(base)
     if run != None:
 ##        if WeCanStart():
-        print(run) #run array structure: [ProcedureName, OptimizerName, GetOptimizationParms(), MinValues, MaxValues, Position, Cycle, ReturnValue]
+        #print(run) #run array structure: [ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, ReturnValue]
         b_RunOpt.pack()
         Opt.WeAreOptimizing=True
         Opt.run_parameters=run
@@ -1381,7 +1381,7 @@ def OptimizationCycle(): #cycle to start and follow optimization
     print("RUNNING CODE")
 ##    RunCompiledCode(CompiledCode) # execute and wait
     Target_Value=Opt.RetrieveOutputValue()
-    #Opt.RecordTargetValues(Target_Value)
+    Opt.RecordTargetValues(Target_Value)
     
     print(Opt.WeAreOptimizing)
 
