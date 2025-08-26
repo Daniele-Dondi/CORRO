@@ -27,7 +27,8 @@ import modules.configurator as conf
 import modules.BO_n_dimensions as BO
 from modules.DOE import DesignOfExperiments
 
-global NotSaved, WeAreOptimizing, run_parameters, doe_matrix, BO_next_point, MaxIterations
+global NotSaved
+global WeAreOptimizing, run_parameters, doe_matrix, BO_next_point, MaxIterations #variables for optimization run
 
 
 def GetRunInformations():
@@ -60,7 +61,7 @@ def CreateNewValues():
         elif Opt_Type=="DoE":
             Opt_Type, Reward_Type, DT, Levels = OptimizationParms # we ignore DT
             Levels=[Levels]*len(MinValues)
-            Minimums=[float(el[0]) for el in MinValues]
+            Minimums=[float(el[0]) for el in MinValues] #values are stored as str but we need float
             Maximums=[float(el[0]) for el in MaxValues]
             doe = DesignOfExperiments(Levels, Minimums, Maximums)
             doe_matrix = doe.get_design()
@@ -69,7 +70,7 @@ def CreateNewValues():
             return None
     Cycle+=1
     run_parameters = [ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue]
-    if Cycle >= MaxIterations:
+    if Cycle > MaxIterations:
         return None            
     if Opt_Type=="Bayesian Optimization":
         BO_next_point=BO.BO_Cycle()
