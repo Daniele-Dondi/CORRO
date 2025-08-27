@@ -281,6 +281,22 @@ play
 #macro "purge syringe 1"
 #play
 
+plugon
+#1
+#plugon switch on a wifi-connected smart plug
+#Use: plugon plugname
+#
+#Example:
+#plugon plug1
+
+plugoff
+#1
+#plugoff switch off a wifi-connected smart plug
+#Use: plugoff plugname
+#
+#Example:
+#plugoff plug1
+
 for
 #2
 #For executes cycles over a variable for the number of cycles indicated. For must be always followed by next. 
