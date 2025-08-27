@@ -413,6 +413,27 @@ def Parse(line,variables):    #parse macro line and execute statements
         except Exception as e:
             tk.messagebox.showerror("ERROR in getvalue method","use: getvalue $varname$,sensor_value"+e)
             return "Error"
+    elif line.find('plugon')==0: #we've to switch a plug
+        try:
+            commands=line.split(' ',1)
+            commands[0]=commands[0][7:] # remove plugon
+            result=conf.TurnPlugON(commands[1])
+            if "ERROR" in result:
+                if (debug): print(result)
+                return "Error"
+        except Exception as e:
+            tk.messagebox.showerror("ERROR in plugon method","use: plugon plug_name"+e)
+            return "Error"
+    elif line.find('plugoff')==0: #we've to switch a plug
+        try:
+            commands=line.split(' ',1)
+            commands[0]=commands[0][8:] # remove plugoff
+            result=conf.TurnPlugOFF(commands[1])
+            if "ERROR" in result:
+                if (debug): print(result)
+                return "Error"
+        except Exception as e:
+            tk.messagebox.showerror("ERROR in plugon method","use: plugon plug_name"+e)
     elif line.find('let')==0: #variable assignment
         try:
             commands=line.split(',',1)

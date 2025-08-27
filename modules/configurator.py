@@ -22,6 +22,7 @@ import pickle
 import os
 from modules.listserialports import AvailableSerialPorts
 from .serialmon import SerialMon
+from .shelly import TurnShellyPlugON, TurnShellyPlugOFF
 
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
@@ -61,6 +62,33 @@ def InitAllData():
     FileIsModified=False
 
 InitAllData()
+
+def GetPlugNames():
+    global PlugsArray #[PlugName.get(), PlugType.get(), Plug_IP.get(), PlugDefaultParms.get(), PlugCommandON.get(), PlugCommandOFF.get()]
+    PlugList=[]
+    for element in PlugsArray:
+        PlugList.append(element[0])
+    return PlugList
+
+def GetPlugIPFromName(plug_name):
+    global PlugsArray
+    plug_names=GetPlugNames()
+    if plug_name in plug_names:
+        return PlugsArray[plug_names.index(plug_name)][2]
+    else:
+        return -1
+
+def TurnPlugON(plug_name):
+    IP=GetPlugIPFromName(plug_name)
+    if IP==-1:
+        return "ERROR: plug "+plug_name+" not found"
+    return TurnShellyPlugON(IP)
+
+def TurnPlugOFF(plug_name):
+    IP=GetPlugIPFromName(plug_name)
+    if IP==-1:
+        return "ERROR: plug "+plug_name+" not found"
+    return TurnShellyPlugOFF(IP)
 
 def GetAllSensorsVarNames():
     return " ".join(USB_var_names).split()

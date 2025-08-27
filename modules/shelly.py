@@ -1,7 +1,7 @@
 import requests
 #import time
 
-def TurnPlugON(SHELLY_IP):
+def TurnShellyPlugON(SHELLY_IP):
     BASE_URL = f"http://{SHELLY_IP}/relay/0" 
     try:
         response = requests.get(f"{BASE_URL}?turn=on", timeout=5)
@@ -16,7 +16,7 @@ def TurnPlugON(SHELLY_IP):
     except Exception as e:
         return f"ERROR: Unexpected error: {e}"
 
-def TurnPlugOFF(SHELLY_IP):
+def TurnShellyPlugOFF(SHELLY_IP):
     BASE_URL = f"http://{SHELLY_IP}/relay/0"     
     try:
         response = requests.get(f"{BASE_URL}?turn=off", timeout=5)
