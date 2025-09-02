@@ -1294,6 +1294,7 @@ def StartWizard(window, **kwargs):
 
     global selected_objects,Selecting_Objects,Selection_start_X,Selection_start_Y,Selection_end_X,Selection_end_Y
     global Dragging_Objects
+    global pixel
     Selection_start_X=0
     Selection_start_Y=0
     Selection_end_X=0
