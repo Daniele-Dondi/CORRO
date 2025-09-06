@@ -1425,7 +1425,7 @@ base.option_add("*Font", ("Arial", 7))
 CORRO_FONT="Verdana 15 bold"
 HEADER_FONT="Verdana 8 bold"
 BUSY_FONT='Helvetica 15 bold'
-base.wm_iconphoto(True, tk.PhotoImage(file='icons/main_icon.png'))    
+base.wm_iconphoto(False, tk.PhotoImage(file='icons/main_icon.png'))    
 readConfigurationFiles()
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
