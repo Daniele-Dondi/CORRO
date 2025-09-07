@@ -99,6 +99,9 @@ class App(tk.Tk):
 
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
+        
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
         # Ordered list of step classes
         self.step_classes = [Step1, Step2, Step3]
@@ -116,6 +119,9 @@ class App(tk.Tk):
         """Raise the given frame."""
         frame = self.frames[step_class]
         frame.tkraise()
+        frame.focus_set()
+        frame.__init__(self,self)
+        print(f"Showing frame: {step_class.__name__}")
 
     def next_step(self):
         if self.current_index < len(self.step_classes) - 1:
@@ -198,9 +204,8 @@ class Step2(BaseStep):
 
         # Find common columns
         common = common_columns(all_column_names)
-        print("Common columns:", common)
         
-        ttk.Label(self, text="Step 2: Common Columns Found").pack(pady=10)
+        ttk.Label(self, text="Select Variable(s) to extract").pack(pady=10)
 
         self.states = {}  # store ON/OFF state for each button
         for item in common:
@@ -211,8 +216,6 @@ class Step2(BaseStep):
             # We need to bind the widget after creation to capture it
             b.config(command=lambda btn=b, name=item: self.toggle(btn, name))
             b.pack()#padx=10, pady=5, anchor="w")
-
-        #tk.Button(self, text="Show States", command=self.show_states).pack(pady=10)
 
     def get_button_states(self):
         """Print current ON/OFF states."""
@@ -230,31 +233,51 @@ class Step2(BaseStep):
         else:
             btn.config(relief=tk.RAISED, bg="SystemButtonFace")
 
-##    def show_states(self):
-##        """Print current ON/OFF states."""
-##        for name, state in self.states.items():
-##            print(f"{name}: {'ON' if state else 'OFF'}")
-
 class Step3(BaseStep):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        ttk.Label(self, text="Step 3: Finish").pack(pady=20)
+        self.grid(row=0, column=0, sticky="nsew")
+        print("de",self.focus_get())  # Should print .!step3.!entry or similar
+        
+        ttk.Label(self, text="Setup Average Analysis & Save").pack(pady=20)
         # Change Next to Done on last step
         self.next_btn.config(text="Done", command=controller.destroy)
-        tk.Button(self, text="Proceed", command=self.Proceed).pack(pady=10)
         
-    def Proceed(self):
+        ttk.Label(self, text="Insert the number of points to average:").pack(pady=10)
+        self.Average=tk.Entry(self)
+        self.Average.delete(0,tk.END)  # Clear any existing text
+        self.Average.insert(0,"100")        
+        self.Average.pack()
+        self.Average.config(state="normal")
+        self.Average.focus_set()
+        self.Average.bind("<Key>", lambda e: print(f"Key pressed: {e.char}"))
+        ttk.Label(self, text="Insert (eventually) a string to search").pack(pady=10)
+        self.Search=tk.Entry(self)
+        self.Search.pack()
+        
+        tk.Button(self, text="Proceed", command=self.Proceed).pack(pady=10)
+
+    def Shrink(self):
         FileList = self.controller.frames[Step1].get_file_list()
         SelectedVars = self.controller.frames[Step2].get_button_states()
-        print(SelectedVars)
+        AvgSize=int(self.Average.get())
+        SearchString=self.Search.get()
         for File in FileList:
             compute_selected_column_averages(
                 file_path=File,
-                chunk_size=100,
+                chunk_size=AvgSize,
                 selected_columns_names=SelectedVars,
                 output_path="averages_output.txt",
-                find_string="bicarbonate"
-            )        
+                find_string="culo"
+            )            
+        
+    def Proceed(self):
+        try:
+            int(self.Average.get())
+        except:
+            messagebox.showerror("ERROR", "Insert a valid integer value for the average")
+        else:
+            self.Shrink()
 
 
 if __name__ == "__main__":
