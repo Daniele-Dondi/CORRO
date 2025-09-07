@@ -5,7 +5,7 @@ import numpy as np
 def choose_files():
     file_paths = filedialog.askopenfilenames(
         title="Select Files",
-        filetypes=[ ("CORRO log Files", "*.log"), ("Text Files", "*.txt"), ("All Files", "*.*")],
+        filetypes=[ ("CORRO log Files", "*.txt"), ("Text Files", "*.txt"), ("All Files", "*.*")],
         initialdir="."
     )
     return file_paths
@@ -73,14 +73,18 @@ class DragDropListbox(tk.Listbox):
         kw['selectmode'] = tk.SINGLE
         super().__init__(master, kw)
         self.curIndex = None
+        self.config(cursor="hand2")
         self.bind('<Button-1>', self.set_current)
         self.bind('<B1-Motion>', self.shift_selection)
+        self.bind('<ButtonRelease-1>', self.clear_current)
 
     def set_current(self, event):
         self.curIndex = self.nearest(event.y)
 
     def shift_selection(self, event):
         i = self.nearest(event.y)
+        if i < 0 or i >= self.size():
+            return
         if i < self.curIndex:
             x = self.get(i)
             self.delete(i)
@@ -91,10 +95,23 @@ class DragDropListbox(tk.Listbox):
             self.delete(i)
             self.insert(i-1, x)
             self.curIndex = i
+        self.selection_clear(0, tk.END)
+        self.selection_set(i)
 
-class App(tk.Tk):
-    def __init__(self):
-        super().__init__()
+    def clear_current(self, event):
+        self.curIndex = None
+
+    def clear_all(self):
+        self.delete(0, tk.END)
+
+    def get_file_list(self):
+        return list(self.get(0, tk.END))
+
+
+
+class LogAnalyzer(tk.Toplevel):
+    def __init__(self, master=None):
+        super().__init__(master)
         self.title("Log tool analyzer/extractor")
 
         container = tk.Frame(self)
@@ -104,7 +121,7 @@ class App(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         # Ordered list of step classes
-        self.step_classes = [Step1, Step2, Step3]
+        self.step_classes = [Step1, Step2, Step3, Step4]
         self.frames = {}
 
         for F in self.step_classes:
@@ -119,9 +136,9 @@ class App(tk.Tk):
         """Raise the given frame."""
         frame = self.frames[step_class]
         frame.tkraise()
-        frame.focus_set()
-        frame.__init__(self,self)
-        print(f"Showing frame: {step_class.__name__}")
+        # Call refresh if the frame has it
+        if hasattr(frame, "refresh"):
+            frame.refresh()
 
     def next_step(self):
         if self.current_index < len(self.step_classes) - 1:
@@ -136,6 +153,8 @@ class App(tk.Tk):
     def cancel_process(self):
         if messagebox.askyesno("Cancel", "Are you sure you want to cancel?"):
             self.destroy()
+
+           
 
 class BaseStep(tk.Frame):
     """Base class for steps with Prev / Next / Cancel buttons."""
@@ -161,36 +180,53 @@ class Step1(BaseStep):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
         self.prev_btn.config(state="disabled")
+        tk.Label(self, text="Choose File(s) to analyze").pack()
+        file_paths=[]
+        tk.Button(self, text="Choose", command=self.ChoseFile).pack(pady=10)
 
-        # Ask for files
-        file_paths = choose_files()
-        if not file_paths:
-            controller.destroy()
+    def ChoseFile(self):
+        self.file_paths = choose_files()
+        if not self.file_paths:
+            self.controller.destroy()
             return
+        self.controller.next_step()
+        
+    def GetFiles(self):
+        return list(self.file_paths)
 
-        # Store original file list
-        self.original_file_list = list(file_paths)
+class Step2(BaseStep):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
 
-        # UI
         tk.Label(self, text="Drag & Drop to select the proper file order").pack()
         self.ddl = DragDropListbox(self, width=100, height=10)
         self.ddl.pack(padx=10, pady=10)
-
-        # Populate listbox
-        for f in self.original_file_list:
+        
+    def refresh(self):
+        self.ddl.delete(0, tk.END)
+        file_list = self.controller.frames[Step1].GetFiles()
+        for f in file_list:
             self.ddl.insert(tk.END, f)
+          
 
     def get_file_list(self):
         """Return the current order of files from the listbox."""
         return list(self.ddl.get(0, tk.END))
 
 
-class Step2(BaseStep):
+class Step3(BaseStep):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        ttk.Label(self, text="Select Variable(s) to extract").pack(pady=10)
+        self.b_list=[]
 
-        # Get the reordered file list from Step1
-        file_list = controller.frames[Step1].get_file_list()
+    def refresh(self):
+        if len(self.b_list)>0:
+            for button in self.b_list:
+                button.destroy()
+            self.b_list=[]
+        # Get the reordered file list from Step2
+        file_list = self.controller.frames[Step2].get_file_list()
 
         # Collect all column names
         all_column_names = []
@@ -205,8 +241,6 @@ class Step2(BaseStep):
         # Find common columns
         common = common_columns(all_column_names)
         
-        ttk.Label(self, text="Select Variable(s) to extract").pack(pady=10)
-
         self.states = {}  # store ON/OFF state for each button
         for item in common:
             self.states[item] = False  # default OFF
@@ -216,6 +250,7 @@ class Step2(BaseStep):
             # We need to bind the widget after creation to capture it
             b.config(command=lambda btn=b, name=item: self.toggle(btn, name))
             b.pack()#padx=10, pady=5, anchor="w")
+            self.b_list.append(b)
 
     def get_button_states(self):
         """Print current ON/OFF states."""
@@ -233,15 +268,13 @@ class Step2(BaseStep):
         else:
             btn.config(relief=tk.RAISED, bg="SystemButtonFace")
 
-class Step3(BaseStep):
+class Step4(BaseStep):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.grid(row=0, column=0, sticky="nsew")
-        print("de",self.focus_get())  # Should print .!step3.!entry or similar
-        
+      
         ttk.Label(self, text="Setup Average Analysis & Save").pack(pady=20)
         # Change Next to Done on last step
-        self.next_btn.config(text="Done", command=controller.destroy)
+        self.next_btn.config(text="Done", command=self.Proceed)
         
         ttk.Label(self, text="Insert the number of points to average:").pack(pady=10)
         self.Average=tk.Entry(self)
@@ -250,16 +283,29 @@ class Step3(BaseStep):
         self.Average.pack()
         self.Average.config(state="normal")
         self.Average.focus_set()
-        self.Average.bind("<Key>", lambda e: print(f"Key pressed: {e.char}"))
         ttk.Label(self, text="Insert (eventually) a string to search").pack(pady=10)
         self.Search=tk.Entry(self)
         self.Search.pack()
+        self.output_path = tk.StringVar()
         
         tk.Button(self, text="Proceed", command=self.Proceed).pack(pady=10)
 
+    def choose_output_file(self):
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            title="Select output file"
+        )
+        if filename:
+            self.output_path.set(filename)
+
     def Shrink(self):
-        FileList = self.controller.frames[Step1].get_file_list()
-        SelectedVars = self.controller.frames[Step2].get_button_states()
+        output_file = self.output_path.get()
+        if not output_file:
+            messagebox.showerror("Error", "Please choose an output file.")
+            return        
+        FileList = self.controller.frames[Step2].get_file_list()
+        SelectedVars = self.controller.frames[Step3].get_button_states()
         AvgSize=int(self.Average.get())
         SearchString=self.Search.get()
         for File in FileList:
@@ -267,19 +313,21 @@ class Step3(BaseStep):
                 file_path=File,
                 chunk_size=AvgSize,
                 selected_columns_names=SelectedVars,
-                output_path="averages_output.txt",
-                find_string="culo"
+                output_path=output_file,
+                find_string=SearchString
             )            
         
     def Proceed(self):
         try:
-            int(self.Average.get())
+            a=int(self.Average.get())
+            if a<=0:
+                1/0
         except:
             messagebox.showerror("ERROR", "Insert a valid integer value for the average")
         else:
+            FileOut=self.choose_output_file()
             self.Shrink()
 
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+##if __name__ == "__main__":
+##    app = App()

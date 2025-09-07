@@ -34,6 +34,7 @@ import modules.optimizer as Opt
 from modules.tooltip import ToolTip
 from modules.buttonanimated import AnimatedButton
 import traceback
+import modules.logtools as Tools
 
 
 #global vars
@@ -1363,6 +1364,10 @@ def Optimization():
         Opt.run_parameters=run
         threading.Timer(0.1, OptimizationCycle).start()  #call OptimizationCycle loop
 
+def RunTools():
+    log_tool_window = Tools.LogAnalyzer(base)
+    base.wait_window(log_tool_window)
+
 def RunCompiledCode(CompiledCode):
     macronum=CreateNewMacroNumber("TEMP_FFFF")
     SaveMacroFile(macronum,"\n".join(CompiledCode))
@@ -1466,22 +1471,32 @@ procedure_icon = tk.PhotoImage(file = r"icons/erlenmeyer.png")
 bProcedure=tk.Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = "left")
 bProcedure.pack()
 ToolTip(bProcedure, "Click to run a saved procedure")
+
 conf_icon = tk.PhotoImage(file = r"icons/configurator.png")
 bConf=tk.Button(F, text="configurator", command=Configurator,image = conf_icon, compound = "left")
 bConf.pack()
 ToolTip(bConf, "Click to configure the system")
+
 wiz_icon = tk.PhotoImage(file = r"icons/wizard.png")
 bWiz=tk.Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = "left")
 bWiz.pack()
 ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
+
 bo_icon = tk.PhotoImage(file = r"icons/BO.png")
 bBO=tk.Button(F, text="B.O.", command=Optimization,image = bo_icon, compound = "left")
 bBO.pack()
 ToolTip(bBO, "Click to start the reaction optimization")
+
+tool_icon = tk.PhotoImage(file = r"icons/tools.png")
+bTool=tk.Button(F, text="Log tools", command=RunTools,image = tool_icon, compound = "left")
+bTool.pack()
+ToolTip(bTool, "Click to start the log analyzer/shrinker/extractor")
+
 exit_icon = tk.PhotoImage(file = r"icons/exit.png")
 bClose = tk.Button(F, text="EXIT", command=Close,image = exit_icon, compound = "left")
 bClose.pack(pady=10)
 ToolTip(bClose, "Exit the program. You should not be connected")
+
 temp_icon = tk.PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=tk.Button(F, image=temp_icon,command=temp_button_click)
 clock_icon = tk.PhotoImage(file = r"icons"+os.sep+"clock.png")
