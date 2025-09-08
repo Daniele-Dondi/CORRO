@@ -113,6 +113,8 @@ class LogAnalyzer(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("Log tool analyzer/extractor")
+        icon = tk.PhotoImage(file="icons/tools.png")
+        self.iconphoto(False, icon)
 
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
@@ -181,7 +183,7 @@ class Step1(BaseStep):
         super().__init__(parent, controller)
         self.prev_btn.config(state="disabled")
         tk.Label(self, text="Choose File(s) to analyze").pack()
-        file_paths=[]
+        self.file_paths=[]
         tk.Button(self, text="Choose", command=self.ChoseFile).pack(pady=10)
 
     def ChoseFile(self):
@@ -219,6 +221,7 @@ class Step3(BaseStep):
         super().__init__(parent, controller)
         ttk.Label(self, text="Select Variable(s) to extract").pack(pady=10)
         self.b_list=[]
+        self.common=[]
 
     def refresh(self):
         if len(self.b_list)>0:
@@ -234,15 +237,15 @@ class Step3(BaseStep):
             column_names = get_column_names(file)
             if not column_names:
                 messagebox.showerror("Error", f"No valid header found in {file}")
-                controller.destroy()
+                #self.controller.destroy()
                 return
             all_column_names.append(column_names)
 
         # Find common columns
-        common = common_columns(all_column_names)
+        self.common = common_columns(all_column_names)
         
         self.states = {}  # store ON/OFF state for each button
-        for item in common:
+        for item in self.common:
             self.states[item] = False  # default OFF
             b = tk.Button(self, text=item, width=20,
                           relief=tk.RAISED,
@@ -299,11 +302,27 @@ class Step4(BaseStep):
         if filename:
             self.output_path.set(filename)
 
+    def Check(self):
+        FileList = self.controller.frames[Step2].get_file_list()
+        if len(FileList)==0:
+            messagebox.showerror("Error", "No log files were chosen")
+            return False           
+        Variables = self.controller.frames[Step3].common
+        if len(Variables)==0:
+            messagebox.showerror("Error", "No variables to analyze. Check if the file chosen is a proper CORRO log file")
+            return False
+        SelectedVars = self.controller.frames[Step3].get_button_states()
+        if len(SelectedVars)==0:
+            messagebox.showerror("Error", "No variables to analyze were selected")
+            return False
+        
+        return True
+    
     def Shrink(self):
         output_file = self.output_path.get()
         if not output_file:
             messagebox.showerror("Error", "Please choose an output file.")
-            return        
+            return
         FileList = self.controller.frames[Step2].get_file_list()
         SelectedVars = self.controller.frames[Step3].get_button_states()
         AvgSize=int(self.Average.get())
@@ -325,9 +344,7 @@ class Step4(BaseStep):
         except:
             messagebox.showerror("ERROR", "Insert a valid integer value for the average")
         else:
-            FileOut=self.choose_output_file()
-            self.Shrink()
+            if self.Check():
+                self.choose_output_file()
+                self.Shrink()
 
-
-##if __name__ == "__main__":
-##    app = App()
