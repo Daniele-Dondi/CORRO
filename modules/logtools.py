@@ -42,7 +42,8 @@ def compute_selected_column_averages(file_path, chunk_size, selected_columns_nam
     chunk = []
     i=0
     found=0
-    with open(file_path, "r",encoding="utf-8", errors="ignore") as f, open(output_path, "w") as out:
+    TimeStamp=0
+    with open(file_path, "r",encoding="utf-8", errors="ignore") as f, open(output_path, "a") as out:
         for line in f:
             i+=1
             if find_string:
@@ -50,6 +51,7 @@ def compute_selected_column_averages(file_path, chunk_size, selected_columns_nam
             try:
                 values = line.strip().split("\t")
                 numeric_values = [float(values[i]) for i in selected_columns]
+                TimeStamp=values[0]
             except:
                 continue  # Skip problematic lines
 
@@ -57,7 +59,7 @@ def compute_selected_column_averages(file_path, chunk_size, selected_columns_nam
 
             if len(chunk) == chunk_size:
                 avg = np.mean(chunk, axis=0)
-                out.write("\t".join(map(str, avg)) + "\n")
+                out.write(TimeStamp+"\t"+"\t".join(map(str, avg)) + "\n")
                 chunk = []
 
         if chunk:
