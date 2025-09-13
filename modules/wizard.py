@@ -1060,7 +1060,55 @@ class REM(tk.Frame):
         self.Remark.insert(0,str(parms[0]))
 
     def CheckValues(self):
-        return   
+        return
+
+class Switch(tk.Frame):
+    def __init__(self,container):
+        self.Action=[]
+        self.Height=50
+        self.IsContainer=False
+        super().__init__(container)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.Line1=tk.Frame(self)
+        self.Line1.pack()
+        self.Line2=tk.Frame(self)
+        self.Line2.pack()
+        self.Label1=tk.Label(self.Line1, text="Switch")
+        self.Label1.pack(side="left")
+        self.PLugName=ttk.Combobox(self.Line1, values = conf.GetPlugNames(), width=20,state = 'readonly')
+        self.PLugName.pack(side="left")
+        self.ON_OFF=ttk.Combobox(self.Line1, values = ("ON","OFF"), width=4,state = 'readonly')
+        self.ON_OFF.pack(side="left")
+        self.Delete=tk.Button(self.Line1,text="DEL",command=self.DeleteMe)
+        self.Delete.pack(side="left")
+        self.StatusLabel=tk.Label(self.Line2,text="---")
+        self.StatusLabel.pack(side="left")
+        
+    def DeleteMe(self):
+        DeleteObjByIdentifier(self)
+
+    def GetAction(self):
+        return self.GetValues()
+
+    def GetValues(self):
+        return [self.PLugName.get(), self.ON_OFF.get()]
+
+    def GetOptimizableParameters(self):
+        parms=self.GetValues()
+        return "Switch "+parms[0]+" "+parms[1]
+
+    def RetrieveConnections(self):
+        return []
+    
+    def SetValues(self,parms):
+        self.PLugName.set(parms[0])
+        self.ON_OFF.set(parms[1])
+
+    def CheckValues(self):
+        return
+    
 
 class Grid(tk.Toplevel):
     def __init__(self,container):
@@ -1512,6 +1560,8 @@ def StartWizard(window, **kwargs):
             Obj2.First=Obj1
             Obj2.Last=Obj2
             return
+        elif ObjType=="Switch":
+            Obj=Switch(frame2)
         else:
             tk.messagebox.showerror("ERROR", "Object "+ObjType+" Unknown")
             return
@@ -1824,6 +1874,16 @@ def StartWizard(window, **kwargs):
                 CompiledCode.append(Action[0]+values)
                 OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                 
+            elif ObjType=="Switch":
+                if Action[1]=="ON":
+                    CompiledCode.append("plugon "+Action[0])
+                elif Action[1]=="OFF":
+                    CompiledCode.append("plugoff "+Action[0])
+                else:
+                    print("Error Sw1")
+                    return
+                OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
+                
             StepByStepOps.append([[*VolumesOfReactantsUsed],[*VolumesInApparatus],ObjType])
         #print(CompiledCode)
         #print(OptimizerCode)
@@ -2056,11 +2116,11 @@ def StartWizard(window, **kwargs):
     tk.Button(frame1,text="LOOP",command=lambda: CreateNewObject("LOOP Block")).pack(side="left")
     tk.Button(frame1,text="Comment",command=lambda: CreateNewObject("REM")).pack(side="left")
     tk.Button(frame1,text="Get Value",command=lambda: CreateNewObject("GET")).pack(side="left")
-    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Function")).pack(side="left")        
+    tk.Button(frame1,text="Function",command=lambda: CreateNewObject("Function")).pack(side="left")
+    tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")        
     tk.Button(frame1,text="L/L separation",command=lambda: CreateNewObject("Liq")).pack(side="left")
     tk.Button(frame1,text="Evaporate solvent",command=lambda: CreateNewObject("Evap")).pack(side="left")
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
-    tk.Button(frame1,text="Device ON/OFF",command=lambda: CreateNewObject("Switch")).pack(side="left")    
     tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
 
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")

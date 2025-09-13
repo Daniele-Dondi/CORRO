@@ -434,7 +434,7 @@ def Parse(line,variables):    #parse macro line and execute statements
                 if (debug): print(result)
                 return "Error"
         except Exception as e:
-            tk.messagebox.showerror("ERROR in plugon method","use: plugon plug_name"+e)
+            tk.messagebox.showerror("ERROR in plugoff method","use: plugoff plug_name"+e)
     elif line.find('let')==0: #variable assignment
         try:
             commands=line.split(',',1)
