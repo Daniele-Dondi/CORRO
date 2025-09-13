@@ -34,6 +34,13 @@ def InitAllData():
     global CurrentFileName
     global FileIsModified
     global DefaultConfigurationFile
+    global CamerasArray, CurrentCamera, FileIsModified, DefaultCameraParameters
+
+    CamerasArray = []
+    CurrentCamera = 1
+    FileIsModified = False
+    DefaultCameraParameters = ["", "IPCam", "", True, "http://default-stream", "http://default-control"]    
+
     DefaultConfigurationFile=os.path.join("conf", "default.conf")
     ReactantsArray=[]
     CurrentReactant=1
@@ -426,12 +433,14 @@ def StartConfigurator(window):
     tab3 = ttk.Frame(tabControl)
     tab4 = ttk.Frame(tabControl)
     tab5 = ttk.Frame(tabControl)
+    tab6 = ttk.Frame(tabControl)
       
     tabControl.add(tab1, text ='Reactants') 
     tabControl.add(tab2, text ='Apparatus')
     tabControl.add(tab3, text ='SyringeBOT')
     tabControl.add(tab4, text ='USB devices')
-    tabControl.add(tab5, text ='Smart Plugs') 
+    tabControl.add(tab5, text ='Smart Plugs')
+    tabControl.add(tab6, text ='IP Cameras') 
     tabControl.pack(expand = 1, fill ="both")
 
 
@@ -1545,14 +1554,14 @@ def StartConfigurator(window):
         SetTab5Variables(PlugsArray[CurrentPlug-1])
         SetStatusNextPrevButtonsT5()
 
-    def Try2Trigger():
-#        data_str=""
+    def Try2Trigger(on_off):
         try:
             parms=GetTab5Variables()
             if parms[2]=="" or parms[3]=="": return
-            SerialMon(ConfiguratorWindow,parms[2],parms[3])
-            #Test=serial.Serial(parms[2],parms[3])
-            #time.sleep(0.5)
+            if on_off=="ON":
+                TurnShellyPlugON(parms[3])
+            else:
+                TurnShellyPlugOFF(parms[3])
         except:
             messagebox.showerror("ERROR", "Cannot connect")
 
@@ -1585,11 +1594,209 @@ def StartConfigurator(window):
     ttk.Button(F2T5, text="Save changes", command=SavePlugParameters).pack(side="left")
     ttk.Button(F2T5, text="Ignore changes", command=AskLoadPlugParameters).pack(side="left")
     ttk.Button(F2T5, text="Clear all values", command=ClearPlugParameters).pack(side="left")
-    ttk.Button(F3T5, text="TEST", command=Try2Trigger).pack(side="left")
+    ttk.Button(F3T5, text="TEST ON", command=lambda: Try2Trigger("ON")).pack(side="left")
+    ttk.Button(F3T5, text="TEST OFF", command=lambda: Try2Trigger("OFF")).pack(side="left")
     ttk.Button(F4T5, text="Add new Plug", command=AddPlug).pack(side="left")
     ttk.Button(F4T5, text="Remove Plug", command=DeleteCurrentPlug).pack(side="left")
 
     
+####################################
+
+    def GetCameraTabVariables():
+        return [CameraName.get(), CameraType.get(), CameraIP.get(), CameraDefaultParms.get(), CameraStreamURL.get(), CameraControlURL.get()]
+
+    def SetCameraTabVariables(parms):
+        CameraName.delete(0, tk.END); CameraName.insert(0, str(parms[0]))
+        CameraType.set(parms[1])
+        CameraIP.delete(0, tk.END); CameraIP.insert(0, str(parms[2]))
+        CameraDefaultParms.set(parms[3])
+        CamEnabled.update()
+        CameraStreamURL.delete(0, tk.END); CameraStreamURL.insert(0, str(parms[4]))
+        CameraStreamURL.update()
+        CameraControlURL.delete(0, tk.END); CameraControlURL.insert(0, str(parms[5]))
+        CameraControlURL.update()
+
+    def LoadCameraParameters():
+        global CamerasArray, CurrentCamera
+        if CurrentCamera - 1 >= len(CamerasArray): return
+        tabControl.unbind("<<NotebookTabChanged>>")
+        SetCameraTabVariables(CamerasArray[CurrentCamera - 1])
+        tabControl.bind("<<NotebookTabChanged>>", on_tab_selected)
+
+    def SaveCameraParameters():
+        global CurrentCamera, FileIsModified
+        if CheckCameraParameters():
+            newvalues = GetCameraTabVariables()
+            if len(CamerasArray) == CurrentCamera - 1:
+                CamerasArray.append(newvalues)
+                FileIsModified = True
+            elif NotSavedDataTabCamera():
+                answer = messagebox.askyesno(title="Confirmation", message="Overwrite current Camera?")
+                if answer:
+                    CamerasArray[CurrentCamera - 1] = newvalues
+                    FileIsModified = True
+
+    def AskLoadCameraParameters():
+        global CurrentCamera
+        answer = messagebox.askyesno(title="Confirmation", message="Revert back to saved data?")
+        if answer:
+            LoadCameraParameters()
+
+    def ClearCameraParameters():
+        global DefaultCameraParameters
+        SetCameraTabVariables(DefaultCameraParameters)
+
+    def AddCamera():
+        global CurrentCamera, CamerasArray
+        if len(CamerasArray) == CurrentCamera - 1:
+            messagebox.showinfo(message="Finish first to edit the current Camera")
+            return
+        if NotSavedDataTabCamera():
+            messagebox.showinfo(message="Unsaved data for the current Camera")
+            return
+        CurrentCamera = len(CamerasArray) + 1
+        HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(CurrentCamera))
+        ClearCameraParameters()
+        SetStatusNextPrevButtonsCam()
+
+    def DeleteCurrentCamera():
+        global CurrentCamera, FileIsModified
+        answer = messagebox.askyesno(title="Confirmation", message="Do you want to delete the current Camera?")
+        if answer:
+            ClearCameraParameters()
+            FileIsModified = True
+            if CurrentCamera > len(CamerasArray):
+                if CurrentCamera == 1:
+                    return
+                else:
+                    CurrentCamera -= 1
+                    HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(CurrentCamera))
+                    SetCameraTabVariables(CamerasArray[CurrentCamera - 1])
+            else:
+                del CamerasArray[CurrentCamera - 1]
+                FileIsModified = True
+                if CurrentCamera > len(CamerasArray):
+                    HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(CurrentCamera))
+                else:
+                    HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(len(CamerasArray)))
+                    SetCameraTabVariables(CamerasArray[CurrentCamera - 1])
+            SetStatusNextPrevButtonsCam()
+
+    def NotSavedDataTabCamera():
+        global CurrentCamera, DefaultCameraParameters
+        if len(CamerasArray) == CurrentCamera - 1:
+            return GetCameraTabVariables() != DefaultCameraParameters
+        return GetCameraTabVariables() != CamerasArray[CurrentCamera - 1]
+
+    def CheckCameraParameters():
+        parms = GetCameraTabVariables()
+        if parms[0] == "":
+            messagebox.showerror("ERROR", "Camera name cannot be empty.")
+            return False
+        if parms[1] == "":
+            messagebox.showerror("ERROR", "Camera type cannot be empty.")
+            return False
+        if parms[2] == "":
+            messagebox.showerror("ERROR", "IP address cannot be empty.")
+            return False
+        if not Is_Valid_IP(str(parms[2])):
+            messagebox.showerror("ERROR", str(parms[2]) + " is not a valid IP address")
+            return False
+        if not parms[3] and (parms[4] == "" or parms[5] == ""):
+            messagebox.showerror("ERROR", "Camera URLs cannot be empty if not using default.")
+            return False
+        for i, element in enumerate(CamerasArray):
+            if i != CurrentCamera - 1:
+                if parms[0] in element:
+                    messagebox.showerror("ERROR", "Name already in use")
+                    return False
+                if parms[2] in element:
+                    messagebox.showerror("ERROR", "IP " + str(parms[2]) + " already in use")
+                    return False
+        return True
+
+    def CameraTypeCallback(eventObject):
+        global DefaultCameraParameters
+        if CameraType.get() == "IPCam":
+            parms = GetCameraTabVariables()
+            parms[3] = True
+            parms[4] = DefaultCameraParameters[4]
+            parms[5] = DefaultCameraParameters[5]
+            SetCameraTabVariables(parms)
+
+    def SetStatusNextPrevButtonsCam():
+        global CurrentCamera
+        PrevCamButton.configure(state='enabled' if CurrentCamera - 1 > 0 else 'disabled')
+        NextCamButton.configure(state='enabled' if CurrentCamera < len(CamerasArray) else 'disabled')
+
+    def NextCamera():
+        global CurrentCamera
+        if NotSavedDataTabCamera():
+            messagebox.showinfo(message="Finish first to edit the current Camera")
+            return
+        CurrentCamera += 1
+        HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(len(CamerasArray)))
+        SetCameraTabVariables(CamerasArray[CurrentCamera - 1])
+        SetStatusNextPrevButtonsCam()
+
+    def PrevCamera():
+        global CurrentCamera
+        if NotSavedDataTabCamera():
+            messagebox.showinfo(message="Finish first to edit the current Camera")
+            return
+        CurrentCamera -= 1
+        HeaderLabelCam.config(text="Camera n. " + str(CurrentCamera) + " of " + str(len(CamerasArray)))
+        SetCameraTabVariables(CamerasArray[CurrentCamera - 1])
+        SetStatusNextPrevButtonsCam()
+
+    def TryCameraConnection():
+        try:
+            parms = GetCameraTabVariables()
+            if parms[2] == "" or parms[4] == "": return
+            # Replace with actual connection logic
+            print(f"Connecting to {parms[2]} using stream URL: {parms[4]}")
+        except:
+            messagebox.showerror("ERROR", "Cannot connect")
+
+    def Is_Valid_IP(IP):
+        parts = IP.split(".")
+        if len(parts) != 4: return False
+        try:
+            return all(0 <= int(part) <= 255 for part in parts)
+        except:
+            return False
+
+
+    F1Cam = ttk.Frame(tab6); F1Cam.pack()
+     
+    PrevCamButton = ttk.Button(F1Cam, text="Prev", command=PrevCamera, state='disabled'); PrevCamButton.pack(side="left")
+    NextCamButton = ttk.Button(F1Cam, text="Next", command=NextCamera, state='disabled'); NextCamButton.pack(side="left")
+    HeaderLabelCam = ttk.Label(tab6, text="Camera n. 1 of 1", font=("Arial", 12)); HeaderLabelCam.pack(pady="10")
+
+    ttk.Label(tab6, text="Camera Name").pack(); CameraName = ttk.Entry(tab6); CameraName.pack()
+    ttk.Label(tab6, text="Camera Type").pack(); CameraType = ttk.Combobox(tab6, values=("IPCam", "Other"), state='readonly'); CameraType.pack()
+    CameraType.bind("<<ComboboxSelected>>", CameraTypeCallback)
+
+    ttk.Label(tab6, text="Camera IP").pack(); CameraIP = ttk.Entry(tab6); CameraIP.pack()
+    CameraDefaultParms = tk.BooleanVar(); CamEnabled = tk.Checkbutton(tab6, text="Use default URLs", variable=CameraDefaultParms); CamEnabled.pack()
+    #tabCamera = ttk.Frame(tab6); tabCamera.pack()
+    ttk.Label(tab6, text="Stream URL").pack(); CameraStreamURL = ttk.Entry(tab6); CameraStreamURL.pack()
+    ttk.Label(tab6, text="Control URL").pack(); CameraControlURL = ttk.Entry(tab6); CameraControlURL.pack()
+    ttk.Label(tab6,text ="---").pack();    
+    F2Cam = ttk.Frame(tab6); F2Cam.pack()
+    ttk.Button(F2Cam, text="Save changes", command=SaveCameraParameters).pack(side="left")
+    ttk.Button(F2Cam, text="Ignore changes", command=AskLoadCameraParameters).pack(side="left")
+    ttk.Button(F2Cam, text="Clear all values", command=ClearCameraParameters).pack(side="left")
+
+    F3Cam = ttk.Frame(tab6); F3Cam.pack()
+    ttk.Button(F3Cam, text="TEST Connection", command=TryCameraConnection).pack(side="left")
+
+    F4Cam = ttk.Frame(tab6); F4Cam.pack(pady="10")
+    ttk.Button(F4Cam, text="Add new Camera", command=AddCamera).pack(side="left")
+    ttk.Button(F4Cam, text="Remove Camera", command=DeleteCurrentCamera).pack(side="left")
+
+
+
 ####################################
     
 

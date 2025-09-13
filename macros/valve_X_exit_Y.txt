@@ -1,0 +1,7 @@
+;function
+;$1$: valve num, $2$: exit num
+eval $angle$,$2$*45
+send M280 P$1$ S$angle$,0
+
+
+
