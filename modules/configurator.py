@@ -261,7 +261,7 @@ def SplitDevicesArray():
         USB_last_values.append(("0.0 "*int(NumVariables)).strip())
 
 def LoadConfFile(filename=DefaultConfigurationFile):
-    global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray,PlugsArray
+    global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray,PlugsArray,CamerasArray
     global CurrentFileName
     global DefaultConfiguration
     #DefaultConfigurationFile="conf/default.conf"
@@ -276,6 +276,7 @@ def LoadConfFile(filename=DefaultConfigurationFile):
      DevicesArray=pickle.load(fin)
      SplitDevicesArray()
      PlugsArray=pickle.load(fin)
+     CamerasArray=pickle.load(fin)
      fin.close()
     except Exception as e:
      print(e)
@@ -314,12 +315,14 @@ def StartConfigurator(window):
 
     def ShowData():
         global CurrentReactant,CurrentSyringe,CurrentApparatus,CurrentDevice,PlugsArray,CurrentPlug
-        global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
-        SetTabAndVars(ReactantsArray, CurrentReactant,  SetStatusNextPrevButtonsT1, LoadReactantParameters,  HeaderLabelT1, "Reactant")
-        SetTabAndVars(ApparatusArray, CurrentApparatus, SetStatusNextPrevButtonsT2, LoadApparatusParameters, HeaderLabelT2, "Apparatus")
-        SetTabAndVars(SyringesArray,  CurrentSyringe,   SetStatusNextPrevButtonsT3, LoadSyringeParameters,   HeaderLabelT3, "Syringe")
-        SetTabAndVars(DevicesArray,   CurrentDevice,    SetStatusNextPrevButtonsT4, LoadDeviceParameters,    HeaderLabelT4, "Device")
-        SetTabAndVars(PlugsArray,     CurrentPlug,      SetStatusNextPrevButtonsT5, LoadPlugParameters,      HeaderLabelT5, "Plug")
+        global ReactantsArray,SyringesArray,ApparatusArray,DevicesArray,CamerasArray,CurrentCamera
+        SetTabAndVars(ReactantsArray, CurrentReactant,  SetStatusNextPrevButtonsT1,  LoadReactantParameters,  HeaderLabelT1, "Reactant")
+        SetTabAndVars(ApparatusArray, CurrentApparatus, SetStatusNextPrevButtonsT2,  LoadApparatusParameters, HeaderLabelT2, "Apparatus")
+        SetTabAndVars(SyringesArray,  CurrentSyringe,   SetStatusNextPrevButtonsT3,  LoadSyringeParameters,   HeaderLabelT3, "Syringe")
+        SetTabAndVars(DevicesArray,   CurrentDevice,    SetStatusNextPrevButtonsT4,  LoadDeviceParameters,    HeaderLabelT4, "Device")
+        SetTabAndVars(PlugsArray,     CurrentPlug,      SetStatusNextPrevButtonsT5,  LoadPlugParameters,      HeaderLabelT5, "Plug")
+        SetTabAndVars(CamerasArray,   CurrentCamera,    SetStatusNextPrevButtonsCam, LoadCameraParameters,    HeaderLabelCam, "Camera")
+        
     
     def LoadAllData():
      global CurrentReactant,CurrentSyringe,CurrentApparatus,ReactantsArray,SyringesArray,ApparatusArray,DevicesArray
@@ -344,6 +347,7 @@ def StartConfigurator(window):
       pickle.dump(ApparatusArray,fout)
       pickle.dump(DevicesArray,fout)
       pickle.dump(PlugsArray,fout)
+      pickle.dump(CamerasArray,fout)
       fout.close()
      except Exception as e:
       print(e)
