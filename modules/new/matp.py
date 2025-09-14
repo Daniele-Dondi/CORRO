@@ -65,9 +65,9 @@ class GraphDrawer(Frame):
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
 
-        # Optional export button
-        export_btn = Button(self, text="Export", command=self.export_graph)
-        export_btn.pack(pady=5)
+##        # Optional export button
+##        export_btn = Button(self, text="Export", command=self.export_graph)
+##        export_btn.pack(pady=5)
 
     def plot_multiple_series(self, x_data, y_series_list, labels=None, colors=None, linestyles=None):
         """
@@ -87,12 +87,12 @@ class GraphDrawer(Frame):
         self.ax.cla()
         self.canvas.draw()
 
-    def export_graph(self):
-        """Save the current figure to PNG or SVG."""
-        file_path = filedialog.asksaveasfilename(defaultextension=".png",
-                                                 filetypes=[("PNG", "*.png"), ("SVG", "*.svg")])
-        if file_path:
-            self.figure.savefig(file_path)
+##    def export_graph(self):
+##        """Save the current figure to PNG or SVG."""
+##        file_path = filedialog.asksaveasfilename(defaultextension=".png",
+##                                                 filetypes=[("PNG", "*.png"), ("SVG", "*.svg")])
+##        if file_path:
+##            self.figure.savefig(file_path)
 
 # Example usage
 if __name__ == "__main__":
