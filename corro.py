@@ -1123,7 +1123,13 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
             logfile.close()
             bConnect.config(image = connect_icon) #toggle image on connect button
 
-def SyringeBOTCycle(): #listen and send messages to SyringeBOT
+def SyringeBOTCycle():
+    global connected
+    while connected:
+        SyringeBOTCycleCore()
+        time.delay(0.05)
+        
+def SyringeBOTCycleCore(): #listen and send messages to SyringeBOT
     global SyringeBOT,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
     while (SyringeBOT.inWaiting() > 0):
         data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii')
@@ -1159,7 +1165,7 @@ def SyringeBOTCycle(): #listen and send messages to SyringeBOT
         SyringeBOT.write((SyringeBOTSendNow+'\n').encode())  #if there is an immediate code send even if it is not ready
         SyringeBOTSendNow=""
 
-    if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
+    #if connected: threading.Timer(0.05, SyringeBOTCycle).start() #call itself
 
 def HookTriggered():
     global connected,SyringeBOT_IS_BUSY,T_Actual
@@ -1207,7 +1213,13 @@ def ResetChartsIfWeHaveTooManyPoints():
             break
 
 #MAIN CYCLE
-def MainCycle():  #loop for sending temperature messages, reading sensor values and updating graphs
+def MainCycle():
+    global connected
+    while connected:
+        MainCycleCore()
+        time.sleep(0.5)
+        
+def MainCycleCore():  #loop for sending temperature messages, reading sensor values and updating graphs
     global SyringeBOT,connected,T_Actual,T_SetPoint,MAX_Temp,SyringeBOT_IS_BUSY,SyringeBOT_WAS_BUSY
     global logfile
     global HasSyringeBOT
@@ -1284,7 +1296,7 @@ def MainCycle():  #loop for sending temperature messages, reading sensor values 
                 for datum in range(int(conf.USB_num_vars[device])):
                     Draw_Chart([float(e.split(' ')[datum]) for e in conf.USB_var_points[device]])
 
-        if (connected): threading.Timer(0.5, MainCycle).start() #call itself
+        #if (connected): threading.Timer(0.5, MainCycle).start() #call itself
 
 def DeleteTemperatureEvent(t):
     global Temperature_Hook,Time_Hook
