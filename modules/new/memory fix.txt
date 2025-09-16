@@ -5,6 +5,13 @@ def MainCycleLoop():
         MainCycleCore()
         time.sleep(0.5)
 
+def MainCycleLoop():
+    global stop_maincycle
+    while connected and not stop_maincycle:
+        MainCycleCore()
+        time.sleep(0.5)
+
+
 def MainCycleCore():
     # Move all your current MainCycle logic here
     # No threading.Timer call at the end
