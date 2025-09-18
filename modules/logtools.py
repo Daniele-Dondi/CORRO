@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import numpy as np
 
 def choose_files():
     file_paths = filedialog.askopenfilenames(
@@ -35,6 +34,23 @@ def common_columns(list_of_lists):
     return list(common)
 
 def compute_selected_column_averages(file_path, chunk_size, selected_columns_names, output_path, find_string):
+    
+    def mean_axis0(matrix):
+        if not matrix or not all(isinstance(row, (list, tuple)) for row in matrix):
+            raise ValueError("Input must be a non-empty list of lists or tuples")
+
+        num_cols = len(matrix[0])
+        if not all(len(row) == num_cols for row in matrix):
+            raise ValueError("All rows must have the same length")
+
+        col_sums = [0] * num_cols
+        for row in matrix:
+            for i, val in enumerate(row):
+                col_sums[i] += val
+
+        return [str(total / len(matrix)) for total in col_sums]
+
+
     Col_Names=get_column_names(file_path)
     selected_columns=[]
     for column in selected_columns_names:
@@ -58,12 +74,12 @@ def compute_selected_column_averages(file_path, chunk_size, selected_columns_nam
             chunk.append(numeric_values)
 
             if len(chunk) == chunk_size:
-                avg = np.mean(chunk, axis=0)
-                out.write(TimeStamp+"\t"+"\t".join(map(str, avg)) + "\n")
+                avg = mean_axis0(chunk)#np.mean(chunk, axis=0)
+                out.write(TimeStamp+"\t"+"\t".join(avg) + "\n")#map(str, avg)) + "\n")
                 chunk = []
 
         if chunk:
-            avg = np.mean(chunk, axis=0)
+            avg = mean_axis0(chunk)#np.mean(chunk, axis=0)
             out.write("\t".join(map(str, avg)) + "\n")
     print("Read: "+str(i)+" lines")
     if find_string:
