@@ -65,6 +65,6 @@ class CameraPopup:
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()  # Hide root if you want only the popup
-    CameraPopup(root, "10.163.60.35")
+    CameraPopup("10.163.60.35")
     root.mainloop()
 
