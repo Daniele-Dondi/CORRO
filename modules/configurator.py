@@ -23,6 +23,7 @@ import os
 from modules.listserialports import AvailableSerialPorts
 from .serialmon import SerialMon
 from .shelly import TurnShellyPlugON, TurnShellyPlugOFF
+from .showstream import CameraPopup
 
 def InitAllData():
     global ReactantsArray, CurrentReactant, ApparatusArray, CurrentApparatus, DevicesArray, CurrentDevice
@@ -1758,7 +1759,7 @@ def StartConfigurator(window):
             parms = GetCameraTabVariables()
             if parms[2] == "" or parms[4] == "": return
             # Replace with actual connection logic
-            print(f"Connecting to {parms[2]} using stream URL: {parms[4]}")
+            CameraPopup(parms[2])
         except:
             messagebox.showerror("ERROR", "Cannot connect")
 
