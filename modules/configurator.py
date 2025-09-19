@@ -1563,11 +1563,11 @@ def StartConfigurator(window):
     def Try2Trigger(on_off):
         try:
             parms=GetTab5Variables()
-            if parms[2]=="" or parms[3]=="": return
+            if parms[2]=="": return
             if on_off=="ON":
-                TurnShellyPlugON(parms[3])
+                TurnShellyPlugON(parms[2])
             else:
-                TurnShellyPlugOFF(parms[3])
+                TurnShellyPlugOFF(parms[2])
         except:
             messagebox.showerror("ERROR", "Cannot connect")
 
