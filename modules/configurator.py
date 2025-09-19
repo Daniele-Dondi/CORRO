@@ -1371,7 +1371,8 @@ def StartConfigurator(window):
             SerialMon(ConfiguratorWindow,parms[2],parms[3])
             #Test=serial.Serial(parms[2],parms[3])
             #time.sleep(0.5)
-        except:
+        except Exception as e:
+            print(e)
             messagebox.showerror("ERROR", "Cannot connect")
 
     def RefreshUSB():
@@ -1759,8 +1760,9 @@ def StartConfigurator(window):
             parms = GetCameraTabVariables()
             if parms[2] == "" or parms[4] == "": return
             # Replace with actual connection logic
-            CameraPopup(parms[2])
-        except:
+            CameraPopup(ConfiguratorWindow.winfo_toplevel(),parms[2])
+        except Exception as e:
+            print(e)
             messagebox.showerror("ERROR", "Cannot connect")
 
     def Is_Valid_IP(IP):

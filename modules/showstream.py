@@ -3,7 +3,6 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 import requests
 from io import BytesIO
 
-
 class IPCameraViewer:
     def __init__(self, parent, camera_ip, update_interval=1000):
         self.parent = parent
@@ -48,21 +47,26 @@ class IPCameraViewer:
 
 
 
-class CameraPopup:
-    def __init__(self, camera_ip, title="Camera Stream"):
-        self.popup = tk.Toplevel()
-        self.popup.title(f"{title} - {camera_ip}")
-        self.popup.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.viewer = IPCameraViewer(self.popup, camera_ip)
+##class CameraPopup:
+##    def __init__(self, camera_ip, title="Camera Stream"):
+##        self.popup = tk.Toplevel()
+##        self.popup.title(f"{title} - {camera_ip}")
+##        self.popup.protocol("WM_DELETE_WINDOW", self.on_close)
+##        self.viewer = IPCameraViewer(self.popup, camera_ip)
+##
+##    def on_close(self):
+##        self.popup.destroy()
+##        if not any(isinstance(w, tk.Toplevel) for w in self.popup.master.winfo_children()):
+##            self.popup.master.quit()
 
-    def on_close(self):
-        self.popup.destroy()
-        if not any(isinstance(w, tk.Toplevel) for w in self.popup.master.winfo_children()):
-            self.popup.master.quit()        
+def CameraPopup(window,camera_ip):
+    popup=tk.Toplevel(window)
+    popup.title(f"Camera - {camera_ip}")
+    viewer=IPCameraViewer(popup, camera_ip)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()  # Hide root if you want only the popup
-    CameraPopup("10.163.60.35")
-    root.mainloop()
+##if __name__ == "__main__":
+##    root = tk.Tk()
+##    root.withdraw()  # Hide root if you want only the popup
+##    CameraPopup("10.163.60.35")
+##    root.mainloop()
 
