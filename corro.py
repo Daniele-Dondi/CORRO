@@ -1013,7 +1013,7 @@ def ConnectSyringeBOT(USB,USBrate):
     else:
         connected = 1
         HasSyringeBOT=True
-        threading.Timer(0.1, SyringeBOTCycle).start()  #call SyringeBOT cycle
+        threading.Thread(target=SyringeBOTCycle).start()
     #conf.USB_last_values.append("0")
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
@@ -1127,7 +1127,7 @@ def SyringeBOTCycle():
     global connected
     while connected:
         SyringeBOTCycleCore()
-        time.delay(0.05)
+        time.sleep(0.05)
         
 def SyringeBOTCycleCore(): #listen and send messages to SyringeBOT
     global SyringeBOT,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
