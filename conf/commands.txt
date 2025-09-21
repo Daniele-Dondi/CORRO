@@ -44,6 +44,18 @@ getsyringeparms
 #
 #After this command it is safe to proceed with the calculations for the syringe movements.
 
+getvalveexit
+#3
+#Retrieve the valve exit number for the syringe indicated
+#use: getvalveexit $var$,syr_num,exit_name
+#
+#Where syr_num=numer of syringe, exit_name=name of the connection
+#returns the number of the valve exit. -1 if exit_name is not found
+#exit_name is case sensitive
+#
+#Example:
+#getvalveexit $var$,0,Air/Waste
+
 eval 
 #2
 #calculate somethg

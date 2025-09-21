@@ -393,6 +393,16 @@ def Parse(line,variables):    #parse macro line and execute statements
         except Exception as e:
             print(e)
             tk.messagebox.showerror("ERROR in getsyringeparms method","use: getsyringeparms syringenumber")
+            return "Error"  
+    elif line.find('getvalveexit')==0: #retrieve the exit position for the valve given the name of the connection
+        try:
+            commands=line.split(',',1)
+            commands[0]=commands[0][13:] # remove getvalveexit
+            x = conf.ValvePositionFor(commands[1],commands[2])
+            RefreshVarValues(commands[0],x,variables)
+        except Exception as e:
+            print(e)
+            tk.messagebox.showerror("ERROR in getvalveexit method","use: getvalveexit $varname$,syrnum,exit_name")
             return "Error"
     elif line.find('eval')==0: #we've to calculate somethg
         try:
