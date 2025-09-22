@@ -30,7 +30,6 @@ import serial
 import modules.configurator as conf
 import modules.wizard as wiz
 from modules.buildvercalculator import GetBuildVersion
-import modules.optimizer as Opt
 from modules.tooltip import ToolTip
 from modules.buttonanimated import AnimatedButton
 import traceback
@@ -43,6 +42,11 @@ GO_Fullscreen=False #if True, app starts in fullscreen mode
 AutoConnect=False #if True, corro connects directly to SyringeBOT
 AutoInit=False #if True, after the connection starts immediately SyringeBOT initialization
 ShowMacrosPalettes=True
+ShowFunctionsPalettes=False
+ShowToolTips=True
+DirectSyringeBOTCommand=False #for debug. Shows a button to send commands directly to SyringeBOT
+#Important: If the CPU is weak or libraries are not compiled for the CPU avoid the optimization procedures
+PerformOptimization=True
 #USB sensors control vars
 Sensors_var_names=[]
 Charts_enabled=[]
@@ -87,12 +91,6 @@ SyringeBOT_IS_BUSY=False
 SyringeBOT_WAS_BUSY=False
 SyringeBOT_IS_INITIALIZED=False
 oldprogress=0 #progress in printing
-#following parameters will be read from configurator
-#NumSyringes=0 #Number of installed syringes
-##SyringemmToMax=[] #Syringe height of graduated part in millimeters
-##SyringeVolumes=[] #Syringe max volume in milliliters
-##SyringeInletVolumes=[]   #volume of the inlet tube
-##SyringeOutletVolumes=[]  #volume of the outlet tube
 SchematicImage="" #file name for the image
 MaskImage=""      #file name for the mask image
 MaskMacros=""     #file name for the bounded colors to macros
@@ -135,8 +133,10 @@ def readConfigurationFiles():
     global SchematicImage,MaskImage,MaskMacros,colorsbound,pixboundedmacro
     global HasRobot,HasSyringeBOT
     global AutoConnect, AutoInit,GO_Fullscreen
-    global ShowMacrosPalettes,debug,DoNotConnect,WatchdogMax
+    global ShowMacrosPalettes,ShowFunctionsPalettes,debug,DoNotConnect,WatchdogMax
     global noprint_debug, cmdfile
+    global CORRO_FONT,HEADER_FONT,BUSY_FONT,base
+    global PerformOptimization,ShowToolTips,DirectSyringeBOTCommand
 
     # Initialize dictionary to store variables
     variables = {}
@@ -161,6 +161,8 @@ def readConfigurationFiles():
         except: pass
         try: ShowMacrosPalettes=variables["ShowMacrosPalettes"].lower()=="true"
         except: pass
+        try: ShowFunctionsPalettes=variables["ShowFunctionsPalettes"].lower()=="true"
+        except: pass
         try: debug=variables["debug"].lower()=="true"
         except: pass
         try: DoNotConnect=variables["DoNotConnect"].lower()=="true"
@@ -169,6 +171,24 @@ def readConfigurationFiles():
         except: pass
         try: GO_Fullscreen=variables["GO_Fullscreen"].lower()=="true"
         except: pass
+        try: PerformOptimization=variables["PerformOptimization"].lower()=="true"
+        except: pass
+        try: ShowToolTips=variables["ShowToolTips"].lower()=="true"
+        except: pass
+        try: DirectSyringeBOTCommand=variables["DirectSyringeBOTCommand"].lower()=="true"
+        except: pass
+        try: CORRO_FONT=variables["CORRO_FONT"]
+        except: pass
+        try: HEADER_FONT=variables["HEADER_FONT"]
+        except: pass
+        try: BUSY_FONT=variables["BUSY_FONT"]
+        except: pass
+        try:
+            BASE_FONT=variables["BASE_FONT"]
+            base.option_add("*Font", BASE_FONT)
+        except: pass
+        
+        
         try: noprint_debug=int(variables["noprint_debug"])
         except: pass
         if noprint_debug: cmdfile=open("gcodecmds.txt","w")
@@ -850,11 +870,11 @@ def EditMacroButtonProc():
         ToggleB.config(relief="sunken")
         IsEditingMacro=1
         if IsDeletingMacro==1: DeleteMacroButtonProc()
-        base.config(cursor='cross')
+        base.config(cursor="cross")
     else:
         IsEditingMacro=0
         ToggleB.config(relief="raised")
-        base.config(cursor='arrow')
+        base.config(cursor='')
 
 def DeleteMacroButtonProc():
     global IsEditingMacro,IsDeletingMacro
@@ -864,11 +884,11 @@ def DeleteMacroButtonProc():
         ToggleB2.config(relief="sunken")
         IsDeletingMacro=1
         if IsEditingMacro==1: EditMacroButtonProc()
-        base.config(cursor='pirate')
+        base.config(cursor="pirate")
     else:
         IsDeletingMacro=0
         ToggleB2.config(relief="raised")
-        base.config(cursor='arrow')
+        base.config(cursor="")
 
 #Quit program
 def Close():
@@ -1448,12 +1468,14 @@ def OptimizationCycle(): #cycle to start and follow optimization
 #Main window
 base = tk.Tk()
 # Apply a default font globally
-base.option_add("*Font", ("Arial", 7))
+base.option_add("*Font", "Arial 7")
 CORRO_FONT="Verdana 15 bold"
 HEADER_FONT="Verdana 8 bold"
 BUSY_FONT='Helvetica 15 bold'
 base.wm_iconphoto(False, tk.PhotoImage(file='icons/main_icon.png'))    
 readConfigurationFiles()
+if PerformOptimization:
+    import modules.optimizer as Opt
 if GO_Fullscreen: base.attributes("-fullscreen", True) #go FULLSCREEN
 base.bind('<Key>', keypress)
 F = tk.Frame(base)
@@ -1467,14 +1489,14 @@ connect_icon = tk.PhotoImage(file = r"icons/connect.png")
 disconnect_icon = tk.PhotoImage(file = r"icons/disconnect.png")
 bConnect = tk.Button(F, command=Connect,image = connect_icon, compound = "left")
 bConnect.pack(side="top", pady=10)
-ToolTip(bConnect, "Click to Connect/Disconnect")
-##bSend_0 = tk.Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
-##bSend_0.pack(pady=10)
-##lCommand_0 = tk.Label(F, text="Command:")
-##lCommand_0.pack()
-##eCommand_0 = Entry(F)
-##eCommand_0.insert(0, 'M304 P100 I1.5 D800')
-##eCommand_0.pack()
+if ShowToolTips:
+    ToolTip(bConnect, "Click to Connect/Disconnect")
+if DirectSyringeBOTCommand:
+    bSend_0 = tk.Button(F, text="Send to SyringeBOT", command=lambda: sendcommand(eCommand_0.get(),0))
+    bSend_0.pack(pady=10)
+    eCommand_0 = tk.Entry(F)
+    eCommand_0.insert(0, 'M304 P100 I1.5 D800')
+    eCommand_0.pack(pady=10)
 ##bSetTemp = tk.Button(F, text="SetTemp", command=lambda: sendcommand("M140 S"+eTemperature.get(),0))
 ##bSetTemp.pack(pady=10)
 ##bOFFTemp = tk.Button(F, text="Heating OFF", command=lambda: sendcommand("M140 S0",0))
@@ -1492,32 +1514,39 @@ canc_icon = tk.PhotoImage(file = r"icons/stop.png")
 procedure_icon = tk.PhotoImage(file = r"icons/erlenmeyer.png")
 bProcedure=tk.Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = "left")
 bProcedure.pack()
-ToolTip(bProcedure, "Click to run a saved procedure")
+if ShowToolTips:
+    ToolTip(bProcedure, "Click to run a saved procedure")
 
 conf_icon = tk.PhotoImage(file = r"icons/configurator.png")
 bConf=tk.Button(F, text="configurator", command=Configurator,image = conf_icon, compound = "left")
 bConf.pack()
-ToolTip(bConf, "Click to configure the system")
+if ShowToolTips:
+    ToolTip(bConf, "Click to configure the system")
 
 wiz_icon = tk.PhotoImage(file = r"icons/wizard.png")
 bWiz=tk.Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = "left")
 bWiz.pack()
-ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
+if ShowToolTips:
+    ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
 
 bo_icon = tk.PhotoImage(file = r"icons/BO.png")
 bBO=tk.Button(F, text="B.O.", command=Optimization,image = bo_icon, compound = "left")
-bBO.pack()
-ToolTip(bBO, "Click to start the reaction optimization")
+if PerformOptimization:
+    bBO.pack()
+if ShowToolTips:
+    ToolTip(bBO, "Click to start the reaction optimization")
 
 tool_icon = tk.PhotoImage(file = r"icons/tools.png")
 bTool=tk.Button(F, text="Log tools", command=RunTools,image = tool_icon, compound = "left")
 bTool.pack()
-ToolTip(bTool, "Click to start the log analyzer/shrinker/extractor")
+if ShowToolTips:
+    ToolTip(bTool, "Click to start the log analyzer/shrinker/extractor")
 
 exit_icon = tk.PhotoImage(file = r"icons/exit.png")
 bClose = tk.Button(F, text="EXIT", command=Close,image = exit_icon, compound = "left")
 bClose.pack(pady=10)
-ToolTip(bClose, "Exit the program. You should not be connected")
+if ShowToolTips:
+    ToolTip(bClose, "Exit the program. You should not be connected")
 
 temp_icon = tk.PhotoImage(file = r"icons"+os.sep+"temp.png")
 b_temp=tk.Button(F, image=temp_icon,command=temp_button_click)
@@ -1539,10 +1568,8 @@ else:
         if ShowMacrosPalettes: ZZ.pack(side="left",fill="y")
         #tk.Label(ZZ, text="MACROS 2",font=HEADER_FONT,bg='pink').pack(pady=10)
 Z2 = tk.Frame(base,bd=2,relief=tk.RIDGE) #functions frame
-#if ShowMacrosPalettes: Z2.pack(side="left",fill="y")        macro functions palette
-##Zcore = tk.Frame(base,bd=2,relief=tk.RIDGE) #core macros frame
-##if ShowMacrosPalettes: Zcore.pack(side="left",fill="y")
-##tk.Label(Zcore, text="HAL MACROS",font=HEADER_FONT,bg='pink').pack(pady=10)
+if ShowFunctionsPalettes:
+    Z2.pack(side="left",fill="y")        #macro functions palette
 GRP = tk.Frame(base,bd=2,relief=tk.RIDGE) #graph controls frame
 GRP.pack(side="left",fill="y")
 tk.Label(GRP, text="GRAPH CTRL",font=HEADER_FONT,bg='pink').pack(pady=10)
@@ -1596,7 +1623,7 @@ if len(macrolist)>0:
     ToggleB2=tk.Button(Z, text="DELETE MACRO",command=DeleteMacroButtonProc)
     ToggleB2.pack()
     tk.Button(Z, text="", state="disabled",bd=0).pack() #space between buttons
-##  tk.Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
+    tk.Label(Z2, text="Functions",font=HEADER_FONT,bg='pink').pack(pady=10)
     i=0
     buttons_in_palette1=0
     for macro in macrolist:  #create a button for each macro
