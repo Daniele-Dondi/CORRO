@@ -3,13 +3,13 @@
 getsyringeparms $1$
 eval $valve1$,($1$-1)*2
 eval $valve2$,$valve1$+1
-macro "valve_X_exit_1"$valve1$
-macro "valve_X_exit_1"$valve2$
+;macro "valve_X_exit_1"$valve1$
+;macro "valve_X_exit_1"$valve2$
 send G28 $axisname$,0
 ;send G1 $axisname$$syringemax$,0
 send M400,0
-macro "valve_X_close"$valve1$
-macro "valve_X_close"$valve2$
+;macro "valve_X_close"$valve1$
+;macro "valve_X_close"$valve2$
 
 
 
