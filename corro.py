@@ -416,7 +416,8 @@ def Parse(line,variables):    #parse macro line and execute statements
             return "Error"  
     elif line.find('getvalveexit')==0: #retrieve the exit position for the valve given the name of the connection
         try:
-            commands=line.split(',',1)
+            line=SubstituteVarValues(line,variables) #substitute var names with values            
+            commands=line.split(',')
             commands[0]=commands[0][13:] # remove getvalveexit
             x = conf.ValvePositionFor(commands[1],commands[2])
             RefreshVarValues(commands[0],x,variables)

@@ -1,0 +1,4 @@
+;function
+;$1$: valve num
+eval $1$,$1$-1
+send M280 P$1$ S22,0
