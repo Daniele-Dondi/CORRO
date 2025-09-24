@@ -1433,6 +1433,7 @@ def StartProcedure():
         filename=wiz.ChooseProcedureFile()
         if filename=="": return
         CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
+        print(CompiledCode)
         if wiz.ThereAreErrors(base,CompiledCode):
             return    
         threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute in background

@@ -1749,7 +1749,7 @@ def StartWizard(window, **kwargs):
                  V_in=conf.ValvePositionFor(SyringeToUse,Input)
                  V_out=conf.ValvePositionFor(SyringeToUse,Output)
                  V_waste=conf.ValvePositionFor(SyringeToUse,'Air/Waste') 
-                 CompiledCode.append(CreateMacroCode("Pour",SyringeToUse,Quantity,V_in,V_out,V_waste))
+                 CompiledCode.append(CreateMacroCode("Pour",SyringeToUse+1,Quantity,V_in,V_out,V_waste))
                  OptimizerCode.append([Object.GetValues(),Object.GetOptimizableParameters()])
                  
             elif ObjType=="Wash": #if the syringe is not connected to the input of the apparatus, the procedure is NOT giving an error
@@ -1763,7 +1763,7 @@ def StartWizard(window, **kwargs):
                         V_waste=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                         V_out=V_waste
                         if V_in<0 or V_waste<0 or V_out<0: print("E1")
-                        CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,ResidualVolume+EmptyVolume,V_in,V_out,V_waste))
+                        CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe+1,ResidualVolume+EmptyVolume,V_in,V_out,V_waste))
                 except:
                     print("error wash 3")
                 for i in range(int(Cycles)):
@@ -1771,12 +1771,12 @@ def StartWizard(window, **kwargs):
                     V_out=conf.ValvePositionFor(BestInputSyringe,Destination+" IN")
                     V_waste=conf.ValvePositionFor(BestInputSyringe,'Air/Waste')
                     if V_in<0 or V_waste<0 or V_out<0: print("E2")
-                    CompiledCode.append(CreateMacroCode("Pour",BestInputSyringe,Volume,V_in,V_out,V_waste))
+                    CompiledCode.append(CreateMacroCode("Pour",BestInputSyringe+1,Volume,V_in,V_out,V_waste))
                     V_in=conf.ValvePositionFor(BestOutputSyringe,Destination+" OUT")
                     V_out=conf.ValvePositionFor(BestOutputSyringe,'Air/Waste')
                     V_waste=V_out
                     if V_in<0 or V_waste<0 or V_out<0: print("E3")
-                    CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe,Volume+EmptyVolume,V_in,V_out,V_waste))
+                    CompiledCode.append(CreateMacroCode("Pour",BestOutputSyringe+1,Volume+EmptyVolume,V_in,V_out,V_waste))
                     
                 UpdateVolumes(Source,float(Cycles)*float(Volume),ReactantsUsed,VolumesOfReactantsUsed)
                 UpdateVolumes(Destination,-1e10,ApparatusUsed,VolumesInApparatus)
