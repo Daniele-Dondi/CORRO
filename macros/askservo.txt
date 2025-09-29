@@ -1,3 +1,4 @@
-ask $servonum$,Choose Servo,Enter the number of the servo,0,0,12
-ask $angle$,Choose Angle,Enter the angle,0,0,360
+ask $servonum$,Choose Valve,Enter the number of the Valve,0,0,12
+ask $exit$,Choose Exit,Enter the exit num,0,0,4
+eval $angle$,$exit$*45
 send M280 P$servonum$ S$angle$,0

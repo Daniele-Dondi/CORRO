@@ -1044,7 +1044,8 @@ def ConnectSyringeBOT(USB,USBrate):
     else:
         connected = 1
         HasSyringeBOT=True
-        threading.Thread(target=SyringeBOTCycle).start()
+        #threading.Thread(target=SyringeBOTCycle).start()
+        threading.Timer(0.1, SyringeBOTCycle).start()
     #conf.USB_last_values.append("0")
 
 def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling by calling MainCycle
@@ -1275,12 +1276,14 @@ def MainCycleCore():  #loop for sending temperature messages, reading sensor val
                     w2.create_text(400, 220, text="SyringeBOT is working...", fill="black", font=(BUSY_FONT))
                 w2.create_rectangle(10,300,progress*780+10,350,fill='red')
                 SyringeBOT_IS_BUSY=True
+                bStop.config(state="normal")
                 SyringeBOT_WAS_BUSY=True
             else:
                 if SyringeBOT_WAS_BUSY==True:
                     w2.create_image(0, 0, image = Aimage, anchor=tk.NW)
                     logfile.write(str(DT.datetime.now())+"\tProcess finished\n")
                 SyringeBOT_IS_BUSY=False
+                bStop.config(state="disabled")
                 SyringeBOT_WAS_BUSY=False
             SyringeBOTSendNow='M105' #send immediate gcode to SyringeBOT
             log_text+="\t"+str(T_Actual)+"\t"+str(T_SetPoint)
@@ -1511,28 +1514,26 @@ if DirectSyringeBOTCommand:
 ##tk.Button(F, text="load gcode", command=LoadGcode).pack();
 rec_icon = tk.PhotoImage(file = r"icons/rec.png")
 #tk.Button(F, text="REC", command=Record,image = rec_icon, compound = "left").pack();
-canc_icon = tk.PhotoImage(file = r"icons/stop.png")
-#tk.Button(F, text="cancel print", command=CancelPrint,image = canc_icon, compound = "left").pack();
 procedure_icon = tk.PhotoImage(file = r"icons/erlenmeyer.png")
-bProcedure=tk.Button(F, text="procedure", command=StartProcedure,image = procedure_icon, compound = "left")
+bProcedure=tk.Button(F, text="Procedure", command=StartProcedure,image = procedure_icon, compound = "left")
 bProcedure.pack()
 if ShowToolTips:
     ToolTip(bProcedure, "Click to run a saved procedure")
 
 conf_icon = tk.PhotoImage(file = r"icons/configurator.png")
-bConf=tk.Button(F, text="configurator", command=Configurator,image = conf_icon, compound = "left")
+bConf=tk.Button(F, text="Configurator", command=Configurator,image = conf_icon, compound = "left")
 bConf.pack()
 if ShowToolTips:
     ToolTip(bConf, "Click to configure the system")
 
 wiz_icon = tk.PhotoImage(file = r"icons/wizard.png")
-bWiz=tk.Button(F, text="wizard", command=Wizard,image = wiz_icon, compound = "left")
+bWiz=tk.Button(F, text="Wizard", command=Wizard,image = wiz_icon, compound = "left")
 bWiz.pack()
 if ShowToolTips:
     ToolTip(bWiz, "Click to start the graphical procedure creator wizard")
 
 bo_icon = tk.PhotoImage(file = r"icons/BO.png")
-bBO=tk.Button(F, text="B.O.", command=Optimization,image = bo_icon, compound = "left")
+bBO=tk.Button(F, text="Optimization", command=Optimization,image = bo_icon, compound = "left")
 if PerformOptimization:
     bBO.pack()
 if ShowToolTips:
@@ -1543,6 +1544,10 @@ bTool=tk.Button(F, text="Log tools", command=RunTools,image = tool_icon, compoun
 bTool.pack()
 if ShowToolTips:
     ToolTip(bTool, "Click to start the log analyzer/shrinker/extractor")
+
+canc_icon = tk.PhotoImage(file = r"icons/stop.png")
+bStop=tk.Button(F, text="Cancel run", command=CancelPrint,image = canc_icon, compound = "left", state=tk.DISABLED)
+bStop.pack();
 
 exit_icon = tk.PhotoImage(file = r"icons/exit.png")
 bClose = tk.Button(F, text="EXIT", command=Close,image = exit_icon, compound = "left")

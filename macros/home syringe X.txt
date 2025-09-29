@@ -1,10 +1,11 @@
 ;function
 ;$1$: syringe num
 getsyringeparms $1$
-macro "valve_X_exit_Y"$1$,Air/Waste
+eval $valve$,$1$-1
+macro "valve_X_exit_Waste"$valve$
 send G28 $axisname$,0
 send M400,0
-macro "valve_X_close"$1$
+macro "valve_X_close"$valve$
 
 
 

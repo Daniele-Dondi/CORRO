@@ -1,7 +1,7 @@
 ;function
 ;in $1$: number of the syringe, $2$: number of Air/Waste, $3$: number of exit
 getsyringeparms $1$
-eval $valve$,($1$-1)*2
+eval $valve$,$1$-1
 eval $pos2$,round($voloutlet$*($syringemax$/$syringevol$),3)
 macro "valve_X_exit_Y"$valve$,$2$
 send G1 $axisname$$pos2$,0
@@ -9,6 +9,6 @@ send M400,0
 macro "valve_X_exit_Y"$valve$,$3$
 send G1 $axisname$0,0
 send M400,0
-;macro "valve_X_close"$valve$
+macro "valve_X_close"$valve$
 log purge syringe $1$
 

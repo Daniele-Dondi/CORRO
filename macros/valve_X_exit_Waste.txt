@@ -1,0 +1,11 @@
+;function
+;$1$: valve num
+;connect syringe $1$ to Air/Waste
+getvalveexit $var$,$1$,Air/Waste
+echo $1$ $2$ $var$
+eval $angle$,$var$*45
+send M280 P$1$ S$angle$,0
+
+
+
+

@@ -1,27 +1,31 @@
 ;function
-;$1$: ml,  $2$: syr num, $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
+;$1$: syr num, $2$: ml,   $3$: valve input, $4$: valve output, $5$: valve Air/Waste pos.
 ;This procedure will make the purge at the end
 ;
-getsyringeparms $2$
-eval $valve$,($2$-1)
+record
+;message pour $1$ $2$ $3$ $4$ $5$
+getsyringeparms $1$
+;message smax, vol $syringemax$ $syringevol$
+eval $valve$,$1$-1
 label cycle
-eval $cond$,$1$>$syringevol$
+eval $cond$,$2$>$syringevol$
 if $cond$ loop
-eval $vol$,$1$; if $1$<=syringe vol
+eval $vol$,$2$; if $2$<=syringe vol
 jump loop2
 label loop
-eval $vol$,$syringevol$; if $1$> syringevol make more additions
+eval $vol$,$syringevol$; if $2$> syringevol make more additions
 label loop2
 eval $mm$,round($vol$*($syringemax$/$syringevol$),3)
-eval $1$,$1$-$vol$
+eval $2$,$2$-$vol$
 macro "valve_X_exit_Y"$valve1$,$3$
 send G1 $axisname$$mm$,0;suck
 send M400,0
 macro "valve_X_exit_Y"$valve1$,$4$
 send G1 $axisname$0,0;eject
 send M400,0
-eval $cond2$,$1$>0
+eval $cond2$,$2$>0
 if $cond2$ cycle
-macro "purge_X"$num$,$5$,$4$
+macro "purge_X"$1$,$5$,$4$
+play
 
 

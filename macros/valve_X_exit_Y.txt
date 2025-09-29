@@ -1,9 +1,8 @@
 ;function
-;$1$: valve num, $2$: exit name
-eval $1$,$1$-1
-getvalveexit $var$,$1$,$2$
-echo $1$ $2$ $var$
-eval $angle$,$var$*45
+;$1$: valve num, $2$: exit number
+;Connect syringe $1$ to exit number $2$
+echo valve x exit y $1$ $2$
+eval $angle$,$2$*45
 send M280 P$1$ S$angle$,0
 
 

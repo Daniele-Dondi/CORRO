@@ -1,0 +1,2 @@
+send M300 S440 P200,0;play tone
+send M300 S440 P200,0;play tone
