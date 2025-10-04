@@ -242,8 +242,11 @@ send
 #send commands to SyringeBOT
 #use: send command,where
 #
+#where is the number of syringebot
+#numbering starts from 0
+#
 #Example:
-#send G28 X Y,1
+#send G28 X Y,0
 
 buffer
 #0
