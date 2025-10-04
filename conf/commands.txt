@@ -78,7 +78,6 @@ getvalue
 #
 #Get the value of variable V2 and show it in the messagebox
 
-
 let 
 #2
 #variable assignment
