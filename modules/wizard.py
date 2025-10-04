@@ -2033,6 +2033,7 @@ def StartWizard(window, **kwargs):
                 pass
             ProceduresArray.append(Actions)
         fout=open(filename, 'wb')
+        #print(ProceduresArray)
         pickle.dump(ProceduresArray,fout)
         fout.close()
 

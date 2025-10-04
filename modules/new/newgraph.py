@@ -27,7 +27,7 @@ def draw_multi_chart(canvas, datasets, chart_w, chart_h, colors, draw_all=True):
             continue
 
         color = colors[i % len(colors)]
-        x_offset = 20 + i * 50
+        x_offset = 20 + i * 60
 
         # Determine plotting range
         num_points = len(data)

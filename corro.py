@@ -1438,7 +1438,7 @@ def StartProcedure():
         CompiledCode=wiz.StartWizard(base,Hide=True,File=filename,Mode="Code")
         print(CompiledCode)
         if wiz.ThereAreErrors(base,CompiledCode):
-            return    
+            return
         threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute in background
 
 def OptimizationCycle(): #cycle to start and follow optimization

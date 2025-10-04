@@ -28,7 +28,7 @@ import modules.BO_n_dimensions as BO
 from modules.DOE import DesignOfExperiments
 
 global NotSaved
-global WeAreOptimizing, run_parameters, doe_matrix, BO_next_point, MaxIterations #variables for optimization run
+global WeAreOptimizing, run_parameters, doe_matrix, BO_next_point, MaxIterations, doe_results #variables for optimization run
 
 
 def GetRunInformations():
@@ -48,9 +48,8 @@ def GetRunInformations():
     out_string+="Current Cycle: "+str(Cycle)
     return out_string
     
-
 def CreateNewValues():
-    global run_parameters, doe_matrix, BO_next_point, MaxIterations
+    global run_parameters, doe_matrix, BO_next_point, MaxIterations, doe_results
     ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
     Opt_Type=OptimizationParms[0] ##[Opt_Type, Reward_Type, MaxIter, K, XI] ##[Opt_Type, Reward_Type, DT, Levels]    
     if Cycle==0: #We have to init optimizers
@@ -65,6 +64,7 @@ def CreateNewValues():
             Maximums=[float(el[0]) for el in MaxValues]
             doe = DesignOfExperiments(Levels, Minimums, Maximums)
             doe_matrix = doe.get_design()
+            doe_results=[]
             MaxIterations=len(doe_matrix)
         else:
             return None
@@ -77,17 +77,17 @@ def CreateNewValues():
         next_point=float_list = list(BO_next_point.values())
         return CreateParmsToOptimize(next_point, Position)
     elif Opt_Type=="DoE":
-        next_point=doe_matrix[Cycle]
+        next_point=doe_matrix[Cycle-1]
         return CreateParmsToOptimize(next_point, Position)
 
 def RecordTargetValues(target):
-    global run_parameters, BO_next_point
+    global run_parameters, BO_next_point, doe_results
     ProcedureName, OptimizerName, OptimizationParms, MinValues, MaxValues, Position, Cycle, RewardValue = run_parameters
     Opt_Type=OptimizationParms[0]
     if Opt_Type=="Bayesian Optimization":
         BO.BO_Record(BO_next_point, target)
     elif Opt_Type=="DoE": #save values somewhere
-        pass
+        doe_results.append(target)
 
 def RetrieveOutputValue():
     global run_parameters
