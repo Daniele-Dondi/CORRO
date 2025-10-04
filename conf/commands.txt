@@ -250,7 +250,8 @@ send
 
 buffer
 #0
-#record all commands sent to SyringeBOT. Use print or play to send recorded command.
+#Instead of sending commands directly to syringebot, it
+#records all following commands sent to SyringeBOT. Use print or play to send recorded command.
 #
 #Example:
 #buffer
@@ -262,7 +263,8 @@ buffer
 
 record
 #0
-#record all commands sent to SyringeBOT. Use print or play to send recorded command.
+#Instead of sending commands directly to syringebot, it
+#records all following commands sent to SyringeBOT. Use print or play to send recorded command.
 #
 #Example:
 #record
@@ -274,7 +276,7 @@ record
 
 print
 #0
-#send to SyringeBOT commands recorded by record or buffer
+#send to SyringeBOT commands previously recorded by record or buffer
 #
 #Example:
 #buffer
@@ -286,7 +288,7 @@ print
 
 play
 #0
-#send to SyringeBOT commands recorded by record or buffer
+#send to SyringeBOT the commands recorded by record or buffer
 #
 #Example:
 #record
