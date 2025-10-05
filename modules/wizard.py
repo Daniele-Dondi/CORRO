@@ -1320,7 +1320,7 @@ def AskToShowMissingConnections(window,Missing):
         else:
             plural=""
         MissingObjects=Grid(window)
-        MissingObjects.WriteOnHeader("Number of missing object"+plural)
+        MissingObjects.WriteOnHeader("Missing object"+plural)
         MissingObjects.WriteOnHeader("---------------- Object missing (Reagent, Connection, Apparatus) ----------------")
         MissingObjects.CloseHeader()
         for i,Missed in enumerate(Missing):
