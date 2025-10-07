@@ -1,5 +1,66 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+def plot_multiscale_log(filepath):
+    """
+    Reads a log file with timestamps and multiple Y-values,
+    skips malformed lines, and plots each Y on its own axis with separate scales.
+
+    Parameters:
+        filepath (str): Path to the log file (.txt or .csv)
+    """
+    valid_rows = []
+
+    # Read and validate each line
+    with open(filepath, 'r') as file:
+        for line in file:
+            parts = line.strip().split('\t')
+            if len(parts) < 2:
+                continue  # Skip lines with no data
+            try:
+                timestamp = pd.to_datetime(parts[0])
+                values = list(map(float, parts[1:]))
+                valid_rows.append([timestamp] + values)
+            except Exception:
+                continue  # Skip malformed lines
+
+    # If no valid data, exit
+    if not valid_rows:
+        print("No valid data found in the file.")
+        return
+
+    # Create DataFrame
+    columns = ["timestamp"] + [f"value_{i}" for i in range(1, len(valid_rows[0]))]
+    df = pd.DataFrame(valid_rows, columns=columns)
+    df.set_index("timestamp", inplace=True)
+
+    # Plotting
+    fig, ax = plt.subplots(figsize=(12, 6))
+    colors = ['blue', 'green', 'red', 'purple', 'orange', 'brown', 'pink', 'gray']
+    axes = [ax]
+
+    # First Y-axis
+    axes[0].plot(df.index, df.iloc[:, 0], color=colors[0], label=df.columns[0])
+    axes[0].set_ylabel(df.columns[0], color=colors[0])
+    axes[0].tick_params(axis='y', labelcolor=colors[0])
+
+    # Additional Y-axes
+    for i in range(1, df.shape[1]):
+        new_ax = ax.twinx()
+        new_ax.spines["right"].set_position(("outward", 60 * i))
+        new_ax.plot(df.index, df.iloc[:, i], color=colors[i % len(colors)], label=df.columns[i])
+        new_ax.set_ylabel(df.columns[i], color=colors[i % len(colors)])
+        new_ax.tick_params(axis='y', labelcolor=colors[i % len(colors)])
+        axes.append(new_ax)
+
+    # Final touches
+    plt.title("Multi-Y Time Series Plot (Malformed Lines Skipped)")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 
 def choose_files():
     file_paths = filedialog.askopenfilenames(
@@ -32,6 +93,72 @@ def common_columns(list_of_lists):
         common &= set(cols)
 
     return list(common)
+
+##def compute_selected_column_averages(file_path, chunk_size, selected_columns_names, output_path, find_string=None):
+##    def mean_axis0(matrix):
+##        num_cols = len(matrix[0])
+##        col_sums = [0.0] * num_cols
+##        for row in matrix:
+##            for i, val in enumerate(row):
+##                col_sums[i] += val
+##        return [str(total / len(matrix)) for total in col_sums]
+##
+##    # Extract column names from the first valid line
+##    def get_column_names(path):
+##        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+##            for line in f:
+##                parts = line.strip().split("\t")
+##                if len(parts) > 1:
+##                    return ["timestamp"] + [f"value_{i}" for i in range(1, len(parts))]
+##        return []
+##
+##    Col_Names = get_column_names(file_path)
+##    selected_columns = []
+##    for column in selected_columns_names:
+##        try:
+##            selected_columns.append(Col_Names.index(column))
+##        except ValueError:
+##            print(f"Column '{column}' not found in file.")
+##            return
+##
+##    chunk = []
+##    line_count = 0
+##    found_count = 0
+##    last_timestamp = ""
+##
+##    with open(file_path, "r", encoding="utf-8", errors="ignore") as f, open(output_path, "a") as out:
+##        for line in f:
+##            line_count += 1
+##            if find_string and find_string in line:
+##                found_count += 1
+##
+##            parts = line.strip().split("\t")
+##            if len(parts) <= max(selected_columns):
+##                continue  # Skip lines with missing columns
+##
+##            try:
+##                timestamp = pd.to_datetime(parts[0])
+##                numeric_values = [float(parts[i]) for i in selected_columns]
+##                last_timestamp = parts[0]
+##            except Exception:
+##                continue  # Skip malformed lines
+##
+##            chunk.append(numeric_values)
+##
+##            if len(chunk) == chunk_size:
+##                avg = mean_axis0(chunk)
+##                out.write(last_timestamp + "\t" + "\t".join(avg) + "\n")
+##                chunk = []
+##
+##        # Handle final chunk
+##        if chunk:
+##            avg = mean_axis0(chunk)
+##            out.write(last_timestamp + "\t" + "\t".join(avg) + "\n")
+##
+##    print(f"{file_path}: {line_count} lines processed.")
+##    if find_string:
+##        print(f"'{find_string}' found {found_count} times.")
+
 
 def compute_selected_column_averages(file_path, chunk_size, selected_columns_names, output_path, find_string):
     
@@ -71,17 +198,18 @@ def compute_selected_column_averages(file_path, chunk_size, selected_columns_nam
             except:
                 continue  # Skip problematic lines
 
-            chunk.append(numeric_values)
+            if TimeStamp!="" and len(numeric_values)!=0:
+                chunk.append(numeric_values)
 
             if len(chunk) == chunk_size:
                 avg = mean_axis0(chunk)#np.mean(chunk, axis=0)
                 out.write(TimeStamp+"\t"+"\t".join(avg) + "\n")#map(str, avg)) + "\n")
                 chunk = []
 
-        if chunk:
-            avg = mean_axis0(chunk)#np.mean(chunk, axis=0)
-            out.write("\t".join(map(str, avg)) + "\n")
-    print("Read: "+str(i)+" lines")
+##        if chunk:
+##            avg = mean_axis0(chunk)#np.mean(chunk, axis=0)
+##            out.write("\t".join(map(str, avg)) + "\n")
+    print(file_path+": "+str(i)+" lines")
     if find_string:
         print(find_string,"found", found,"times")
 
@@ -141,7 +269,7 @@ class LogAnalyzer(tk.Toplevel):
         container.grid_columnconfigure(0, weight=1)
 
         # Ordered list of step classes
-        self.step_classes = [Step1, Step2, Step3, Step4]
+        self.step_classes = [Step1, Step2, Step3, Step4, Step5]
         self.frames = {}
 
         for F in self.step_classes:
@@ -295,7 +423,7 @@ class Step4(BaseStep):
       
         ttk.Label(self, text="Setup Average Analysis & Save").pack(pady=20)
         # Change Next to Done on last step
-        self.next_btn.config(text="Done", command=self.Proceed)
+        self.next_btn.config( command=self.Proceed)
         
         ttk.Label(self, text="Insert the number of points to average:").pack(pady=10)
         self.Average=tk.Entry(self)
@@ -309,8 +437,6 @@ class Step4(BaseStep):
         self.Search.pack()
         self.output_path = tk.StringVar()
         
-        tk.Button(self, text="Proceed", command=self.Proceed).pack(pady=10)
-
     def choose_output_file(self):
         filename = filedialog.asksaveasfilename(
             defaultextension=".txt",
@@ -318,6 +444,9 @@ class Step4(BaseStep):
             title="Select output file"
         )
         if filename:
+            if os.path.exists(filename):
+                os.remove(filename)
+                print(filename+" deleted")
             self.output_path.set(filename)
 
     def Check(self):
@@ -365,4 +494,25 @@ class Step4(BaseStep):
             if self.Check():
                 self.choose_output_file()
                 self.Shrink()
+                self.controller.next_step()
+
+class Step5(BaseStep):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+      
+        ttk.Label(self, text="Plot file").pack(pady=20)
+        # Change Next to Done on last step
+        self.next_btn.config(text="Finish", command=self.Finish)
+        
+        
+        tk.Button(self, text="Plot data", command=self.Plot).pack(pady=10)
+
+        
+    def Plot(self):
+        filepath = self.controller.frames[Step4].output_path.get()
+        plot_multiscale_log(filepath)
+
+    def Finish(self):
+        self.controller.destroy()
+        return
 
