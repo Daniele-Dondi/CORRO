@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.inspection import PartialDependenceDisplay
+from sklearn.model_selection import cross_val_score
 from itertools import combinations
 import shap
 import webbrowser
@@ -75,15 +77,68 @@ X_df = pd.DataFrame(X, columns=['x1', 'x2', 'x3', 'x4'])
 rf_model = RandomForestRegressor()
 rf_model.fit(X_df, Y)
 
+#RANDOM FOREST FITTING EVALUATION START
+
+# Predict on training or test set
+Y_pred = rf_model.predict(X_df)
+
+# Evaluate
+RF_EVALUATION="<h1>Model fitting</h1><br>Data are fitted with a <strong>Random Forest</strong> Algorithm. Values of fitting are displayed below:<br>"
+RF_EVALUATION+="R²:"+str(r2_score(Y, Y_pred))+"<br>"
+RF_EVALUATION+="MAE :"+str(mean_absolute_error(Y, Y_pred))+"<br>"
+RF_EVALUATION+="RMSE :"+str(np.sqrt(mean_squared_error(Y, Y_pred)))+"<br>"
+##print("R²:", r2_score(Y, Y_pred))
+##print("MAE:", mean_absolute_error(Y, Y_pred))
+##print("RMSE:", np.sqrt(mean_squared_error(Y, Y_pred)))
+
+
+scores = cross_val_score(rf_model, X_df, Y, cv=5, scoring='r2')  # or 'neg_mean_squared_error'
+RF_EVALUATION+="Cross-validated R² scores:"+str(scores)+"<br>"
+RF_EVALUATION+="Mean R² :"+str(scores.mean())+"<br>"
+##print("Cross-validated R² scores:", scores)
+##print("Mean R²:", scores.mean())
+
+residuals = Y - Y_pred
+plt.scatter(Y_pred, residuals)
+plt.axhline(0, color='red', linestyle='--')
+plt.xlabel("Predicted")
+plt.ylabel("Residuals")
+plt.title("Residual Plot")
+plt.savefig("RF_residues.png", dpi=300)
+plt.close()
+
+RF_EVALUATION+="""Resiuduals<br>The residual graphs should appear like random distributed points<br><img src="RF_residues.png" width="600"><br>"""
+
+importance = rf_model.feature_importances_
+pd.Series(importance, index=X_df.columns).sort_values(ascending=False).plot(kind='bar')
+plt.title("Feature Importances")
+plt.savefig("RF_feature_importance.png", dpi=300)
+plt.close()
+
+RF_EVALUATION+="""<img src="RF_feature_importance.png" width="600"><br><br>"""
+
+#RANDOM FOREST FITTING EVALUATION END
+
 # Plot PDP for one or more features
 features_to_plot = ['x1', 'x2', 'x3', 'x4']  # You can include single features or tuples for interactions
 
-# Plot all PDPs on two columns
+# Define number of plots and layout
+n_features = len(features_to_plot)
+n_cols = 2
+n_rows = (n_features + n_cols - 1) // n_cols  # Ceiling division
+
+# Create figure and axes manually
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
+
+# Flatten axes for compatibility
+axes = axes.flatten()
+
+# Plot PDPs
 PartialDependenceDisplay.from_estimator(
     rf_model,
     X_df,
     features_to_plot,
-    n_cols=2
+    ax=axes[:n_features]  # Use only the needed axes
 )
 
 plt.tight_layout()
@@ -93,11 +148,31 @@ plt.close()
 # Generate all pairwise combinations of features
 feature_names = X_df.columns.tolist()
 pairwise_features = list(combinations(feature_names, 2))
-PartialDependenceDisplay.from_estimator(rf_model, X_df, pairwise_features,n_cols=2)
-plt.tight_layout()
-plt.savefig("pdp_pairs.png", dpi=300)
-plt.close()
 
+# Layout: 2 columns, calculate rows
+n_cols = 2
+n_rows = (len(pairwise_features) + n_cols - 1) // n_cols
+
+# Create figure and axes
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows))
+axes = axes.flatten()
+
+# Plot each pairwise PDP into its own subplot
+for i, pair in enumerate(pairwise_features):
+    PartialDependenceDisplay.from_estimator(
+        rf_model,
+        X_df,
+        [pair],
+        ax=axes[i]
+    )
+
+# Hide unused axes if any
+for j in range(i + 1, len(axes)):
+    fig.delaxes(axes[j])
+
+plt.tight_layout()
+plt.savefig("pdp_pairs.png", dpi=300, bbox_inches='tight')
+plt.close()
 
 # === SHAP Integration ===
 # Create SHAP explainer
@@ -145,6 +220,8 @@ html_content = """
 <h1>Model Interpretation Report</h1>
 """
 
+html_content +=RF_EVALUATION
+
 # === PDP Main Effects ===
 html_content += "<h2>Partial Dependence Plots (Main Effects)</h2>"
 html_content += """
@@ -154,11 +231,10 @@ html_content += """
 """
 
 # === PDP Interactions ===
-html_content += "<h2>Partial Dependence Plots (Feature Interactions)</h2>"
 html_content += """
-<h3>Pairs</h3>
-<p>This plot shows how the combination of <strong>pairs</strong> influences the model's prediction. It helps reveal interaction effects between these two features.</p>
-<img src="pdp_pairs.png" width="600"><br>
+<h2>Partial Dependence Plots (All Feature Interactions)</h2>
+<p>This grid shows how pairs of features interact to influence the model's predictions. Look for curved surfaces or ridges to spot nonlinear effects and dependencies.</p>
+<img src="pdp_pairs.png" width="800"><br>
 """
 
 # === SHAP Summary Plot ===
