@@ -105,15 +105,15 @@ data = np.array([list(map(float, line.split())) for line in raw_data.strip().spl
 X = data[:, :4]  # First 4 columns
 Y = data[:, 4]   # Last column
 
-### Min-Max normalization to range [-1, 1]
-##X_min = X.min(axis=0)
-##X_max = X.max(axis=0)
-##
-### Avoid division by zero
-##denominator = X_max - X_min
-##denominator[denominator == 0] = 1
-##
-##X = 2 * (X - X_min) / denominator - 1
+# Min-Max normalization to range [-1, 1]
+X_min = X.min(axis=0)
+X_max = X.max(axis=0)
+
+# Avoid division by zero
+denominator = X_max - X_min
+denominator[denominator == 0] = 1
+
+X = 2 * (X - X_min) / denominator - 1
 
 # === Train GPR with ARD kernel ===
 kernel = C(1.0) * RBF(length_scale=[1.0]*X.shape[1])
