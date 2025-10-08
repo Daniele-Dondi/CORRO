@@ -1,0 +1,34 @@
+
+<html>
+<head><title>Model Interpretation Report</title></head>
+<body>
+<h1>Model Interpretation Report</h1>
+<h2>Partial Dependence Plots (Main Effects)</h2>
+<h3>Features</h3>
+<p>This plot shows how the feature affects the model's prediction on average, keeping all other features constant.</p>
+<img src="pdp_feature.png" width="600"><br>
+<h2>Partial Dependence Plots (Feature Interactions)</h2>
+<h3>Pairs</h3>
+<p>This plot shows how the combination of <strong>pairs</strong> influences the model's prediction. It helps reveal interaction effects between these two features.</p>
+<img src="pdp_pairs.png" width="600"><br>
+<h2>SHAP Summary Plot</h2>
+<h3>Shap</h3>
+<p>
+1. Y-axis: Feature Names<br>
+Ranked by importance (top = most influential).<br>
+Importance is based on the average absolute SHAP value = how much each feature contributes to predictions overall.<br>
+2. X-axis: SHAP Value<br>
+Represents the impact of the feature on the model’s output.<br>
+Positive SHAP value -> pushes prediction higher.<br>
+Negative SHAP value -> pushes prediction lower.<br>
+3. Color: Feature Value<br>
+Each dot is a sample.<br>
+Color shows the actual value of the feature for that sample:<br>
+Red = high feature value<br>
+Blue = low feature value</p>
+<img src="shap_summary.png" width="600"><br>
+<h2>SHAP Dependence Plots</h2>
+<h3>Dependence</h3>
+<p>This SHAP dependence plot shows how the value of a <strong>feature</strong> impacts the prediction for each sample. Color indicates the value of interacting features, revealing potential nonlinear or interaction effects.</p>
+<img src="shap_dependence.png" width="600"><br>
+</body></html>

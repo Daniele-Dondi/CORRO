@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import PartialDependenceDisplay
 from itertools import combinations
 import shap
+import webbrowser
+import os
 
 # Paste your data as a multiline string
 raw_data = """
@@ -66,8 +68,6 @@ data = np.array([list(map(float, line.split())) for line in raw_data.strip().spl
 X = data[:, :4]  # First 4 columns
 Y = data[:, 4]   # Last column
 
-
-
 # Prepare your data
 X_df = pd.DataFrame(X, columns=['x1', 'x2', 'x3', 'x4'])
 
@@ -78,7 +78,7 @@ rf_model.fit(X_df, Y)
 # Plot PDP for one or more features
 features_to_plot = ['x1', 'x2', 'x3', 'x4']  # You can include single features or tuples for interactions
 
-# Plot all PDPs in a single row
+# Plot all PDPs on two columns
 PartialDependenceDisplay.from_estimator(
     rf_model,
     X_df,
@@ -87,14 +87,16 @@ PartialDependenceDisplay.from_estimator(
 )
 
 plt.tight_layout()
-plt.show()
+plt.savefig("pdp_feature.png", dpi=300)
+plt.close()
 
 # Generate all pairwise combinations of features
 feature_names = X_df.columns.tolist()
 pairwise_features = list(combinations(feature_names, 2))
 PartialDependenceDisplay.from_estimator(rf_model, X_df, pairwise_features,n_cols=2)
 plt.tight_layout()
-plt.show()
+plt.savefig("pdp_pairs.png", dpi=300)
+plt.close()
 
 
 # === SHAP Integration ===
@@ -105,7 +107,10 @@ explainer = shap.Explainer(rf_model, X_df)
 shap_values = explainer(X_df)
 
 # === SHAP Summary Plot ===
-shap.summary_plot(shap_values, X_df)
+shap.summary_plot(shap_values, X_df, show=False)
+plt.tight_layout()
+plt.savefig("shap_summary.png", dpi=300, bbox_inches='tight')
+plt.close()
 
 # Prepare subplot grid
 n_features = X_df.shape[1]
@@ -130,4 +135,68 @@ for j in range(i + 1, len(axes)):
     fig.delaxes(axes[j])
 
 plt.tight_layout()
-plt.show()
+plt.savefig("shap_dependence.png", dpi=300)
+plt.close()
+
+html_content = """
+<html>
+<head><title>Model Interpretation Report</title></head>
+<body>
+<h1>Model Interpretation Report</h1>
+"""
+
+# === PDP Main Effects ===
+html_content += "<h2>Partial Dependence Plots (Main Effects)</h2>"
+html_content += """
+<h3>Features</h3>
+<p>This plot shows how the feature affects the model's prediction on average, keeping all other features constant.</p>
+<img src="pdp_feature.png" width="600"><br>
+"""
+
+# === PDP Interactions ===
+html_content += "<h2>Partial Dependence Plots (Feature Interactions)</h2>"
+html_content += """
+<h3>Pairs</h3>
+<p>This plot shows how the combination of <strong>pairs</strong> influences the model's prediction. It helps reveal interaction effects between these two features.</p>
+<img src="pdp_pairs.png" width="600"><br>
+"""
+
+# === SHAP Summary Plot ===
+html_content += "<h2>SHAP Summary Plot</h2>"
+html_content += """
+<h3>Shap</h3>
+<p>
+1. Y-axis: Feature Names<br>
+Ranked by importance (top = most influential).<br>
+Importance is based on the average absolute SHAP value = how much each feature contributes to predictions overall.<br>
+2. X-axis: SHAP Value<br>
+Represents the impact of the feature on the model’s output.<br>
+Positive SHAP value -> pushes prediction higher.<br>
+Negative SHAP value -> pushes prediction lower.<br>
+3. Color: Feature Value<br>
+Each dot is a sample.<br>
+Color shows the actual value of the feature for that sample:<br>
+Red = high feature value<br>
+Blue = low feature value</p>
+<img src="shap_summary.png" width="600"><br>
+"""
+
+
+# === SHAP Dependence Plots ===
+html_content += "<h2>SHAP Dependence Plots</h2>"
+html_content += """
+<h3>Dependence</h3>
+<p>This SHAP dependence plot shows how the value of a <strong>feature</strong> impacts the prediction for each sample. Color indicates the value of interacting features, revealing potential nonlinear or interaction effects.</p>
+<img src="shap_dependence.png" width="600"><br>
+"""
+
+html_content += "</body></html>"
+
+# Save HTML file
+html_filename = "model_report.html"
+with open(html_filename, "w") as f:
+    f.write(html_content)
+
+# Display HTML file in the default browser
+full_path = os.path.abspath(html_filename)
+webbrowser.open(f"file:///{full_path}")
