@@ -83,7 +83,7 @@ rf_model.fit(X_df, Y)
 Y_pred = rf_model.predict(X_df)
 
 # Evaluate
-RF_EVALUATION="<h1>Model fitting</h1><br>Data are fitted with a <strong>Random Forest</strong> Algorithm. Values of fitting are displayed below:<br>"
+RF_EVALUATION="<h1>Model fitting</h1><br>Data are fitted with a <strong>Random Forest</strong> Algorithm. <br>Values of fitting are displayed below:<br>"
 RF_EVALUATION+="R²:"+str(r2_score(Y, Y_pred))+"<br>"
 RF_EVALUATION+="MAE :"+str(mean_absolute_error(Y, Y_pred))+"<br>"
 RF_EVALUATION+="RMSE :"+str(np.sqrt(mean_squared_error(Y, Y_pred)))+"<br>"
@@ -93,7 +93,7 @@ RF_EVALUATION+="RMSE :"+str(np.sqrt(mean_squared_error(Y, Y_pred)))+"<br>"
 
 
 scores = cross_val_score(rf_model, X_df, Y, cv=5, scoring='r2')  # or 'neg_mean_squared_error'
-RF_EVALUATION+="Cross-validated R² scores:"+str(scores)+"<br>"
+RF_EVALUATION+="Cross-validated R² scores:<br>"+str(scores)+"<br>"
 RF_EVALUATION+="Mean R² :"+str(scores.mean())+"<br>"
 ##print("Cross-validated R² scores:", scores)
 ##print("Mean R²:", scores.mean())
@@ -107,7 +107,7 @@ plt.title("Residual Plot")
 plt.savefig("RF_residues.png", dpi=300)
 plt.close()
 
-RF_EVALUATION+="""Resiuduals<br>The residual graphs should appear like random distributed points<br><img src="RF_residues.png" width="600"><br>"""
+RF_EVALUATION+="""<h3>Residuals</h3>The residual graph should appear like random distributed points<br><img src="RF_residues.png" width="600"><br>"""
 
 importance = rf_model.feature_importances_
 pd.Series(importance, index=X_df.columns).sort_values(ascending=False).plot(kind='bar')
@@ -115,6 +115,7 @@ plt.title("Feature Importances")
 plt.savefig("RF_feature_importance.png", dpi=300)
 plt.close()
 
+RF_EVALUATION+="""<br>Below the parameters sorted from the most important to the less important<br>"""
 RF_EVALUATION+="""<img src="RF_feature_importance.png" width="600"><br><br>"""
 
 #RANDOM FOREST FITTING EVALUATION END
