@@ -9,7 +9,6 @@ from itertools import combinations
 import shap
 import webbrowser
 import os
-
 import tkinter as tk
 from tkinter import filedialog
 
@@ -35,7 +34,7 @@ def Pdp_Shap2HTML(filename):
     base_name = os.path.basename(filename)
     RF_EVALUATION=f"<h2>Processed filename: {base_name}</h2>"
     RF_EVALUATION+="<h1>Model fitting</h1><br>Data are fitted with a <strong>Random Forest</strong> Algorithm. <br>Values of fitting are displayed below:<br>"
-    RF_EVALUATION+="R²:"+str(r2_score(Y, Y_pred))+"<br>"
+    RF_EVALUATION+="R<sup>2</sup>:"+str(r2_score(Y, Y_pred))+"<br>"
     RF_EVALUATION+="MAE :"+str(mean_absolute_error(Y, Y_pred))+"<br>"
     RF_EVALUATION+="RMSE :"+str(np.sqrt(mean_squared_error(Y, Y_pred)))+"<br>"
     ##print("R²:", r2_score(Y, Y_pred))
@@ -44,8 +43,8 @@ def Pdp_Shap2HTML(filename):
 
 
     scores = cross_val_score(rf_model, X_df, Y, cv=5, scoring='r2')  # or 'neg_mean_squared_error'
-    RF_EVALUATION+="Cross-validated R² scores:<br>"+str(scores)+"<br>"
-    RF_EVALUATION+="Mean R² :"+str(scores.mean())+"<br>"
+    RF_EVALUATION+="Cross-validated R<sup>2</sup> scores:<br>"+str(scores)+"<br>"
+    RF_EVALUATION+="Mean R<sup>2</sup> :"+str(scores.mean())+"<br>"
     ##print("Cross-validated R² scores:", scores)
     ##print("Mean R²:", scores.mean())
 
@@ -242,7 +241,7 @@ def load_csv():
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("CSV Loader")
+    root.title("Random Forest HTML")
     root.geometry("300x150")
 
     # Add button to trigger CSV loading

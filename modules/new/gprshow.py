@@ -42,9 +42,6 @@ def update_plot(*args):
     canvas.draw()
 
 
-
-import numpy as np
-
 # Paste your data as a multiline string
 raw_data = """
 0.570291777	0.157142857	0.30952381	0.059171598	41.26452613
