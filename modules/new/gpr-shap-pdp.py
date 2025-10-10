@@ -27,7 +27,7 @@ def normalize_features(X):
 # Fit GPR model
 def fit_gpr(X, y):
     kernel = C(1.0, (1e-3, 1e3)) * RBF(length_scale=1.0)
-    gpr = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10, normalize_y=True)
+    gpr = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=30, normalize_y=True)
     gpr.fit(X, y)
     return gpr
 
@@ -46,7 +46,7 @@ def pdp_analysis(model, X, feature_names):
 def run_pipeline(filename):
     X_raw, y, feature_names = load_data(filename)
     X_scaled, scaler = normalize_features(X_raw)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)#, random_state=42)
 
     gpr_model = fit_gpr(X_train, y_train)
 
