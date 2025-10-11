@@ -4,10 +4,30 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import seaborn as sns
+
 
 # Constants
 R = 8.314  # J/mol·K
 T = 298.15  # K
+
+def plot_ea_heatmap(df, R=8.314, T=298.15):
+    df = df.copy()
+    df['Ligand_Short_Hand'] = df['Ligand_Short_Hand'].fillna('None').str.strip()
+    df['Base'] = df['Base'].fillna('Unknown').astype(str).str.strip()
+    df['Yield'] = df['Yield'].clip(lower=1e-3)
+    df['Ea_rel'] = -R * T * np.log(df['Yield'])
+
+    pivot = df.pivot(index='Base', columns='Ligand_Short_Hand', values='Ea_rel')
+
+    plt.figure(figsize=(12, 6))
+    sns.heatmap(pivot, annot=True, fmt=".1f", cmap="YlGnBu", linewidths=0.5, cbar_kws={'label': 'Ea (J/mol)'})
+    plt.title("Relative Activation Energy (Ea) Heatmap")
+    plt.xlabel("Ligand")
+    plt.ylabel("Base")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
 
 # Core logic
 def estimate_Ea(yield_values):
@@ -59,6 +79,24 @@ def select_file():
         base_var.set(bases[0])
         update_plot()
 
+##MAXIMUM THERMODYNAMIC YIELD
+#It calculates the maximum thermodynamic Yield for a reaction, knowing the deltaG value in J/mol, the stoichiometry and the initial concentrations of reactants.
+def equilibrium_yield_stoichiometry(DeltaG, A0, B0, a, b, c, d, T=298.15, R=8.314):
+    Keq = np.exp(-DeltaG / (R * T))
+
+    def equilibrium_eq(x):
+        numerator = (c * x)**c * (d * x)**d
+        denominator = (A0 - a * x)**a * (B0 - b * x)**b
+        return Keq * denominator - numerator
+
+    from scipy.optimize import brentq
+    x_max = min(A0 / a, B0 / b)
+    x_eq = brentq(equilibrium_eq, 0, x_max)
+
+    yield_C = c * x_eq
+    yield_fraction = yield_C / (c * x_max)
+    return yield_C, yield_fraction        
+
 # GUI setup
 root = tk.Tk()
 root.title("Thermokinetic Ligand/Base Analyzer")
@@ -87,8 +125,10 @@ view_menu = ttk.Combobox(frame, textvariable=view_mode, state="readonly")
 view_menu['values'] = ["Ligand vs Base", "Base vs Ligand"]
 view_menu.grid(row=3, column=1)
 
-
 ttk.Button(frame, text="Update Ea", command=update_plot).grid(row=4, column=0, columnspan=2, pady=5)
+
+ttk.Button(frame, text="Show Ea Heatmap", command=lambda: plot_ea_heatmap(df)).grid(row=5, column=0, columnspan=2, pady=5)
+
 
 
 
