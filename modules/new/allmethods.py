@@ -37,18 +37,6 @@ def format_prediction_result(best_input, best_yield):
     )
     return f"🔍 Best predicted yield: {best_yield:.3f}%\n📈 Optimal input: {formatted}"
 
-##def find_optimal_input(model, bounds, n_samples=1000):
-##    feature_names = list(bounds.keys())
-##    X_random = np.array([
-##        [np.random.uniform(bounds[feat][0], bounds[feat][1]) for feat in feature_names]
-##        for _ in range(n_samples)
-##    ])
-##    X_random = pd.DataFrame(X_random, columns=feature_names)
-##    y_pred = model.predict(X_random)  # Pipeline handles scaling internally
-##    best_idx = np.argmax(y_pred)
-##    best_input = dict(zip(feature_names, X_random[best_idx]))
-##    best_yield = y_pred[best_idx]
-##    return best_input, best_yield
 
 def find_optimal_input(model, bounds, n_samples=1000):
     feature_names = list(bounds.keys())
