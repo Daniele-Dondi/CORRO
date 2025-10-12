@@ -7,12 +7,52 @@ from sklearn.svm import SVR
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.pipeline import Pipeline
 import warnings
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 import pandas as pd
 import tkinter as tk
+from tkinter import messagebox
 from tkinter import filedialog
+from numpy.polynomial.legendre import legval
+from sklearn.base import BaseEstimator, TransformerMixin
+import scipy.special as sp
+
+
+class LegendreFeatures(BaseEstimator, TransformerMixin):
+    def __init__(self, degree=3):
+        self.degree = degree
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        #from scipy.special import eval_legendre
+        X = np.asarray(X)
+        X_scaled = 2 * (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0)) - 1  # scale to [-1, 1]
+        features = [sp.eval_legendre(d, X_scaled) for d in range(self.degree + 1)]
+        return np.concatenate(features, axis=1)
+
+##class LegendreFeatures(BaseEstimator, TransformerMixin):
+##    def __init__(self, degree=3):
+##        self.degree = degree
+##
+##    def fit(self, X, y=None):
+##        self.min_ = X.min(axis=0)
+##        self.max_ = X.max(axis=0)
+##        return self
+##
+##    def transform(self, X):
+##        import numpy as np
+##        from scipy.special import eval_legendre
+##        X = np.asarray(X)
+##        denom = (self.max_ - self.min_)
+##        denom[denom == 0] = 1  # avoid division by zero
+##        X_scaled = 2 * (X - self.min_) / denom - 1
+##        features = [eval_legendre(d, X_scaled) for d in range(self.degree + 1)]
+##        return np.concatenate(features, axis=1)
+
 
 def interpret_r2_scores(r2_train, r2_test, r2_whole):
     delta_train_test = r2_train - r2_test
@@ -64,7 +104,15 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     bounds = get_feature_bounds(df)    
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
-    
+
+    # 🔎 Pre-check for constant features
+    constant_features = [col for col in X.columns if X[col].nunique() == 1]
+    if constant_features:
+        messagebox.showerror(
+            "Constant Feature Detected",
+            f"The following features are constant and may cause crashes with Legendre scaling:\n\n"
+            + ", ".join(constant_features)
+        )    
 
     def maybe_scale(model):
         return make_pipeline(StandardScaler(), model) if use_scaling else model
@@ -72,9 +120,16 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     models = {
         "AdaBoost": maybe_scale(AdaBoostRegressor()),
         "Random Forest": maybe_scale(RandomForestRegressor()),
+        "Legendre 3rd + Random Forest": maybe_scale(make_pipeline(LegendreFeatures(degree=3), RandomForestRegressor())),        
         "Polynomial Regression degree 1": maybe_scale(make_pipeline(PolynomialFeatures(degree=1), LinearRegression())),
         "Polynomial Regression degree 2": maybe_scale(make_pipeline(PolynomialFeatures(degree=2), LinearRegression())),
-        "Polynomial Regression degree 3": maybe_scale(make_pipeline(PolynomialFeatures(degree=3), LinearRegression()))
+        "Polynomial Regression degree 3": maybe_scale(make_pipeline(PolynomialFeatures(degree=3), LinearRegression())),
+        "Legendre Regression degree 2": maybe_scale(make_pipeline(LegendreFeatures(degree=2), LinearRegression())),
+        "Legendre Regression degree 3": maybe_scale(make_pipeline(LegendreFeatures(degree=3), LinearRegression())),
+        "Legendre Regression degree 4": maybe_scale(make_pipeline(LegendreFeatures(degree=4), LinearRegression())),
+        "Legendre Regression degree 5": maybe_scale(make_pipeline(LegendreFeatures(degree=5), LinearRegression())),
+        "Legendre 3rd + GPR": maybe_scale(make_pipeline(LegendreFeatures(degree=3), GaussianProcessRegressor())),
+        "Legendre 3rd + SVR": maybe_scale(make_pipeline(LegendreFeatures(degree=3), SVR()))
     }
 
     if tune_svr:
@@ -89,8 +144,22 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     else:
         models["SVR"] = maybe_scale(SVR(kernel='rbf', C=1.0, epsilon=0.1))
 
+    # 🔧 Add Legendre + SVR (tuned)
+    legendre_svr_pipeline = Pipeline([
+        ('legendre', LegendreFeatures()),  # step name is 'legendre'
+        ('svr', SVR())
+    ])
+
+    param_grid_svr = {
+        'legendre__degree': [2, 3, 4],
+        'svr__C': [0.1, 1, 10],
+        'svr__epsilon': [0.01, 0.1],
+        'svr__kernel': ['rbf', 'linear']
+    }
+    models["Legendre + SVR (tuned)"] = GridSearchCV(legendre_svr_pipeline, param_grid_svr, cv=5, n_jobs=-1)
+
     if tune_gpr:
-        from sklearn.pipeline import Pipeline
+        
         gpr_pipeline = Pipeline([('gpr', GaussianProcessRegressor())])
         gpr_param_grid = {
             'gpr__kernel': [
@@ -109,43 +178,50 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     for name, model in models.items():
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always", category=ConvergenceWarning)
-            
-            comment=""
-            if use_kfold and not isinstance(model, GridSearchCV):
-                scores = cross_val_score(model, X, y, cv=5, scoring='r2')
-                r2_mean = scores.mean()
-                r2_std = scores.std()
-                comment = f"Cross-validated R² = {r2_mean:.3f} ± {r2_std:.3f}\n"
-##            else:
-            # Restore train/test split evaluation
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            model.fit(X_train, y_train)
-            r2_train = model.score(X_train, y_train)
-            r2_test = model.score(X_test, y_test)
-            r2_whole = model.score(X, y)
-            comment += (
-                f"R² on training = {r2_train:.3f}\n"
-                f"R² on test     = {r2_test:.3f}\n"
-                f"R² on whole    = {r2_whole:.3f}\n"
-                f"→ {interpret_r2_scores(r2_train, r2_test, r2_whole)}"
-            )
 
-            tuning_str = ""
-            if isinstance(model, GridSearchCV):
-                best_params = model.best_params_
-                best_score = model.best_score_
-                tuning_str = f"\n\n🔧 Best params: {best_params}\n🔍 CV score: {best_score:.3f}"                
-                best_model = model.best_estimator_
-                best_model.fit(X, y)  # Refit on full data
-                r2_whole = best_model.score(X, y)
-                comment += f"\nBest model refitted on full data\nR² on whole = {r2_whole:.3f}"
+            try:
+                comment=""
+                if use_kfold and not isinstance(model, GridSearchCV):
+                    scores = cross_val_score(model, X, y, cv=5, scoring='r2')
+                    r2_mean = scores.mean()
+                    r2_std = scores.std()
+                    comment = f"Cross-validated R² = {r2_mean:.3f} ± {r2_std:.3f}\n"
+
+                # Train/test split evaluation
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                model.fit(X_train, y_train)
+                r2_train = model.score(X_train, y_train)
+                r2_test = model.score(X_test, y_test)
+                r2_whole = model.score(X, y)
+                comment += (
+                    f"R² on training = {r2_train:.3f}\n"
+                    f"R² on test     = {r2_test:.3f}\n"
+                    f"R² on whole    = {r2_whole:.3f}\n"
+                    f"→ {interpret_r2_scores(r2_train, r2_test, r2_whole)}"
+                )
+
+                tuning_str = ""
+                if isinstance(model, GridSearchCV):
+                    best_params = model.best_params_
+                    best_score = model.best_score_
+                    tuning_str = f"\n\n🔧 Best params: {best_params}\n🔍 CV score: {best_score:.3f}"                
+                    best_model = model.best_estimator_
+                    best_model.fit(X, y)  # Refit on full data
+                    r2_whole = best_model.score(X, y)
+                    comment += f"\nBest model refitted on full data\nR² on whole = {r2_whole:.3f}"
+                    
+                if make_prediction:
+                    best_input, best_yield = find_optimal_input(model, bounds)
+                    comment+="\n"+format_prediction_result(best_input, best_yield)                
                 
-            if make_prediction:
-                best_input, best_yield = find_optimal_input(model, bounds)
-                comment+="\n"+format_prediction_result(best_input, best_yield)                
+                warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
+                result = f"{name}:\n  → {comment}{tuning_str}{warning_str}\n\n"
+
+            except Exception as e:
+                # Catch any crash and report it instead of stopping
+                result = f"{name}:\n  ❌ Error during evaluation\n\n"
+                print(str(e)+"\n")
             
-            warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
-            result = f"{name}:\n  → {comment}{tuning_str}{warning_str}\n\n"
             output_widget.insert(tk.END, result)
             output_widget.see(tk.END)
     
