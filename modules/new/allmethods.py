@@ -35,7 +35,7 @@ def format_prediction_result(best_input, best_yield):
     formatted = ", ".join(
         f"{key} = {float(value):.3f}" for key, value in best_input.items()
     )
-    return f"🔍 Best predicted yield: {best_yield:.3f}%\n📈 Optimal input: {formatted}"
+    return f"🥇 Best predicted yield: {best_yield:.3f}%\n📈 Optimal input: {formatted}"
 
 
 def find_optimal_input(model, bounds, n_samples=1000):
@@ -109,36 +109,41 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     for name, model in models.items():
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always", category=ConvergenceWarning)
-
+            
+            comment=""
             if use_kfold and not isinstance(model, GridSearchCV):
                 scores = cross_val_score(model, X, y, cv=5, scoring='r2')
                 r2_mean = scores.mean()
                 r2_std = scores.std()
-                comment = f"Cross-validated R² = {r2_mean:.3f} ± {r2_std:.3f}"
-            else:
-                # Restore train/test split evaluation
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                model.fit(X_train, y_train)
-                r2_train = model.score(X_train, y_train)
-                r2_test = model.score(X_test, y_test)
-                r2_whole = model.score(X, y)
-                comment = (
-                    f"R² on training = {r2_train:.3f}\n"
-                    f"R² on test     = {r2_test:.3f}\n"
-                    f"R² on whole    = {r2_whole:.3f}\n"
-                    f"→ {interpret_r2_scores(r2_train, r2_test, r2_whole)}"
-                )
-
-            if make_prediction:
-                best_input, best_yield = find_optimal_input(model, bounds)
-                comment+="\n"+format_prediction_result(best_input, best_yield)
+                comment = f"Cross-validated R² = {r2_mean:.3f} ± {r2_std:.3f}\n"
+##            else:
+            # Restore train/test split evaluation
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model.fit(X_train, y_train)
+            r2_train = model.score(X_train, y_train)
+            r2_test = model.score(X_test, y_test)
+            r2_whole = model.score(X, y)
+            comment += (
+                f"R² on training = {r2_train:.3f}\n"
+                f"R² on test     = {r2_test:.3f}\n"
+                f"R² on whole    = {r2_whole:.3f}\n"
+                f"→ {interpret_r2_scores(r2_train, r2_test, r2_whole)}"
+            )
 
             tuning_str = ""
             if isinstance(model, GridSearchCV):
                 best_params = model.best_params_
                 best_score = model.best_score_
-                tuning_str = f"\n🔧 Best params: {best_params}\n🔍 CV score: {best_score:.3f}"
-
+                tuning_str = f"\n\n🔧 Best params: {best_params}\n🔍 CV score: {best_score:.3f}"                
+                best_model = model.best_estimator_
+                best_model.fit(X, y)  # Refit on full data
+                r2_whole = best_model.score(X, y)
+                comment += f"\nBest model refitted on full data\nR² on whole = {r2_whole:.3f}"
+                
+            if make_prediction:
+                best_input, best_yield = find_optimal_input(model, bounds)
+                comment+="\n"+format_prediction_result(best_input, best_yield)                
+            
             warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
             result = f"{name}:\n  → {comment}{tuning_str}{warning_str}\n\n"
             output_widget.insert(tk.END, result)
