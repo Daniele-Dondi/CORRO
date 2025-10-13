@@ -8,6 +8,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import VarianceThreshold
 import warnings
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
@@ -99,6 +100,36 @@ def get_feature_bounds(df):
         if pd.api.types.is_numeric_dtype(df[col])
     }
 
+def RemoveConstantColumns(X):
+    # Initialize the transformer with threshold=0 to remove constant features
+    selector = VarianceThreshold(threshold=0)
+
+    # Fit the selector to the data
+    selector.fit(X)
+
+    # Get the mask of features that are not constant
+    mask = selector.get_support()
+
+    # Identify removed (constant) features
+    removed_columns = X.columns[~mask].tolist()
+
+    # Apply the transformation to remove constant features
+    X_reduced = selector.transform(X)
+
+    # Optionally convert back to DataFrame with remaining column names
+    X_reduced = pd.DataFrame(X_reduced, columns=X.columns[mask])
+
+    # Show message box if any columns were removed
+    if removed_columns:
+        messagebox.showinfo(
+            "Removed Constant Features",
+            "The following constant features were removed:\n\n" + ", ".join(removed_columns)
+        )
+        return X_reduced
+    else:
+        return X
+    
+
 def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfold, make_prediction):
     df = pd.read_csv(filename)
     bounds = get_feature_bounds(df)    
@@ -106,13 +137,7 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     y = df.iloc[:, -1]
 
     # 🔎 Pre-check for constant features
-    constant_features = [col for col in X.columns if X[col].nunique() == 1]
-    if constant_features:
-        messagebox.showerror(
-            "Constant Feature Detected",
-            f"The following features are constant and may cause crashes with Legendre scaling:\n\n"
-            + ", ".join(constant_features)
-        )    
+    X = RemoveConstantColumns(X)
 
     def maybe_scale(model):
         return make_pipeline(StandardScaler(), model) if use_scaling else model
