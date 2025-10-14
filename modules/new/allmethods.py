@@ -97,9 +97,10 @@ def find_optimal_input(model, bounds, n_samples=1000):
 def get_feature_bounds(df):
     return {
         col: (df[col].min(), df[col].max())
-        for col in df.columns[:-1]  # exclude target column
+        for col in df.columns
         if pd.api.types.is_numeric_dtype(df[col])
     }
+
 
 def RemoveConstantColumns(X):
     # Initialize the transformer with threshold=0 to remove constant features
@@ -133,13 +134,13 @@ def RemoveConstantColumns(X):
 
 def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfold, make_prediction):
     df = pd.read_csv(filename)
-    bounds = get_feature_bounds(df)    
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
     # 🔎 Pre-check for constant features
     X = RemoveConstantColumns(X)
-
+    bounds=get_feature_bounds(X)
+    
     def maybe_scale(model):
         return make_pipeline(StandardScaler(), model) if use_scaling else model
 
@@ -213,7 +214,7 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
                     r2_mean = scores.mean()
                     r2_std = scores.std()
                     comment = f"Cross-validated R² = {r2_mean:.3f} ± {r2_std:.3f}\n"
-
+                        
                 # Train/test split evaluation
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
                 model.fit(X_train, y_train)
