@@ -9,6 +9,7 @@ from sklearn.model_selection import cross_val_score, KFold
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import VarianceThreshold
+from xgboost import XGBRegressor
 import warnings
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
@@ -144,6 +145,7 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
 
     models = {
         "AdaBoost": maybe_scale(AdaBoostRegressor()),
+        "XGBoost": maybe_scale(XGBRegressor(n_estimators=100, max_depth=4, learning_rate=0.1, random_state=42)),
         "Random Forest": maybe_scale(RandomForestRegressor()),
         "Legendre 3rd + Random Forest": maybe_scale(make_pipeline(LegendreFeatures(degree=3), RandomForestRegressor())),        
         "Polynomial Regression degree 1": maybe_scale(make_pipeline(PolynomialFeatures(degree=1), LinearRegression())),
