@@ -21,6 +21,64 @@ from numpy.polynomial.legendre import legval
 from sklearn.base import BaseEstimator, TransformerMixin
 import scipy.special as sp
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def pearson_with_comment(X, threshold=0.7):
+    """
+    Computes Pearson correlation and returns a comment on highly correlated pairs.
+
+    Parameters:
+    - X: pandas DataFrame
+    - threshold: correlation coefficient above which variables are flagged
+
+    Returns:
+    - corr_matrix: full Pearson correlation matrix
+    - comment: text summary of correlated pairs
+    """
+    # Compute Pearson correlation matrix
+    corr_matrix = X.corr()
+
+    # Extract upper triangle without diagonal
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
+    corr_values = corr_matrix.where(mask)
+
+    # Find pairs above threshold
+    correlated_pairs = [
+        (i, j, corr_values.loc[i, j])
+        for i in corr_values.columns
+        for j in corr_values.index
+        if pd.notnull(corr_values.loc[i, j]) and abs(corr_values.loc[i, j]) >= threshold
+    ]
+
+    # Generate comment
+    if correlated_pairs:
+        lines = [f"Variables '{a}' and '{b}' show strong correlation (r = {r:.2f})."
+                 for a, b, r in sorted(correlated_pairs, key=lambda x: -abs(x[2]))]
+        comment = "Potentially correlated variable pairs:\n" + "\n".join(lines)
+    else:
+        comment = "No variable pairs exceed the correlation threshold."
+
+    return comment
+
+
+def Pearson(X):
+    # Compute the correlation matrix
+    corr = X.corr()
+
+    # Create a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    plt.figure(figsize=(10, 8))
+
+    # Draw the heatmap with the mask
+    sns.heatmap(corr, mask=mask, annot=True, fmt=".2f", cmap='coolwarm', square=True, linewidths=0.5)
+
+    # Add title and show
+    plt.title('Pearson Correlation Heatmap (Lower Triangle)')
+    plt.tight_layout()
+    plt.show()
 
 class LegendreFeatures(BaseEstimator, TransformerMixin):
     def __init__(self, degree=3):
@@ -35,26 +93,6 @@ class LegendreFeatures(BaseEstimator, TransformerMixin):
         X_scaled = 2 * (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0)) - 1  # scale to [-1, 1]
         features = [sp.eval_legendre(d, X_scaled) for d in range(self.degree + 1)]
         return np.concatenate(features, axis=1)
-
-##class LegendreFeatures(BaseEstimator, TransformerMixin):
-##    def __init__(self, degree=3):
-##        self.degree = degree
-##
-##    def fit(self, X, y=None):
-##        self.min_ = X.min(axis=0)
-##        self.max_ = X.max(axis=0)
-##        return self
-##
-##    def transform(self, X):
-##        import numpy as np
-##        from scipy.special import eval_legendre
-##        X = np.asarray(X)
-##        denom = (self.max_ - self.min_)
-##        denom[denom == 0] = 1  # avoid division by zero
-##        X_scaled = 2 * (X - self.min_) / denom - 1
-##        features = [eval_legendre(d, X_scaled) for d in range(self.degree + 1)]
-##        return np.concatenate(features, axis=1)
-
 
 def interpret_r2_scores(r2_train, r2_test, r2_whole):
     delta_train_test = r2_train - r2_test
@@ -134,6 +172,7 @@ def RemoveConstantColumns(X):
 
 def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfold, make_prediction):
     df = pd.read_csv(filename)
+    print(pearson_with_comment(df))
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
