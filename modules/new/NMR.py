@@ -9,6 +9,8 @@ from scipy.signal import find_peaks
 # Replace with your actual file path
 data = jcamp_read('pre.dx')
 
+print(len(data))
+
 # Inspect the keys and data
 print(data.keys())
 
