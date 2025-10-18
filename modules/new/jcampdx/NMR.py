@@ -28,10 +28,10 @@ size = udic[0]['size']
 sw = udic[0]['sw']
 obs = udic[0]['obs']
 car = udic[0]['car']
+print(size,sw,obs,car)
 
 xaxis = np.fft.fftshift(np.fft.fftfreq(size, 1/sw))
 xaxis = car - xaxis / obs  # Convert to ppm
-
 
 
 if udic[0]['car'] != 999.99:
