@@ -5,8 +5,52 @@ import numpy as np
 from matplotlib.widgets import Slider
 import nmrglue as ng
 from scipy.signal import savgol_filter
+from scipy.signal import find_peaks
 from matplotlib.widgets import Button
 from scipy.signal import find_peaks
+from scipy.io.wavfile import write
+
+def PlayFID(d,samplerate=44100):
+    raw_d=d.copy()    
+    # Extract real part of FID    
+    fid_real = np.real(raw_d)
+
+    # Normalize to 16-bit range
+    fid_real /= np.max(np.abs(fid_real))  # scale to [-1, 1]
+    fid_int16 = np.int16(fid_real * 32767)
+
+    # Define sample rate (arbitrary, since FID isn't audio — try 44100 Hz)
+    sample_rate = samplerate
+
+    # Save as WAV
+    write("fid_sound.wav", sample_rate, fid_int16)
+
+def CreateToneFromFID(d,udic,duration=3,sample_rate=44100):
+    raw_d=d.copy()
+
+    # FFT of real part of FID
+    fft_data = np.fft.fft(np.real(raw_d))
+    freqs = np.fft.fftfreq(len(raw_d), d=1/udic[0]['sw'])
+
+    # Get magnitude spectrum
+    magnitude = np.abs(fft_data)
+
+    # Find peaks in the frequency domain
+    peaks, _ = find_peaks(magnitude, height=np.max(magnitude)*0.1)
+    dominant_freqs = freqs[peaks]
+    top_indices = np.argsort(magnitude[peaks])[-10:]  # top 10
+    harmonics = np.abs(dominant_freqs[top_indices])
+
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+
+    # Create additive synthesis from harmonics
+    tone = sum(np.sin(2 * np.pi * f * t) for f in harmonics)
+    tone /= np.max(np.abs(tone))  # normalize
+    tone_int16 = np.int16(tone * 32767)
+
+    # Save as WAV
+    write("harmonic_tone.wav", sample_rate, tone_int16)
+    
 
 def remove_baseline_savgol(signal, window_length=101, polyorder=3):
     baseline = savgol_filter(signal, window_length, polyorder)
@@ -32,9 +76,9 @@ def phase_correct(data, p0=0.0, p1=0.0):
     return np.real(data * ph)
 
 def LoadFIDandShow(filename):
-    width, center = extract_nmr_parameters(filename)
-    print(f"Spectral Width: {width} ppm")
-    print(f"Spectral Center: {center} ppm")
+##    width, center = extract_nmr_parameters(filename)
+##    print(f"Spectral Width: {width} ppm")
+##    print(f"Spectral Center: {center} ppm")
 
     # Parse JCAMP file
     data = FileParser.parse_jcamp(filename)
@@ -42,6 +86,9 @@ def LoadFIDandShow(filename):
 
     # Convert to nmrglue format
     udic, d = jdx.to_nmrglue_1d()
+
+    #PlayFID(d,samplerate=8000)
+    #CreateToneFromFID(d,udic)
 
     # FFT and phase correction
     raw_fft = np.fft.fftshift(np.fft.fft(d))
