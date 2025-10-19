@@ -10,6 +10,10 @@ from matplotlib.widgets import Button
 from scipy.signal import find_peaks
 from scipy.io.wavfile import write
 
+import tkinter as tk
+from tkinter import filedialog
+
+
 def PlayFID(d,samplerate=44100):
     raw_d=d.copy()    
     # Extract real part of FID    
@@ -87,8 +91,8 @@ def LoadFIDandShow(filename):
     # Convert to nmrglue format
     udic, d = jdx.to_nmrglue_1d()
 
-    #PlayFID(d,samplerate=8000)
-    #CreateToneFromFID(d,udic)
+    PlayFID(d,samplerate=8000)
+    CreateToneFromFID(d,udic)
 
     # FFT and phase correction
     raw_fft = np.fft.fftshift(np.fft.fft(d))
@@ -170,8 +174,26 @@ def LoadFIDandShow(filename):
 
     plt.show()
 
+def load_FID():
+    file_path = filedialog.askopenfilename(
+        title="Select JCAMP File",
+        filetypes=[("JCAMP-DX files", "*.dx")]
+    )
+    
+    if file_path:
+        LoadFIDandShow(file_path)
+
+
 if __name__ == "__main__":
-    LoadFIDandShow("post.dx")
+    root = tk.Tk()
+    root.title("JCAMP viewer")
+    root.geometry("300x150")
+
+    load_button = tk.Button(root, text="Load JCAMP File", command=load_FID)
+    load_button.pack(pady=50)
+
+    # Run the GUI loop
+    root.mainloop()
 
 
 ##import jcamp
