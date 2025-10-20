@@ -134,7 +134,7 @@ def LoadFIDandShow(filename):
     ax_button = plt.axes([0.8, 0.05, 0.1, 0.04])
     peak_button = Button(ax_button, 'Pick Peaks')    
 
-    slider_window = Slider(ax_window, 'Window Length', 5, 500, valinit=101, valstep=2)
+    slider_window = Slider(ax_window, 'Window Length', 5, 1000, valinit=101, valstep=2)
     slider_poly = Slider(ax_poly, 'Poly Order', 1, 5, valinit=3, valstep=1)
 
     # Slider for peak detection threshold
