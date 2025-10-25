@@ -139,7 +139,7 @@ def LoadFIDandShow(filename):
 
     # Slider for peak detection threshold
     ax_thresh = plt.axes([0.25, 0.1, 0.5, 0.03])
-    slider_thresh = Slider(ax_thresh, 'Peak Threshold', 0.0001, 0.005, valinit=0.001, valstep=0.0001)    
+    slider_thresh = Slider(ax_thresh, 'Peak Threshold', 0.0001, 0.05, valinit=0.001, valstep=0.0001)    
 
     def update(val):
         window = int(slider_window.val)
