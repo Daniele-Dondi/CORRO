@@ -2,19 +2,20 @@ import jcamp
 from jcamp import FileParser
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from matplotlib.widgets import Slider
 import nmrglue as ng
 from scipy.signal import savgol_filter
 from scipy.signal import find_peaks
 from matplotlib.widgets import Button
 from scipy.signal import find_peaks
-from scipy.io.wavfile import write
+from scipy.io.wavfile import write as WriteWav
 
 import tkinter as tk
 from tkinter import filedialog
 
 
-def PlayFID(d,samplerate=44100):
+def PlayFID(d,samplerate=44100,filename="fid_sound"):
     raw_d=d.copy()    
     # Extract real part of FID    
     fid_real = np.real(raw_d)
@@ -27,9 +28,11 @@ def PlayFID(d,samplerate=44100):
     sample_rate = samplerate
 
     # Save as WAV
-    write("fid_sound.wav", sample_rate, fid_int16)
+    if filename[-3:]!=".wav":
+        filename+=".wav"
+    WriteWav(filename, sample_rate, fid_int16)
 
-def CreateToneFromFID(d,udic,duration=3,sample_rate=44100):
+def CreateToneFromFID(d,udic,duration=3,sample_rate=44100,filename="tone"):
     raw_d=d.copy()
 
     # FFT of real part of FID
@@ -53,7 +56,10 @@ def CreateToneFromFID(d,udic,duration=3,sample_rate=44100):
     tone_int16 = np.int16(tone * 32767)
 
     # Save as WAV
-    write("harmonic_tone.wav", sample_rate, tone_int16)
+    filename="harmonic_"+filename
+    if filename[-3:]!=".wav":
+        filename+=".wav"
+    WriteWav(filename, sample_rate, tone_int16)
     
 
 def remove_baseline_savgol(signal, window_length=101, polyorder=3):
@@ -91,8 +97,8 @@ def LoadFIDandShow(filename):
     # Convert to nmrglue format
     udic, d = jdx.to_nmrglue_1d()
 
-    PlayFID(d,samplerate=8000)
-    CreateToneFromFID(d,udic)
+    PlayFID(d,samplerate=8000,filename=os.path.basename(filename))
+    CreateToneFromFID(d,udic,filename=os.path.basename(filename))
 
     # FFT and phase correction
     raw_fft = np.fft.fftshift(np.fft.fft(d))
