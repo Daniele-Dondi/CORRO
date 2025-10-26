@@ -124,7 +124,7 @@ def LoadFIDandShow(filename,show=True,saveWavFID=True,saveWavHarmonics=True):
         return xaxis, spectrum
 
 
-def Show_Stacked(X, Y, offset=1.0, labels=None):
+def Show_Stacked(X, Y, offset=1000000, labels=None):
     """
     Plots multiple Y-series stacked vertically along a shared X-axis.
 
@@ -134,16 +134,22 @@ def Show_Stacked(X, Y, offset=1.0, labels=None):
     - offset: vertical shift between stacked curves
     - labels: optional list of labels for each series
     """
+    X=np.array(X)
+    Y=np.array(Y)    
     plt.figure(figsize=(10, 6))
-    for i, Y in enumerate(Y):
-        shift = i * offset
-        label = labels[i] if labels and i < len(labels) else f"Series {i+1}"
-        plt.plot(X, Y + shift, label=label)
+##    # Overlay each dataset
+##    for i in range(X.shape[0]):
+##        plt.plot(X[i], Y[i]+i*offset, label=f"Dataset {i+1}")
+    plt.stackplot(X[0], Y)        
+##    for i, Y in enumerate(Y):
+##        shift = i * offset
+##        label = labels[i] if labels and i < len(labels) else f"Series {i+1}"
+##        plt.plot(X[i], Y + shift, label=label)
 
     plt.xlabel("X")
     plt.ylabel("Stacked Intensity")
     plt.title("Stacked Plot of Multiple Series")
-    plt.legend(loc='upper right', fontsize='small')
+    #plt.legend(loc='upper right', fontsize='small')
     plt.grid(True)
     plt.tight_layout()
     plt.show()
