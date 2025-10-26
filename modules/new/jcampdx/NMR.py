@@ -2,19 +2,21 @@ import jcamp
 from jcamp import FileParser
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from matplotlib.widgets import Slider
 import nmrglue as ng
 from scipy.signal import savgol_filter
 from scipy.signal import find_peaks
 from matplotlib.widgets import Button
 from scipy.signal import find_peaks
-from scipy.io.wavfile import write
+from scipy.io.wavfile import write as WriteWav
 
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 
 
-def PlayFID(d,samplerate=44100):
+def PlayFID(d,samplerate=44100,filename="fid_sound"):
     raw_d=d.copy()    
     # Extract real part of FID    
     fid_real = np.real(raw_d)
@@ -27,9 +29,11 @@ def PlayFID(d,samplerate=44100):
     sample_rate = samplerate
 
     # Save as WAV
-    write("fid_sound.wav", sample_rate, fid_int16)
+    if filename[-3:]!=".wav":
+        filename+=".wav"
+    WriteWav(filename, sample_rate, fid_int16)
 
-def CreateToneFromFID(d,udic,duration=3,sample_rate=44100):
+def CreateToneFromFID(d,udic,duration=3,sample_rate=44100,filename="tone"):
     raw_d=d.copy()
 
     # FFT of real part of FID
@@ -53,7 +57,10 @@ def CreateToneFromFID(d,udic,duration=3,sample_rate=44100):
     tone_int16 = np.int16(tone * 32767)
 
     # Save as WAV
-    write("harmonic_tone.wav", sample_rate, tone_int16)
+    filename="harmonic_"+filename
+    if filename[-3:]!=".wav":
+        filename+=".wav"
+    WriteWav(filename, sample_rate, tone_int16)
     
 
 def remove_baseline_savgol(signal, window_length=101, polyorder=3):
@@ -79,7 +86,7 @@ def phase_correct(data, p0=0.0, p1=0.0):
     ph = np.exp(1j * (p0 + p1 * np.linspace(-0.5, 0.5, size)))
     return np.real(data * ph)
 
-def LoadFIDandShow(filename):
+def LoadFIDandShow(filename,show=True,saveWavFID=True,saveWavHarmonics=True):
 ##    width, center = extract_nmr_parameters(filename)
 ##    print(f"Spectral Width: {width} ppm")
 ##    print(f"Spectral Center: {center} ppm")
@@ -90,9 +97,11 @@ def LoadFIDandShow(filename):
 
     # Convert to nmrglue format
     udic, d = jdx.to_nmrglue_1d()
-
-    PlayFID(d,samplerate=8000)
-    CreateToneFromFID(d,udic)
+    
+    if saveWavFID:
+        PlayFID(d,samplerate=8000,filename=os.path.basename(filename))
+    if saveWavHarmonics:
+        CreateToneFromFID(d,udic,filename=os.path.basename(filename))
 
     # FFT and phase correction
     raw_fft = np.fft.fftshift(np.fft.fft(d))
@@ -109,6 +118,102 @@ def LoadFIDandShow(filename):
     if center!= 999.99:
         xaxis += center
         xaxis /= obs_freq
+    if show:
+        Show(xaxis, spectrum)
+    else:
+        return xaxis, spectrum
+
+
+def Show_Stacked(X, Y, offset=1.0, labels=None):
+    """
+    Plots multiple Y-series stacked vertically along a shared X-axis.
+
+    Parameters:
+    - X: 1D array of X values (length N)
+    - Y_list: list of 1D arrays (each of length N)
+    - offset: vertical shift between stacked curves
+    - labels: optional list of labels for each series
+    """
+    plt.figure(figsize=(10, 6))
+    for i, Y in enumerate(Y):
+        shift = i * offset
+        label = labels[i] if labels and i < len(labels) else f"Series {i+1}"
+        plt.plot(X, Y + shift, label=label)
+
+    plt.xlabel("X")
+    plt.ylabel("Stacked Intensity")
+    plt.title("Stacked Plot of Multiple Series")
+    plt.legend(loc='upper right', fontsize='small')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+    
+
+def Show_Overlay(X,Y):
+    X=np.array(X)
+    Y=np.array(Y)
+    # Validate shapes
+    if X.shape != Y.shape:
+        raise ValueError(f"Shape mismatch: X{X.shape} and Y{Y.shape} must match.")
+
+    # Create the plot
+    plt.figure(figsize=(8, 5))
+
+    # Overlay each dataset
+    for i in range(X.shape[0]):
+        plt.plot(X[i], Y[i], label=f"Dataset {i+1}")
+
+    # Add labels, title, legend, and grid
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Overlay Plot of Multiple Datasets")
+    plt.legend()
+    plt.grid(True)
+
+    # Show the plot
+    plt.show()
+
+
+def Show_Heatmap(X, Y_list, vmin=None, vmax=None, interactive=True):
+    """
+    Plots a heatmap from a list of Y arrays aligned to a common X axis.
+
+    Parameters:
+    - X: 1D array of X values (length N)
+    - Y_list: list of 1D arrays (each of length N)
+    - vmin, vmax: optional color scale limits
+    - interactive: if True, adds sliders to adjust vmin and vmax
+    """
+    X=np.array(X)
+    Y_matrix = np.array(Y_list)  # shape: (n_series, len(X))
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(Y_matrix, aspect='auto', extent=[X.min(), X.max(), 0, len(Y_list)],
+                   origin='lower', cmap='viridis', vmin=vmin, vmax=vmax)
+    plt.colorbar(im, ax=ax, label='Intensity')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Series Index')
+    ax.set_title('Heatmap of Multiple Series')
+
+    if interactive:
+        # Add sliders for vmin and vmax
+        ax_vmin = plt.axes([0.25, 0.02, 0.50, 0.02])
+        ax_vmax = plt.axes([0.25, 0.06, 0.50, 0.02])
+        slider_vmin = Slider(ax_vmin, 'vmin', np.min(Y_matrix), np.max(Y_matrix), valinit=vmin or np.min(Y_matrix))
+        slider_vmax = Slider(ax_vmax, 'vmax', np.min(Y_matrix), np.max(Y_matrix), valinit=vmax or np.max(Y_matrix))
+
+        def update(val):
+            im.set_clim(slider_vmin.val, slider_vmax.val)
+            fig.canvas.draw_idle()
+
+        slider_vmin.on_changed(update)
+        slider_vmax.on_changed(update)
+
+    plt.show()
+    
+    
+
+def Show(xaxis, spectrum):
 
     # Set up interactive plot
     fig, ax = plt.subplots()
@@ -174,14 +279,69 @@ def LoadFIDandShow(filename):
 
     plt.show()
 
+def ask_mode():
+    """Opens a custom dialog with 'Single' and 'Overlay' buttons."""
+    # Create a modal dialog window
+    dialog = tk.Toplevel(root)
+    dialog.title("Choose Mode")
+    dialog.geometry("500x120")
+    dialog.resizable(False, False)
+    dialog.grab_set()  # Make it modal (blocks interaction with main window)
+
+    # Store the result in a mutable object
+    result = {"choice": None}
+
+    # Label
+    tk.Label(dialog, text="Select mode:", font=("Arial", 12)).pack(pady=10)
+
+    # Button actions
+    def choose(choice):
+        result["choice"] = choice
+        dialog.destroy()
+
+    # Buttons
+    tk.Button(dialog, text="Single", width=10, command=lambda: choose("Single")).pack(side="left", padx=20, pady=10)
+    tk.Button(dialog, text="Overlay", width=10, command=lambda: choose("Overlay")).pack(side="left", padx=20, pady=10)
+    tk.Button(dialog, text="Heatmap", width=10, command=lambda: choose("Heatmap")).pack(side="left", padx=20, pady=10)
+    tk.Button(dialog, text="Stacked", width=10, command=lambda: choose("Stacked")).pack(side="left", padx=20, pady=10)
+    
+
+    # Wait for the dialog to close
+    root.wait_window(dialog)
+    return result["choice"]    
+
 def load_FID():
-    file_path = filedialog.askopenfilename(
+    file_path = filedialog.askopenfilenames(
         title="Select JCAMP File",
         filetypes=[("JCAMP-DX files", "*.dx")]
     )
     
     if file_path:
-        LoadFIDandShow(file_path)
+        Overlay=False
+        if len(file_path)>1:
+            choice = ask_mode()
+            if choice:
+                if choice in ["Overlay","Heatmap","Stacked"]:
+                    Overlay=True
+            else:
+                messagebox.showwarning("No Selection", "You closed the dialog without choosing.")
+                return
+        if Overlay:
+            X_arr,Y_arr=[],[]
+            for file in file_path:
+                X,Y=LoadFIDandShow(file,show=False)
+                X_arr.append(X)
+                Y_arr.append(Y)
+            if choice=="Heatmap":
+                Show_Heatmap(X_arr,Y_arr)
+            elif choice=="Stacked":
+                Show_Stacked(X_arr,Y_arr)
+            else:
+                Show_Overlay(X_arr,Y_arr)
+
+        else:
+            for file in file_path:
+                LoadFIDandShow(file)
 
 
 if __name__ == "__main__":
@@ -194,74 +354,3 @@ if __name__ == "__main__":
 
     # Run the GUI loop
     root.mainloop()
-
-
-##import jcamp
-##from jcamp import FileParser
-##import matplotlib.pyplot as plt
-##import numpy as np
-##
-##def extract_nmr_parameters(file_path):
-##    spectral_width = None
-##    spectral_center = None
-##
-##    with open(file_path, 'r') as file:
-##        for line in file:
-##            if '##$SPECTRAL WIDTH' in line:
-##                spectral_width = float(line.split('=')[1].strip())
-##            elif '##$SPECTRALCENTER' in line:
-##                spectral_center = float(line.split('=')[1].strip())
-##
-##    return spectral_width, spectral_center
-##
-##def LoadFIDandShow(filename):
-##    
-##    width, center = extract_nmr_parameters(filename)
-##    print(f"Spectral Width: {width} ppm")
-##    print(f"Spectral Center: {center} ppm")
-##    
-##    # Parse a JCAMP-DX file
-##    data = FileParser.parse_jcamp(filename)
-##    jdx = FileParser.create_jcamp(data)
-##
-##    # Convert to nmrglue format
-##    udic, d = jdx.to_nmrglue_1d()
-##
-##    # Create x-axis in ppm
-##    ##xaxis = np.fft.fftshift(np.fft.fftfreq(udic[0]['size'], 1/udic[0]['sw']))[::-1]
-##
-##    def phase_correct(data, p0=0.0, p1=0.0):
-##        size = len(data)
-##        ph = np.exp(1j * (p0 + p1 * np.linspace(-0.5, 0.5, size)))
-##        return np.real(data * ph)
-##
-##    # Apply to FFT result
-##    raw_fft = np.fft.fftshift(np.fft.fft(d))
-##    spectrum = phase_correct(raw_fft, p0=np.pi, p1=0.0)  # Adjust p0 as needed
-##    spectrum = np.real(spectrum)  # or np.abs(spectrum) if phase isn't corrected
-##
-##    # Create x-axis in ppm
-##    size = udic[0]['size']                  # Number of points
-##    sw = udic[0]['sw']                      # Spectral width (in Hz)
-##    obs_freq = udic[0]['obs']              # Observation frequency (in MHz)
-##    center = udic[0]['car']                 # Spectral center (in ppm)    
-##    print(size,sw,obs_freq,center)
-##
-##    xaxis = np.fft.fftshift(np.fft.fftfreq(size, 1/sw))
-##    #xaxis = center - xaxis / obs_freq  # Convert to ppm
-##
-##
-##    if udic[0]['car'] != 999.99:
-##        xaxis += udic[0]['car']
-##        xaxis /= udic[0]['obs']
-##
-##    plt.figure(figsize=(10, 6))
-##    plt.plot(xaxis, spectrum)
-##    plt.xlabel('Chemical Shift (ppm)')
-##    plt.ylabel('Intensity')
-##    plt.title('NMR Spectrum (Frequency Domain)')
-##    plt.gca().invert_xaxis()
-##    plt.show()
-##
-##if __name__ == "__main__":
-##    LoadFIDandShow("post.dx")
