@@ -86,7 +86,7 @@ def phase_correct(data, p0=0.0, p1=0.0):
     ph = np.exp(1j * (p0 + p1 * np.linspace(-0.5, 0.5, size)))
     return np.real(data * ph)
 
-def LoadFIDandShow(filename,show=True,saveWavFID=True,saveWavHarmonics=True):
+def LoadFIDandShow(filename,show=True,saveWavFID=False,saveWavHarmonics=False):
 ##    width, center = extract_nmr_parameters(filename)
 ##    print(f"Spectral Width: {width} ppm")
 ##    print(f"Spectral Center: {center} ppm")
