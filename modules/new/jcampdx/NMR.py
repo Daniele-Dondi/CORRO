@@ -140,7 +140,8 @@ def Show_Stacked(X, Y, offset=1000000, labels=None):
 ##    # Overlay each dataset
 ##    for i in range(X.shape[0]):
 ##        plt.plot(X[i], Y[i]+i*offset, label=f"Dataset {i+1}")
-    plt.stackplot(X[0], Y)        
+    plt.stackplot(X[0], Y)
+    plt.gca().invert_xaxis()
 ##    for i, Y in enumerate(Y):
 ##        shift = i * offset
 ##        label = labels[i] if labels and i < len(labels) else f"Series {i+1}"
@@ -169,6 +170,11 @@ def Show_Overlay(X,Y):
     for i in range(X.shape[0]):
         plt.plot(X[i], Y[i], label=f"Dataset {i+1}")
 
+##    for x in X:
+##        for i in range(x.shape[0]):
+##            plt.plot(x[i], Y[i], label=f"Dataset {i+1}")
+        
+
     # Add labels, title, legend, and grid
     plt.xlabel("X-axis")
     plt.ylabel("Y-axis")
@@ -177,6 +183,33 @@ def Show_Overlay(X,Y):
     plt.grid(True)
 
     # Show the plot
+    plt.show()
+
+
+def plot_xy_lines(X_list, Y_list, xlim=None, invert_x=True):
+    """
+    Plots multiple XY datasets as connected lines on a shared X-axis scale.
+
+    Parameters:
+    - X_list: list of 1D arrays (X values)
+    - Y_list: list of 1D arrays (Y values), same length as X_list
+    - xlim: optional tuple (xmin, xmax) to fix the X-axis scale
+    - invert_x: if True, inverts the X-axis direction
+    """
+    plt.figure(figsize=(10, 6))
+    for i, (x, y) in enumerate(zip(X_list, Y_list)):
+        plt.plot(x, y, label=f"Series {i+1}", linewidth=1.5)
+
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.title("XY Line Plot of Multiple Datasets")
+    if xlim:
+        plt.xlim(xlim)
+    if invert_x:
+        plt.gca().invert_xaxis()
+    plt.legend(loc='best', fontsize='small')
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
@@ -197,6 +230,7 @@ def Show_Heatmap(X, Y_list, vmin=None, vmax=None, interactive=True):
     im = ax.imshow(Y_matrix, aspect='auto', extent=[X.min(), X.max(), 0, len(Y_list)],
                    origin='lower', cmap='viridis', vmin=vmin, vmax=vmax)
     plt.colorbar(im, ax=ax, label='Intensity')
+    plt.gca().invert_xaxis()
     ax.set_xlabel('X')
     ax.set_ylabel('Series Index')
     ax.set_title('Heatmap of Multiple Series')
@@ -343,7 +377,7 @@ def load_FID():
             elif choice=="Stacked":
                 Show_Stacked(X_arr,Y_arr)
             else:
-                Show_Overlay(X_arr,Y_arr)
+                plot_xy_lines(X_arr,Y_arr)
 
         else:
             for file in file_path:
