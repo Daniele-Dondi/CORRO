@@ -9,18 +9,17 @@ from sklearn.model_selection import cross_val_score, KFold
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import VarianceThreshold
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.base import BaseEstimator, TransformerMixin
 from xgboost import XGBRegressor
 import warnings
 import numpy as np
-from sklearn.exceptions import ConvergenceWarning
+from numpy.polynomial.legendre import legval
 import pandas as pd
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
-from numpy.polynomial.legendre import legval
-from sklearn.base import BaseEstimator, TransformerMixin
 import scipy.special as sp
-
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -59,7 +58,7 @@ def pearson_with_comment(X, threshold=0.7):
     else:
         comment = "No variable pairs exceed the correlation threshold."
 
-    return comment
+    return "Pearson analysis: "+comment+"\n\n"
 
 
 def Pearson(X):
@@ -172,7 +171,9 @@ def RemoveConstantColumns(X):
 
 def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfold, make_prediction):
     df = pd.read_csv(filename)
-    print(pearson_with_comment(df))
+    output_widget.delete("1.0", tk.END)
+    output_widget.insert(tk.END, pearson_with_comment(df))
+    #print(pearson_with_comment(df))
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
@@ -240,7 +241,6 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     else:
         models["GPR"] = maybe_scale(GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0), alpha=1e-2))
 
-    output_widget.delete("1.0", tk.END)
 
     for name, model in models.items():
         with warnings.catch_warnings(record=True) as w:
@@ -360,440 +360,24 @@ if __name__ == "__main__":
     load_button = tk.Button(root, text="Load CSV File", command=lambda: load_csv(output_text, scaling_var, tune_svr_var, tune_gpr_var, use_kfold_var, predict_var))
     load_button.pack(pady=10)
 
-    # Output display
-    output_text = tk.Text(root, wrap="word", height=25, width=90)
-    output_text.pack(padx=10, pady=10)
+    # Frame to hold Text and Scrollbar
+    text_frame = tk.Frame(root)
+    text_frame.pack()
 
-    root.mainloop()
+    # Scrollbar
+    scrollbar = tk.Scrollbar(text_frame, orient=tk.VERTICAL)
 
-                          
-##from sklearn.model_selection import train_test_split, GridSearchCV
-##from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-##from sklearn.pipeline import make_pipeline
-##from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-##from sklearn.linear_model import LinearRegression
-##from sklearn.svm import SVR
-##from sklearn.gaussian_process import GaussianProcessRegressor
-##from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-##import warnings
-##from sklearn.exceptions import ConvergenceWarning
-##import pandas as pd
-##import tkinter as tk
-##from tkinter import filedialog
-##
-##def interpret_r2_scores(r2_train, r2_test, r2_whole):
-##    delta_train_test = r2_train - r2_test
-##    delta_train_whole = r2_train - r2_whole
-##
-##    if r2_train < 0.2 and r2_test < 0.2:
-##        return "Very poor fit — likely underfitting or missing key patterns."
-##    elif r2_train > 0.9 and r2_test < 0.5:
-##        return "Severe overfitting — perfect training fit but poor generalization."
-##    elif r2_train > 0.8 and r2_test > 0.75 and delta_train_test < 0.1:
-##        return "Strong fit and good generalization — model is performing reliably."
-##    elif r2_train > 0.8 and delta_train_test > 0.1:
-##        return "Good training fit but signs of overfitting — generalization could be improved."
-##    elif r2_train > 0.5 and r2_test > 0.5:
-##        return "Moderate fit — model captures some structure but may benefit from tuning."
-##    else:
-##        return "Unusual behavior — consider inspecting residuals or feature scaling."
-##
-##def LoadAndGo(filename, output_widget, use_scaling, tune_svr):
-##    df = pd.read_csv(filename)
-##    X = df.iloc[:, :-1]
-##    y = df.iloc[:, -1]
-##
-##    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-##
-##    def maybe_scale(model):
-##        return make_pipeline(StandardScaler(), model) if use_scaling else model
-##
-##    models = {
-##        "AdaBoost": maybe_scale(AdaBoostRegressor()),
-##        "Random Forest": maybe_scale(RandomForestRegressor()),
-##        "Polynomial Regression degree 1": maybe_scale(make_pipeline(PolynomialFeatures(degree=1), LinearRegression())),
-##        "Polynomial Regression degree 2": maybe_scale(make_pipeline(PolynomialFeatures(degree=2), LinearRegression())),
-##        "Polynomial Regression degree 3": maybe_scale(make_pipeline(PolynomialFeatures(degree=3), LinearRegression())),
-##        "GPR": maybe_scale(GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0, length_scale_bounds=(1e-8, 1e3)), alpha=1e-2))
-##    }
-##
-##    # SVR with optional GridSearchCV
-##    if tune_svr:
-##        svr_pipeline = make_pipeline(StandardScaler(), SVR())
-##        param_grid = {
-##            'svr__C': [0.1, 1, 10],
-##            'svr__epsilon': [0.01, 0.1, 0.5],
-##            'svr__kernel': ['rbf', 'linear']
-##        }
-##        svr_model = GridSearchCV(svr_pipeline, param_grid, cv=5, n_jobs=-1)
-##        models["SVR (tuned)"] = svr_model
-##    else:
-##        models["SVR"] = maybe_scale(SVR(kernel='rbf', C=1.0, epsilon=0.1))
-##
-##    output_widget.delete("1.0", tk.END)
-##
-##    for name, model in models.items():
-##        with warnings.catch_warnings(record=True) as w:
-##            warnings.simplefilter("always", category=ConvergenceWarning)
-##            model.fit(X_train, y_train)
-##
-##            r2_train = model.score(X_train, y_train)
-##            r2_test = model.score(X_test, y_test)
-##            r2_whole = model.score(X, y)
-##            comment = interpret_r2_scores(r2_train, r2_test, r2_whole)
-##
-##            warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
-##            tuning_str = ""
-##            if "SVR" in name and tune_svr:
-##                best_params = model.best_params_
-##                best_score = model.best_score_
-##                tuning_str = f"\n🔧 Best params: {best_params}\n🔍 CV score: {best_score:.3f}"
-##
-##            result = (
-##                f"{name}:\n"
-##                f"  R² on training = {r2_train:.3f}\n"
-##                f"  R² on test     = {r2_test:.3f}\n"
-##                f"  R² on whole    = {r2_whole:.3f}\n"
-##                f"  → {comment}{tuning_str}{warning_str}\n\n"
-##            )
-##            output_widget.insert(tk.END, result)
-##            output_widget.see(tk.END)
-##
-##def load_csv(output_widget, scaling_var, tune_svr_var):
-##    file_path = filedialog.askopenfilename(
-##        title="Select CSV File",
-##        filetypes=[("CSV files", "*.csv")]
-##    )
-##    if file_path:
-##        use_scaling = scaling_var.get() == 1
-##        tune_svr = tune_svr_var.get() == 1
-##        LoadAndGo(file_path, output_widget, use_scaling, tune_svr)
-##
-##if __name__ == "__main__":
-##    root = tk.Tk()
-##    root.title("Model Comparison Tool")
-##    root.geometry("700x600")
-##
-##    scaling_var = tk.IntVar(value=1)
-##    tune_svr_var = tk.IntVar(value=1)
-##
-##    # Scaling toggle
-##    scaling_frame = tk.Frame(root)
-##    scaling_frame.pack(pady=5)
-##    tk.Label(scaling_frame, text="Apply scaling to all models?").pack(side=tk.LEFT)
-##    tk.Radiobutton(scaling_frame, text="Yes", variable=scaling_var, value=1).pack(side=tk.LEFT)
-##    tk.Radiobutton(scaling_frame, text="No", variable=scaling_var, value=0).pack(side=tk.LEFT)
-##
-##    # SVR tuning toggle
-##    svr_frame = tk.Frame(root)
-##    svr_frame.pack(pady=5)
-##    tk.Label(svr_frame, text="Enable automatic SVR tuning?").pack(side=tk.LEFT)
-##    tk.Radiobutton(svr_frame, text="Yes", variable=tune_svr_var, value=1).pack(side=tk.LEFT)
-##    tk.Radiobutton(svr_frame, text="No", variable=tune_svr_var, value=0).pack(side=tk.LEFT)
-##
-##    # Load button
-##    load_button = tk.Button(root, text="Load CSV File", command=lambda: load_csv(output_text, scaling_var, tune_svr_var))
-##    load_button.pack(pady=10)
-##
+    # Text widget with yscrollcommand linked to scrollbar
+    output_text = tk.Text(text_frame, wrap="word", height=25, width=90, yscrollcommand=scrollbar.set)
+    output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Configure scrollbar to control the text widget
+    scrollbar.config(command=output_text.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)    
+
 ##    # Output display
 ##    output_text = tk.Text(root, wrap="word", height=25, width=90)
 ##    output_text.pack(padx=10, pady=10)
-##
-##    root.mainloop()
-##
-##
-####from sklearn.model_selection import train_test_split
-####from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-####from sklearn.pipeline import make_pipeline
-####from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-####from sklearn.linear_model import LinearRegression
-####from sklearn.svm import SVR
-####from sklearn.gaussian_process import GaussianProcessRegressor
-####from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-####import warnings
-####from sklearn.exceptions import ConvergenceWarning
-####import pandas as pd
-####import tkinter as tk
-####from tkinter import filedialog
-####
-####def interpret_r2_scores(r2_train, r2_test, r2_whole):
-####    delta_train_test = r2_train - r2_test
-####    delta_train_whole = r2_train - r2_whole
-####
-####    if r2_train < 0.2 and r2_test < 0.2:
-####        return "Very poor fit — likely underfitting or missing key patterns."
-####    elif r2_train > 0.9 and r2_test < 0.5:
-####        return "Severe overfitting — perfect training fit but poor generalization."
-####    elif r2_train > 0.8 and r2_test > 0.75 and delta_train_test < 0.1:
-####        return "Strong fit and good generalization — model is performing reliably."
-####    elif r2_train > 0.8 and delta_train_test > 0.1:
-####        return "Good training fit but signs of overfitting — generalization could be improved."
-####    elif r2_train > 0.5 and r2_test > 0.5:
-####        return "Moderate fit — model captures some structure but may benefit from tuning."
-####    else:
-####        return "Unusual behavior — consider inspecting residuals or feature scaling."
-####
-####def LoadAndGo(filename, output_widget, use_scaling):
-####    df = pd.read_csv(filename)
-####    X = df.iloc[:, :-1]
-####    y = df.iloc[:, -1]
-####
-####    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-####
-####    def maybe_scale(model):
-####        return make_pipeline(StandardScaler(), model) if use_scaling else model
-####
-####    models = {
-####        "AdaBoost": maybe_scale(AdaBoostRegressor()),
-####        "Random Forest": maybe_scale(RandomForestRegressor()),
-####        "Polynomial Regression degree 1": maybe_scale(make_pipeline(PolynomialFeatures(degree=1), LinearRegression())),
-####        "Polynomial Regression degree 2": maybe_scale(make_pipeline(PolynomialFeatures(degree=2), LinearRegression())),
-####        "Polynomial Regression degree 3": maybe_scale(make_pipeline(PolynomialFeatures(degree=3), LinearRegression())),
-####        "SVR": maybe_scale(SVR(kernel='rbf', C=1.0, epsilon=0.1)),
-####        "GPR": maybe_scale(GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0, length_scale_bounds=(1e-8, 1e3)), alpha=1e-2))
-####    }
-####
-####    output_widget.delete("1.0", tk.END)
-####
-####    for name, model in models.items():
-####        with warnings.catch_warnings(record=True) as w:
-####            warnings.simplefilter("always", category=ConvergenceWarning)
-####            model.fit(X_train, y_train)
-####
-####            r2_train = model.score(X_train, y_train)
-####            r2_test = model.score(X_test, y_test)
-####            r2_whole = model.score(X, y)
-####            comment = interpret_r2_scores(r2_train, r2_test, r2_whole)
-####
-####            warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
-####            result = (
-####                f"{name}:\n"
-####                f"  R² on training = {r2_train:.3f}\n"
-####                f"  R² on test     = {r2_test:.3f}\n"
-####                f"  R² on whole    = {r2_whole:.3f}\n"
-####                f"  → {comment}{warning_str}\n\n"
-####            )
-####            output_widget.insert(tk.END, result)
-####            output_widget.see(tk.END)
-####
-####def load_csv(output_widget, scaling_var):
-####    file_path = filedialog.askopenfilename(
-####        title="Select CSV File",
-####        filetypes=[("CSV files", "*.csv")]
-####    )
-####    if file_path:
-####        use_scaling = scaling_var.get() == 1
-####        LoadAndGo(file_path, output_widget, use_scaling)
-####
-####if __name__ == "__main__":
-####    root = tk.Tk()
-####    root.title("Model Comparison Tool")
-####    root.geometry("650x550")
-####
-####    scaling_var = tk.IntVar(value=1)
-####
-####    scaling_frame = tk.Frame(root)
-####    scaling_frame.pack(pady=5)
-####    tk.Label(scaling_frame, text="Apply scaling to all models?").pack(side=tk.LEFT)
-####    tk.Radiobutton(scaling_frame, text="Yes", variable=scaling_var, value=1).pack(side=tk.LEFT)
-####    tk.Radiobutton(scaling_frame, text="No", variable=scaling_var, value=0).pack(side=tk.LEFT)
-####
-####    load_button = tk.Button(root, text="Load CSV File", command=lambda: load_csv(output_text, scaling_var))
-####    load_button.pack(pady=10)
-####
-####    output_text = tk.Text(root, wrap="word", height=25, width=80)
-####    output_text.pack(padx=10, pady=10)
-####
-####    root.mainloop()
-####
-####
-######from sklearn.model_selection import train_test_split
-######from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-######from sklearn.pipeline import make_pipeline
-######from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-######from sklearn.linear_model import LinearRegression
-######from sklearn.svm import SVR
-######from sklearn.gaussian_process import GaussianProcessRegressor
-######from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-######import warnings
-######from sklearn.exceptions import ConvergenceWarning
-######import pandas as pd
-######import tkinter as tk
-######from tkinter import filedialog
-######
-######def interpret_r2_scores(r2_train, r2_test, r2_whole):
-######    delta_train_test = r2_train - r2_test
-######    delta_train_whole = r2_train - r2_whole
-######
-######    if r2_train < 0.2 and r2_test < 0.2:
-######        return "Very poor fit — likely underfitting or missing key patterns."
-######    elif r2_train > 0.9 and r2_test < 0.5:
-######        return "Severe overfitting — perfect training fit but poor generalization."
-######    elif r2_train > 0.8 and r2_test > 0.75 and delta_train_test < 0.1:
-######        return "Strong fit and good generalization — model is performing reliably."
-######    elif r2_train > 0.8 and delta_train_test > 0.1:
-######        return "Good training fit but signs of overfitting — generalization could be improved."
-######    elif r2_train > 0.5 and r2_test > 0.5:
-######        return "Moderate fit — model captures some structure but may benefit from tuning."
-######    else:
-######        return "Unusual behavior — consider inspecting residuals or feature scaling."
-######
-######def LoadAndGo(filename, output_widget):
-######    df = pd.read_csv(filename)
-######    X = df.iloc[:, :-1]
-######    y = df.iloc[:, -1]
-######
-######    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-######
-######    models = {
-######        "AdaBoost": AdaBoostRegressor(),
-######        "Random Forest": RandomForestRegressor(),
-######        "Polynomial Regression degree 1": make_pipeline(PolynomialFeatures(degree=1), LinearRegression()),
-######        "Polynomial Regression degree 2": make_pipeline(PolynomialFeatures(degree=2), LinearRegression()),        
-######        "Polynomial Regression degree 3": make_pipeline(PolynomialFeatures(degree=3), LinearRegression()),
-######        "SVR": make_pipeline(StandardScaler(), SVR(kernel='rbf', C=1.0, epsilon=0.1)),
-######        "GPR": GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0, length_scale_bounds=(1e-8, 1e3)), alpha=1e-2)        
-######    }
-######
-######    output_widget.delete("1.0", tk.END)
-######
-######    for name, model in models.items():
-######        with warnings.catch_warnings(record=True) as w:
-######            warnings.simplefilter("always", category=ConvergenceWarning)
-######            model.fit(X_train, y_train)
-######
-######            r2_train = model.score(X_train, y_train)
-######            r2_test = model.score(X_test, y_test)
-######            r2_whole = model.score(X, y)
-######            comment = interpret_r2_scores(r2_train, r2_test, r2_whole)
-######
-######            warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
-######            result = (
-######                f"{name}:\n"
-######                f"  R² on training = {r2_train:.3f}\n"
-######                f"  R² on test     = {r2_test:.3f}\n"
-######                f"  R² on whole    = {r2_whole:.3f}\n"
-######                f"  → {comment}{warning_str}\n\n"
-######            )
-######            output_widget.insert(tk.END, result)
-######            output_widget.see(tk.END)
-######
-######def load_csv(output_widget):
-######    file_path = filedialog.askopenfilename(
-######        title="Select CSV File",
-######        filetypes=[("CSV files", "*.csv")]
-######    )
-######    if file_path:
-######        LoadAndGo(file_path, output_widget)
-######
-######if __name__ == "__main__":
-######    root = tk.Tk()
-######    root.title("Model Comparison Tool")
-######    root.geometry("600x500")
-######
-######    load_button = tk.Button(root, text="Load CSV File", command=lambda: load_csv(output_text))
-######    load_button.pack(pady=10)
-######
-######    output_text = tk.Text(root, wrap="word", height=25, width=80)
-######    output_text.pack(padx=10, pady=10)
-######
-######    root.mainloop()
-######
-######
-########from sklearn.model_selection import train_test_split
-########from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-########from sklearn.pipeline import make_pipeline
-########from sklearn.preprocessing import PolynomialFeatures
-########from sklearn.linear_model import LinearRegression
-########from sklearn.svm import SVR
-########from sklearn.gaussian_process import GaussianProcessRegressor
-########from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-########import warnings
-########from sklearn.exceptions import ConvergenceWarning
-########import pandas as pd
-########import tkinter as tk
-########from tkinter import filedialog
-########
-########
-########def LoadAndGo(filename):
-########    # Load data
-########    df = pd.read_csv(filename)
-########    
-########    # === Separate features and target ===
-########    X = df.iloc[:, :-1]
-########    y = df.iloc[:, -1]
-########
-########    # Split once
-########    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-########
-########    # Fit models
-########    models = {
-########        "AdaBoost": AdaBoostRegressor(),
-########        "Random Forest": RandomForestRegressor(),
-########        "Polynomial Regression degree 1": make_pipeline(PolynomialFeatures(degree=1), LinearRegression()),
-########        "Polynomial Regression degree 2": make_pipeline(PolynomialFeatures(degree=2), LinearRegression()),        
-########        "Polynomial Regression degree 3": make_pipeline(PolynomialFeatures(degree=3), LinearRegression()),
-########        "SVR": SVR(kernel='rbf', C=1.0, epsilon=0.1),
-########        "GPR": GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0,length_scale_bounds=(1e-8, 1e3)), alpha=1e-2)        
-########    }
-########
-########    # Evaluate
-########    for name, model in models.items():
-########        with warnings.catch_warnings(record=True) as w:
-########            warnings.simplefilter("always", category=ConvergenceWarning)
-########            
-########            # Fit your model here
-########            model.fit(X_train, y_train)
-########            
-########            # Check for warnings
-########            if w:
-########                warning_msg = str(w[-1].message)
-########                warning_str=f"⚠️ Warning: {warning_msg}"
-########            else:
-########                warning_str=""
-########        
-########    ##        model.fit(X_train, y_train)
-########            r2_train = model.score(X_train, y_train)
-########            r2_whole = model.score(X, y)
-########            print(f"{name}: R² on training = {r2_train:.3f}, R² on whole = {r2_whole:.3f}"+interpret_r2_scores(r2_train, r2_whole)+warning_str)
-########
-########def interpret_r2_scores(r2_train, r2_whole):
-########    comments = []
-########    delta = r2_train - r2_whole
-########
-########    if r2_train < 0.2 and r2_whole < 0.2:
-########        comment = " Very poor fit — likely underfitting or missing key patterns."
-########    elif r2_train > 0.9 and r2_whole < 0.5:
-########        comment = " Severe overfitting — perfect training fit but poor generalization."
-########    elif r2_train > 0.8 and r2_whole > 0.75 and delta < 0.1:
-########        comment = " Strong fit and good generalization — model is performing reliably."
-########    elif r2_train > 0.8 and delta > 0.1:
-########        comment = " Good training fit but signs of overfitting — generalization could be improved."
-########    elif r2_train > 0.5 and r2_whole > 0.5:
-########        comment = " Moderate fit — model captures some structure but may benefit from tuning."
-########    else:
-########        comment = " Unusual behavior — consider inspecting residuals or feature scaling."
-########    return comment
-########
-########def load_csv():
-########    # Open file dialog to select CSV
-########    file_path = filedialog.askopenfilename(
-########        title="Select CSV File",
-########        filetypes=[("CSV files", "*.csv")]
-########    )
-########    
-########    if file_path:
-########        LoadAndGo(file_path)
-########
-########
-########if __name__ == "__main__":
-########    root = tk.Tk()
-########    root.title("ALL")
-########    root.geometry("300x150")
-########
-########    # Add button to trigger CSV loading
-########    load_button = tk.Button(root, text="Load CSV File", command=load_csv)
-########    load_button.pack(pady=50)
-########
-########    # Run the GUI loop
-########    root.mainloop()
+
+    root.mainloop()
+
