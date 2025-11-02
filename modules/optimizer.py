@@ -98,7 +98,7 @@ def RetrieveOutputValue():
     if Reward_Type=="MANUAL":
         newWin = tk.Tk()
         newWin.withdraw()
-        TargetValue = tk.simpledialog.askfloat("Input", "Insert the value to optimize when ready",
+        TargetValue = tk.simpledialog.askfloat("Input", "Insert the result value to optimize when ready",
                                parent=newWin)
         newWin.destroy()
     return TargetValue
