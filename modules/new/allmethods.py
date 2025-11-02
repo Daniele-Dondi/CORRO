@@ -241,7 +241,8 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
     else:
         models["GPR"] = maybe_scale(GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0), alpha=1e-2))
 
-
+    check_vars = []
+    
     for name, model in models.items():
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always", category=ConvergenceWarning)
@@ -282,7 +283,7 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
                     comment+="\n"+format_prediction_result(best_input, best_yield)                
                 
                 warning_str = f"\n⚠️ Warning: {str(w[-1].message)}" if w else ""
-                result = f"{name}:\n  → {comment}{tuning_str}{warning_str}\n\n"
+                result = f"{name}:\n  → {comment}{tuning_str}{warning_str}\n"
 
             except Exception as e:
                 # Catch any crash and report it instead of stopping
@@ -290,7 +291,31 @@ def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfol
                 print(str(e)+"\n")
             
             output_widget.insert(tk.END, result)
-            output_widget.see(tk.END)
+            var = tk.IntVar()
+            checkbutton = tk.Checkbutton(root, text=name, variable=var)
+            check_vars.append((name, var))
+            output_widget.window_create(tk.END, window=checkbutton)
+            output_widget.insert(tk.END, "\n\n")
+            
+    #output_widget.see(tk.END)
+    def show_selected():
+        selected = [label for label, var in check_vars if var.get()]
+        print("Selected options:", selected)
+
+    # Define the button callback to deselect all
+    def deselect_all():
+        for _, var in check_vars:
+            var.set(0)        
+
+    # Create and insert the Button into the Text widget
+    output_widget.insert(tk.END, "\n\n")
+    button = tk.Button(root, text="Show Selected", command=show_selected)
+    output_widget.window_create(tk.END, window=button)
+
+    # Insert the "Deselect All" button
+    output_widget.insert(tk.END, "\n")
+    deselect_button = tk.Button(root, text="Deselect All", command=deselect_all)
+    output_widget.window_create(tk.END, window=deselect_button)    
     
 def load_csv(output_widget, scaling_var, tune_svr_var, tune_gpr_var, use_kfold_var, predict_var):
     file_path = filedialog.askopenfilename(
