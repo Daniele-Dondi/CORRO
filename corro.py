@@ -1445,6 +1445,7 @@ def OptimizationCycle(): #cycle to start and follow optimization
     NewValues=Opt.CreateNewValues()
     if NewValues==None: #We finished the optimization procedure
         RemoveOptButtonAndVar()
+        print("Optimization has finished")
         #add here eventually the data treatment/visualization for the optimization
         return
     filename=Opt.run_parameters[0]
