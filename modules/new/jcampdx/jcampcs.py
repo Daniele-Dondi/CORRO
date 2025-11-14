@@ -1,5 +1,5 @@
-import rdkit.Chem as Chem
-from rdkit.Geometry.rdGeometry import Point3D
+#import rdkit.Chem as Chem
+#from rdkit.Geometry.rdGeometry import Point3D
 import numpy as np
 
 #already stripped currently
