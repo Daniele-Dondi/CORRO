@@ -766,11 +766,8 @@ def StartBO_Window(window, **kwargs):
     file_menu.add_command(label='Save Optimization',command=AskSaveOptimization)
     file_menu.add_separator()
     file_menu.add_command(label='Exit',command=Close)
-    #settings_menu = tk.Menu(menubar,tearoff=0)
-    #settings_menu.add_command(label='Default macro settings')
     BO_Window.config(menu=menubar)
     menubar.add_cascade(label="File",menu=file_menu)
-    #menubar.add_cascade(label="Settings",menu=settings_menu)
     menubar.add_cascade(label="Process Check",command=ProcessCheck)
     frame1 = tk.Frame(BO_Window)
     frame1.pack(side="top")
@@ -787,11 +784,6 @@ def StartBO_Window(window, **kwargs):
     Label2.pack(side="left",padx=10)
     OutputType=ttk.Combobox(Optimizer, values = ('MANUAL',conf.GetAllSensorsVarNames()),width=20)
     OutputType.pack(side="left")
-    #OutputType.bind("<<ComboboxSelected>>", on_select)
-    
-    
-##    frame3 = tk.Frame(BO_Window,bg="gray",width=1000,height=30)
-##    frame3.pack(side="bottom")
     
     my_canvas = tk.Canvas(BO_Window)
     my_canvas.pack(side="left",fill=tk.BOTH,expand=1)
@@ -800,19 +792,10 @@ def StartBO_Window(window, **kwargs):
     my_canvas.configure(yscrollcommand=y_scrollbar.set)
     my_canvas.bind("<Configure>",lambda e: my_canvas.config(scrollregion= my_canvas.bbox(tk.ALL)))
     BO_Window.bind("<MouseWheel>", on_mousewheel)
-##    BO_Window.bind("<Button-1>", drag_start_canvas)
-##    BO_Window.bind("<B1-Motion>", drag_motion_canvas)
-##    BO_Window.bind("<ButtonRelease-1>", on_mouse_up_canvas)
 
     frame2=tk.Frame(my_canvas,bg="white",height=10000,width=1000)
     frame2.pack()
 
-##    #Selection frame, composed by 4 stretched buttons
-##    pixel = tk.PhotoImage(width=1, height=1)        
-##    SelTopButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-##    SelBottomButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-##    SelLeftButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
-##    SelRightButton = tk.Button(frame2, image=pixel,height=1, width=1,borderwidth=0,bg="red")
     
     my_canvas.create_window((0,0),window=frame2, anchor="nw")
     

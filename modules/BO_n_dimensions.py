@@ -4,6 +4,8 @@ from bayes_opt.event import Events
 from bayes_opt.util import load_logs
 from bayes_opt import UtilityFunction
 import numpy as np
+import tkinter as tk
+from tkinter import messagebox
 ##import matplotlib.pyplot as plt
 
 import os
@@ -150,9 +152,8 @@ def BO_Initialization(kappa, xi, start, stop, MaxIter):
     #below how to load and continue a previous optimization
     file_path = './logs.log.json'
     if os.path.exists(file_path): 
-        print("Log file present")
-        ask=input("Do you want to load the previous log file? [y/n] ").upper()
-        if ask=="Y":
+        answer = messagebox.askyesno("Previous log file present","Do you want to load the previous optimization log file?")
+        if answer:
             load_logs(optimizer, logs=["./logs.log.json"])
             print("New optimizer is now aware of {} points.".format(len(optimizer.space)))
 

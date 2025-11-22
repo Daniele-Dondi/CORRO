@@ -2061,8 +2061,19 @@ def StartWizard(window, **kwargs):
                 DeleteAllProcedures()
 
     WizardWindow=tk.Toplevel(window)
+    Hidden=False
+    filename=""
+    for k, val in kwargs.items():
+        if k=="Hide":
+            Hidden=val
+        elif k=="File":
+            filename=val
+    if Hidden:
+        #WizardWindow.withdraw()      
+        WizardWindow.geometry('1x1+3000+3000')
+    else:
+        WizardWindow.geometry('1000x800+400+10')
     WizardWindow.title("CORRO WIZARD")
-    WizardWindow.geometry('1000x800+400+10')
     WizardWindow.grab_set()
     WizardWindow.wm_iconphoto(True, tk.PhotoImage(file='icons/wizard.png'))
     menubar = tk.Menu(WizardWindow)
@@ -2126,19 +2137,13 @@ def StartWizard(window, **kwargs):
 
     tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")
 
-    Hidden=False
-    filename=""
-    for k, val in kwargs.items():
-        if k=="Hide":
-            Hidden=val
-        elif k=="File":
-            filename=val
+  
+            
     if filename:
-        if Hidden:
-            WizardWindow.withdraw()
+
         LoadProcedures(filename)
         ReturnCode=CheckProcedure(**kwargs)
         WizardWindow.destroy()
         return ReturnCode
     
-##    WizardWindow.mainloop()
+
