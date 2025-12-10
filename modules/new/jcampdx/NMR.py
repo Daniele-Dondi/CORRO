@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from matplotlib.widgets import Slider
+from matplotlib.widgets import TextBox
 import nmrglue as ng
 from scipy.signal import savgol_filter
 from scipy.signal import find_peaks
@@ -61,7 +62,24 @@ def CreateToneFromFID(d,udic,duration=3,sample_rate=44100,filename="tone"):
     if filename[-3:]!=".wav":
         filename+=".wav"
     WriteWav(filename, sample_rate, tone_int16)
-    
+
+def apodize(fid, sw, lb_hz=1.0):
+    """
+    Apply exponential apodization (line broadening) in Hz.
+
+    Parameters:
+    - fid: 1D numpy array (time-domain signal H(t))
+    - sw: spectral width in Hz
+    - lb_hz: line broadening in Hz
+
+    Returns:
+    - apodized FID
+    """
+    n = len(fid)
+    dwell_time = 1.0 / sw  # seconds per point
+    t = np.arange(n) * dwell_time
+    window = np.exp(-np.pi * lb_hz * t)
+    return fid * window    
 
 def remove_baseline_savgol(signal, window_length=101, polyorder=3):
     baseline = savgol_filter(signal, window_length, polyorder)
@@ -108,6 +126,15 @@ def LoadFIDandShow(filename,show=True,saveWavFID=False,saveWavHarmonics=False):
     spectrum = phase_correct(raw_fft, p0=np.pi, p1=0.0)
     spectrum = np.real(spectrum)
 
+##    # Apply apodization with LB in Hz
+##    d_apod = apodize(d, sw=udic[0]['sw'], lb_hz=4.0)
+##
+##    # FFT and phase correction
+##    raw_fft = np.fft.fftshift(np.fft.fft(d_apod))
+##    spectrum = phase_correct(raw_fft, p0=np.pi, p1=0.0)
+##    spectrum = np.real(spectrum)
+
+
     # Create ppm axis
     size = udic[0]['size']
     sw = udic[0]['sw']
@@ -119,7 +146,7 @@ def LoadFIDandShow(filename,show=True,saveWavFID=False,saveWavHarmonics=False):
         xaxis += center
         xaxis /= obs_freq
     if show:
-        Show(xaxis, spectrum)
+        Show(xaxis, spectrum, d, sw)
     else:
         return xaxis, spectrum
 
@@ -251,73 +278,108 @@ def Show_Heatmap(X, Y_list, vmin=None, vmax=None, interactive=True):
 
     plt.show()
     
-    
 
-def Show(xaxis, spectrum):
-
-    # Set up interactive plot
+def Show(xaxis, spectrum, fid=None, sw=None):
     fig, ax = plt.subplots()
     plt.subplots_adjust(left=0.25, bottom=0.35)
 
-    # Plot original spectrum (static)
-    original_line, = ax.plot(xaxis, spectrum, lw=1.5, label='Original', color='gray', alpha=0.5)
-
-    # Plot corrected spectrum (dynamic)
-    corrected_line, = ax.plot(xaxis, spectrum, lw=1.5, label='Corrected', color='blue')
-
-    ax.set_title("Interactive savgol Baseline Correction")
+    # Plot spectrum
+    line, = ax.plot(xaxis, spectrum, lw=1.5, label='Spectrum', color='blue')
+    ax.set_title("Interactive Spectrum with Apodization")
     ax.set_xlabel("Chemical Shift (ppm)")
     ax.set_ylabel("Intensity")
     ax.invert_xaxis()
     ax.legend()
 
-    # Sliders
-    ax_window = plt.axes([0.25, 0.2, 0.65, 0.03])
-    ax_poly = plt.axes([0.25, 0.15, 0.65, 0.03])
+    # TextBox for LB in Hz
+    axbox = plt.axes([0.25, 0.05, 0.2, 0.05])
+    text_box = TextBox(axbox, 'LB (Hz)', initial="1.0")
 
-    # Button for peak picking
-    ax_button = plt.axes([0.8, 0.05, 0.1, 0.04])
-    peak_button = Button(ax_button, 'Pick Peaks')    
+    # Button to recalc
+    ax_button = plt.axes([0.5, 0.05, 0.1, 0.05])
+    recalc_button = Button(ax_button, 'Recalc')
 
-    slider_window = Slider(ax_window, 'Window Length', 5, 1000, valinit=101, valstep=2)
-    slider_poly = Slider(ax_poly, 'Poly Order', 1, 5, valinit=3, valstep=1)
+    def recalc(event):
+        try:
+            lb_val = float(text_box.text)
+            if fid is not None and sw is not None:
+                d_apod = apodize(fid, sw, lb_val)
+                raw_fft = np.fft.fftshift(np.fft.fft(d_apod))
+                new_spectrum = np.real(phase_correct(raw_fft, p0=np.pi, p1=0.0))
+                line.set_ydata(new_spectrum)
+                fig.canvas.draw_idle()
+        except ValueError:
+            print("Invalid LB value")
 
-    # Slider for peak detection threshold
-    ax_thresh = plt.axes([0.25, 0.1, 0.5, 0.03])
-    slider_thresh = Slider(ax_thresh, 'Peak Threshold', 0.0001, 0.05, valinit=0.001, valstep=0.0001)    
-
-    def update(val):
-        window = int(slider_window.val)
-        poly = int(slider_poly.val)
-        if window>= len(spectrum):  # Prevent crash
-            return
-        corrected = remove_baseline_savgol(spectrum, window_length=window, polyorder=poly)
-        corrected_line.set_ydata(corrected)
-        fig.canvas.draw_idle()
-
-    def pick_peaks(event):
-        window = int(slider_window.val)
-        poly = int(slider_poly.val)
-        threshold = slider_thresh.val/10
-
-        corrected = remove_baseline_savgol(spectrum, window_length=window, polyorder=poly)
-        peaks, _ = find_peaks(corrected, height=np.max(corrected) * threshold, distance=10)
-
-        # Clear previous peak markers
-        for artist in ax.lines[2:]:  # Assuming first two lines are original and corrected
-            artist.remove()
-
-        # Overlay new peaks
-        ax.plot(xaxis[peaks], corrected[peaks], 'ro', label='Peaks')
-        ax.legend()
-        fig.canvas.draw_idle()  
-
-    slider_window.on_changed(update)
-    slider_poly.on_changed(update)
-
-    peak_button.on_clicked(pick_peaks)
-
+    recalc_button.on_clicked(recalc)
     plt.show()
+
+
+##def Show(xaxis, spectrum):
+##
+##    # Set up interactive plot
+##    fig, ax = plt.subplots()
+##    plt.subplots_adjust(left=0.25, bottom=0.35)
+##
+##    # Plot original spectrum (static)
+##    original_line, = ax.plot(xaxis, spectrum, lw=1.5, label='Original', color='gray', alpha=0.5)
+##
+##    # Plot corrected spectrum (dynamic)
+##    corrected_line, = ax.plot(xaxis, spectrum, lw=1.5, label='Corrected', color='blue')
+##
+##    ax.set_title("Interactive savgol Baseline Correction")
+##    ax.set_xlabel("Chemical Shift (ppm)")
+##    ax.set_ylabel("Intensity")
+##    ax.invert_xaxis()
+##    ax.legend()
+##
+##    # Sliders
+##    ax_window = plt.axes([0.25, 0.2, 0.65, 0.03])
+##    ax_poly = plt.axes([0.25, 0.15, 0.65, 0.03])
+##
+##    # Button for peak picking
+##    ax_button = plt.axes([0.8, 0.05, 0.1, 0.04])
+##    peak_button = Button(ax_button, 'Pick Peaks')    
+##
+##    slider_window = Slider(ax_window, 'Window Length', 5, 1000, valinit=101, valstep=2)
+##    slider_poly = Slider(ax_poly, 'Poly Order', 1, 5, valinit=3, valstep=1)
+##
+##    # Slider for peak detection threshold
+##    ax_thresh = plt.axes([0.25, 0.1, 0.5, 0.03])
+##    slider_thresh = Slider(ax_thresh, 'Peak Threshold', 0.0001, 0.05, valinit=0.001, valstep=0.0001)    
+##
+##    def update(val):
+##        window = int(slider_window.val)
+##        poly = int(slider_poly.val)
+##        if window>= len(spectrum):  # Prevent crash
+##            return
+##        corrected = remove_baseline_savgol(spectrum, window_length=window, polyorder=poly)
+##        corrected_line.set_ydata(corrected)
+##        fig.canvas.draw_idle()
+##
+##    def pick_peaks(event):
+##        window = int(slider_window.val)
+##        poly = int(slider_poly.val)
+##        threshold = slider_thresh.val/10
+##
+##        corrected = remove_baseline_savgol(spectrum, window_length=window, polyorder=poly)
+##        peaks, _ = find_peaks(corrected, height=np.max(corrected) * threshold, distance=10)
+##
+##        # Clear previous peak markers
+##        for artist in ax.lines[2:]:  # Assuming first two lines are original and corrected
+##            artist.remove()
+##
+##        # Overlay new peaks
+##        ax.plot(xaxis[peaks], corrected[peaks], 'ro', label='Peaks')
+##        ax.legend()
+##        fig.canvas.draw_idle()  
+##
+##    slider_window.on_changed(update)
+##    slider_poly.on_changed(update)
+##
+##    peak_button.on_clicked(pick_peaks)
+##
+##    plt.show()
 
 def ask_mode():
     """Opens a custom dialog with 'Single' and 'Overlay' buttons."""
