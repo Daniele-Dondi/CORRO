@@ -1183,8 +1183,10 @@ def StartConfigurator(window):
     F1T3 = ttk.Frame(tab3); F1T3.pack()
     PrevT3Button=ttk.Button(F1T3, text="Prev", command=PrevT3,state='disabled'); PrevT3Button.pack(side="left")
     NextT3Button=ttk.Button(F1T3, text="Next", command=NextT3,state='disabled'); NextT3Button.pack(side="left")
-    HeaderLabelT3=ttk.Label(tab3,text ="Syringe n. 1 of 1",font=("Arial", 12)); HeaderLabelT3.pack(pady="10");
-    #ttk.Label(tab3,text ="Type").pack(); pumptype=ttk.Combobox(tab3, values = ("Syringe","Peristaltic"), state = 'readonly',width=25); pumptype.current(0); pumptype.pack()     
+    HeaderLabelT3=ttk.Label(tab3,text ="Pump n. 1 of 1",font=("Arial", 12)); HeaderLabelT3.pack(pady="10");
+    ttk.Label(tab3,text ="Pump Type").pack(); pumptype=ttk.Combobox(tab3, values = ("Not used","Syringe","Peristaltic"), state = 'readonly',width=25); pumptype.current(1); pumptype.pack()     
+    ttk.Label(tab3,text ="Valve Type").pack(); valvetype=ttk.Combobox(tab3, values = ("No valves","2 servos, 3 exits","2 servos, 4 exits","1 servo, 5 exits"), state = 'readonly',width=25); valvetype.current(2); valvetype.pack()
+    ttk.Label(tab3,text ="Valve Start Address").pack(); valveaddr=ttk.Combobox(tab3, values=tuple(str(i) for i in range(13)), state = 'readonly',width=25); valveaddr.current(2); valveaddr.pack()     
     ttk.Label(tab3,text ="Max. volume (mL)").pack(); maxvolsyr=ttk.Entry(tab3); maxvolsyr.pack(); maxvolsyr.delete(0,tk.END); maxvolsyr.insert(0,"0")
     ttk.Label(tab3,text ="0 to max sign distance (mm)").pack(); mmtomax=ttk.Entry(tab3); mmtomax.pack(); mmtomax.delete(0,tk.END); mmtomax.insert(0,"0")
     ttk.Label(tab3,text ="Inlet tube volume (mL)").pack(); inletvol=ttk.Entry(tab3); inletvol.pack(); inletvol.delete(0,tk.END); inletvol.insert(0,"0")
