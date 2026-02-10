@@ -172,6 +172,7 @@ def RemoveConstantColumns(X):
 def LoadAndGo(filename, output_widget, use_scaling, tune_svr, tune_gpr, use_kfold, make_prediction):
     df = pd.read_csv(filename)
     output_widget.delete("1.0", tk.END)
+    output_widget.insert(tk.END, filename+"\n")
     output_widget.insert(tk.END, pearson_with_comment(df))
     #print(pearson_with_comment(df))
     X = df.iloc[:, :-1]
