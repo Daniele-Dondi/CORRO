@@ -824,7 +824,7 @@ def StartConfigurator(window):
     ttk.Button(F3T1, text="Add new Reactant", command=AddReactant).pack(side="left")
     ttk.Button(F3T1, text="Remove Reactant", command=DeleteCurrentReactant).pack(side="left")
 
-    ##################   E N D   O F   T A B  1   #############################################################
+    ##################   T A B 2   #############################################################
 
     def CheckApparatusParameters(avoid):
         Name=ApparatusName.get()
@@ -1053,7 +1053,7 @@ def StartConfigurator(window):
     ttk.Button(F3T2, text="Add new Apparatus", command=AddApparatus).pack(side="left")
     ttk.Button(F3T2, text="Remove Apparatus", command=DeleteCurrentApparatus).pack(side="left")
 
-
+    ##################   T A B 3   #############################################################
     def NotSavedDataTab3():
         global CurrentSyringe
         if len(SyringesArray)==CurrentSyringe-1:
@@ -1203,6 +1203,8 @@ def StartConfigurator(window):
     ttk.Button(F2T3, text="Ignore changes", command=LoadSyringeParameters).pack(side="left")
     ttk.Button(F3T3, text="Add new Syringe", command=AddSyringe).pack(side="left")
     ttk.Button(F3T3, text="Remove Syringe", command=DeleteCurrentSyringe).pack(side="left")    
+
+    ##################   T A B 4   #############################################################
    
     def GetTab4Variables():
         return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled.get(), NumVariables.get(), VarNames.get()]
