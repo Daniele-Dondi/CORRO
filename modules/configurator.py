@@ -245,7 +245,7 @@ def SplitSyringesArray():
         SyringemmToMax.append(element[1])        
         SyringeInletVolumes.append(element[2])
         SyringeOutletVolumes.append(element[3])
-        ValvesArray.append(element[4:])
+        ValvesArray.append(element[4:8])
 
 def SplitDevicesArray():
     global DevicesArray
@@ -1061,7 +1061,9 @@ def StartConfigurator(window):
         return not(SyringesArray[CurrentSyringe-1]==GetTab3Variables())
         
     def GetTab3Variables():
-        return [maxvolsyr.get(), mmtomax.get(), inletvol.get(), outletvol.get(), exit1type.get(), exit2type.get(), exit3type.get(), exit4type.get(), exit5type.get()]  
+        return [maxvolsyr.get(), mmtomax.get(), inletvol.get(), outletvol.get(),
+                exit1type.get(), exit2type.get(), exit3type.get(), exit4type.get(), exit5type.get(),
+                pumptype.get(), valvetype.get(), valveaddr.get()]  
 
     def SetTab3Variables(parms):
         global CurrentSyringe
@@ -1074,6 +1076,9 @@ def StartConfigurator(window):
         exit3type.set(parms[6])
         exit4type.set(parms[7])
         exit5type.set(parms[8])
+        pumptype.set(parms[9])
+        valvetype.set(parms[10])
+        valveaddr.set(parms[11])
 
     def SetStatusNextPrevButtonsT3():
         global CurrentSyringe
@@ -1210,7 +1215,8 @@ def StartConfigurator(window):
     ##################   T A B 4   #############################################################
    
     def GetTab4Variables():
-        return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(), Protocol.get(), SensorEnabled.get(), NumVariables.get(), VarNames.get()]
+        return [DeviceName.get(), DeviceType.get(), DeviceUSB.get(), USBBaudRate.get(),
+                Protocol.get(), SensorEnabled.get(), NumVariables.get(), VarNames.get()]
 
     def SetTab4Variables(parms):
         DeviceName.delete(0,tk.END); DeviceName.insert(0,str(parms[0]))
