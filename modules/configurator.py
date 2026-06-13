@@ -1178,7 +1178,9 @@ def StartConfigurator(window):
                  HeaderLabelT3.config(text="Syringe n. "+str(CurrentSyringe)+" of "+str(len(SyringesArray)))
                  SetTab3Variables(SyringesArray[CurrentSyringe-1])
          SetStatusNextPrevButtonsT3()        
-        
+
+    def PrintArray():
+        print(SyringesArray)
     
     F1T3 = ttk.Frame(tab3); F1T3.pack()
     PrevT3Button=ttk.Button(F1T3, text="Prev", command=PrevT3,state='disabled'); PrevT3Button.pack(side="left")
@@ -1202,7 +1204,8 @@ def StartConfigurator(window):
     ttk.Button(F2T3, text="Save changes", command=SaveSyringeParameters).pack(side="left")
     ttk.Button(F2T3, text="Ignore changes", command=LoadSyringeParameters).pack(side="left")
     ttk.Button(F3T3, text="Add new Syringe", command=AddSyringe).pack(side="left")
-    ttk.Button(F3T3, text="Remove Syringe", command=DeleteCurrentSyringe).pack(side="left")    
+    ttk.Button(F3T3, text="Remove Syringe", command=DeleteCurrentSyringe).pack(side="left")
+    ttk.Button(F3T3, text="PRINT", command=PrintArray).pack(side="left")    
 
     ##################   T A B 4   #############################################################
    
