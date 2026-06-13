@@ -1,4 +1,4 @@
-# Copyright (C) 2025 Daniele Dondi
+# Copyright (C) 2026 Daniele Dondi
 #
 # This work is licensed under a Creative Commons Attribution 4.0 International License.
 # To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
@@ -14,7 +14,7 @@
 #   others from doing anything the license permits.
 #
 # Author: Daniele Dondi
-# Date: 2025
+# Date: 2026
 
 import tkinter as tk                     
 from tkinter import ttk, Menu, messagebox, filedialog
