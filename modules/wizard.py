@@ -22,6 +22,8 @@ import os
 import modules.configurator as conf
 import pickle
 
+CurrentBehaviour="Use Current Setup"
+
 class Pour(tk.Frame):
     def __init__(self,container):
         self.Action=[]
@@ -31,6 +33,7 @@ class Pour(tk.Frame):
         self.MacroName="Pour" #bind to macro name in macros folder
         super().__init__(container)
         self.create_widgets()
+        print(CurrentBehaviour)
 
     def create_widgets(self):
         self.Line1=tk.Frame(self)
@@ -1351,6 +1354,10 @@ def StartWizard(window, **kwargs):
     Selecting_Objects=False
     Dragging_Objects=False
 
+    def ModeCallback(event):
+        global CurrentBehaviour
+        CurrentBehaviour=Mode.get()    
+
     def Remove_Selection_Reactangle():
         try:
             SelectionCanvas.delete(SelectionCanvas.rect)
@@ -2091,7 +2098,7 @@ def StartWizard(window, **kwargs):
     frame1 = tk.Frame(WizardWindow)
     frame1.pack(side="top")
     frame3 = tk.Frame(WizardWindow,bg="gray",width=1000,height=30)
-    frame3.pack(side="bottom")
+    frame3.pack(side="top")
     
     my_canvas = tk.Canvas(WizardWindow)
     my_canvas.pack(side="left",fill="both",expand=1)
@@ -2135,7 +2142,12 @@ def StartWizard(window, **kwargs):
     tk.Button(frame1,text="Chromatography",command=lambda: CreateNewObject("Chrom")).pack(side="left")    
     tk.Button(frame1,text="Titrate",command=lambda: CreateNewObject("Titr")).pack(side="left")    
 
-    tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")
+    #tk.Button(frame3,text="Process Check",command=CheckProcedure).pack(side="left")
+    LabelMode=tk.Label(frame3,text="Choose wizard mode:")
+    LabelMode.pack(side="left")
+    Mode=ttk.Combobox(frame3, values = ("Use Current Setup","Use Current Reagents and Apparatus","Create new structure from procedure"), state = 'readonly')
+    Mode.bind("<<ComboboxSelected>>", ModeCallback)
+    Mode.pack(side="left")
 
   
             
