@@ -1,5 +1,10 @@
 pip install pillow
 pip install image
 pip install pyserial
+pip install requests
+pip install pandas
+pip install matplotlib
+pip install bayesian-optimization==1.4.3
+
 raspberry 
 sudo apt-get install python3-pil python3-pil.imagetk
