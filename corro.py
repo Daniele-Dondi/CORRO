@@ -1029,12 +1029,13 @@ def ConnectSyringeBOT(USB,USBrate):
     global chart_h
     global USB_handles
     try:
-        SyringeBOT = serial.Serial(USB,USBrate)
-        USB_handles.append(SyringeBOT)
-        time.sleep(1)
-        while (SyringeBOT.inWaiting() > 0):
-            data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii')
-            print(data_str, end='')
+        if not(DoNotConnect):
+            SyringeBOT = serial.Serial(USB,USBrate)
+            USB_handles.append(SyringeBOT)
+            time.sleep(1)
+            while (SyringeBOT.inWaiting() > 0):
+                data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii')
+                print(data_str, end='')
     except Exception as e:
         tk.messagebox.showerror("ERROR", "SyringeBOT unit not connected! \ncheck connections\nand restart")
         print("ERROR Connect(): ",e)
@@ -1057,10 +1058,6 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
     global Sensors_var_names
     SyringeBOT_IS_INITIALIZED=False
     ResetChart()
-    if DoNotConnect:
-        connected=1
-        logfile=open("log"+os.sep+"log"+str(DT.datetime.now()).replace(":","-")+".txt","a")  #log file name is log+current date time. The replace is needed for Windows to avoid invalid characters
-        return
     if connected == 0:  #if it is not connected, connect
         ensure_directory_exists("log")
         conf.LoadConfFile()
@@ -1070,17 +1067,20 @@ def Connect(): #connect/disconnect robot, SyringeBOT and sensors. Start cycling 
                     ConnectSyringeBOT(conf.USB_ports[device],conf.USB_baudrates[device])
                     conf.USB_deviceready[device]=HasSyringeBOT
                 else:
-                    try:
-                        USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
-                        #conf.USB_deviceready[device]=True
-                        if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
-                        #conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
-                    except Exception as e:
-                        print(e)
-                        conf.USB_deviceready[device]=False
-                        tk.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
+                    if DoNotConnect:
+                        return
                     else:
-                        connected=1
+                        try:
+                            USB_handles.append(serial.Serial(conf.USB_ports[device],conf.USB_baudrates[device]))
+                            #conf.USB_deviceready[device]=True
+                            if (debug): print("USB device #",device+1,"port:",conf.USB_ports[device],"num vars=",conf.USB_num_vars[device])
+                            #conf.USB_last_values.append(("0.01 " *int(conf.USB_num_vars[device])).strip())
+                        except Exception as e:
+                            print(e)
+                            conf.USB_deviceready[device]=False
+                            tk.messagebox.showerror("ERROR", conf.USB_names[device]+" not ready! \ncheck connections\nand restart\n if error persists check parameters in Configurator")
+                        else:
+                            connected=1
         if connected==0:
             tk.messagebox.showerror("ERROR", "NO DEVICES FOUND. ABORTING CONNECTION.\n check parameters in Configurator")
             return
@@ -1162,6 +1162,10 @@ def SyringeBOTCycle():
         time.sleep(0.05)
         
 def SyringeBOTCycleCore(): #listen and send messages to SyringeBOT
+    global DoNotConnect
+    if DoNotConnect:
+        print("1")
+        return
     global SyringeBOT,connected,SyringeBOTReady,Gcode,SyringeBOTWorking,SyringeBOTQueue,SyringeBOTQueueIndex,SyringeBOTSendNow,T_Actual,T_SetPoint
     while (SyringeBOT.inWaiting() > 0):
         data_str = SyringeBOT.read(SyringeBOT.inWaiting()).decode('ascii')
@@ -1221,6 +1225,13 @@ def HookTriggered():
     return Result
 
 def HookEventsCycle():
+    global connected
+    Triggered=HookEventsCycleCore()
+    while (connected) and not(Triggered):
+        time.sleep(1)        
+        Triggered=HookEventsCycleCore()
+
+def HookEventsCycleCore():
     global connected,SyringeBOT_IS_BUSY,T_Actual
     global Temperature_Hook,Temperature_Hook_Value,Temperature_Hook_Macro,Time_Hook,Time_Hook_Value,Time_Hook_Macro,macrolist
     Triggered=HookTriggered()
@@ -1231,7 +1242,8 @@ def HookEventsCycle():
         else:
             print("Time Hook: executing macro "+Time_Hook_Macro)
             ExecuteMacro(macrolist.index(Time_Hook_Macro))
-    if (connected) and not(Triggered): threading.Timer(1, HookEventsCycle).start() #call itself
+    return Triggered
+    #if (connected) and not(Triggered): threading.Timer(1, HookEventsCycle).start() #call itself
 
 def ConvertVoltageTopH(value):
     return str(round(-6.89751896*float(value)+30.59142546,2))
@@ -1442,6 +1454,11 @@ def StartProcedure():
         threading.Timer(0.1, RunCompiledCode, args=([CompiledCode])).start() #execute in background
 
 def OptimizationCycle(): #cycle to start and follow optimization
+    while (connected) and Opt.WeAreOptimizing:
+        OptimizationCycleCore()
+        time.sleep(1)
+
+def OptimizationCycleCore(): #cycle to start and follow optimization
     NewValues=Opt.CreateNewValues()
     if NewValues==None: #We finished the optimization procedure
         RemoveOptButtonAndVar()
@@ -1458,10 +1475,10 @@ def OptimizationCycle(): #cycle to start and follow optimization
     Opt.RecordTargetValues(Target_Value)
     
     print(Opt.WeAreOptimizing)
-
-    #if connected and Opt.WeAreOptimizing:
-    if Opt.WeAreOptimizing:
-        threading.Timer(1, OptimizationCycle).start() #call itself
+##
+##    #if connected and Opt.WeAreOptimizing:
+##    if Opt.WeAreOptimizing:
+##        threading.Timer(1, OptimizationCycle).start() #call itself
 
 
 ############################################################################################################################
